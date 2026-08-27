@@ -13,10 +13,18 @@ for command_name in go docker python3 zenity xdg-open; do
   fi
 done
 docker compose version >/dev/null
+python3 -c 'import gi; gi.require_version("AyatanaAppIndicator3", "0.1"); from gi.repository import AyatanaAppIndicator3, Gtk' 2>/dev/null || {
+  printf '%s\n' 'Missing native tray support: install python3-gi and gir1.2-ayatanaappindicator3-0.1' >&2
+  exit 1
+}
 
 mkdir -p "$bin_dir" "$apps_dir" "$icons_dir"
 (cd "$project_dir" && go build -o "$bin_dir/drillbox" .)
 install -m 0644 "$project_dir/static/drillbox.svg" "$icons_dir/drillbox.svg"
+
+# Remove launcher artifacts from the former Read / Run name. Course progress
+# and Grafana state use separate storage and are intentionally preserved.
+rm -f "$bin_dir/read-run" "$apps_dir/read-run.desktop" "$icons_dir/read-run.svg"
 
 desktop_file="$apps_dir/drillbox.desktop"
 {

@@ -16,7 +16,7 @@ import (
 const coursesURL = "http://127.0.0.1:8080/courses/"
 
 func runLauncher(parent context.Context) error {
-	for _, name := range []string{"zenity", "xdg-open"} {
+	for _, name := range []string{"python3", "zenity", "xdg-open"} {
 		if _, err := exec.LookPath(name); err != nil {
 			return fmt.Errorf("the launcher needs %s: %w", name, err)
 		}
@@ -49,28 +49,44 @@ func runLauncher(parent context.Context) error {
 	}
 	_ = openCourses()
 
-	for ctx.Err() == nil {
-		command := exec.CommandContext(ctx, "zenity",
-			"--question",
-			"--title=Drillbox",
-			"--width=430",
-			"--text=Drillbox is active.\n\nOpen Courses reopens the catalog.\nStop & Close shuts down the course server and lab containers while keeping your progress and Grafana data.",
-			"--ok-label=Open Courses",
-			"--cancel-label=Stop & Close",
-			"--default-cancel",
-		)
-		if err := command.Run(); err != nil {
-			break
-		}
-		_ = openCourses()
-	}
-
+	trayErr := make(chan error, 1)
+	go func() { trayErr <- runTray(ctx) }()
+	serverStopped, waitErr := waitForLauncher(ctx, serverErr, trayErr)
 	cancel()
+	if !serverStopped {
+		select {
+		case err := <-serverErr:
+			if waitErr == nil {
+				waitErr = err
+			}
+		case <-time.After(40 * time.Second):
+			return errors.New("timed out cleaning up Drillbox")
+		}
+	}
+	return waitErr
+}
+
+func runTray(ctx context.Context) error {
+	icon, err := filepath.Abs("static/drillbox.svg")
+	if err != nil {
+		return fmt.Errorf("find tray icon: %w", err)
+	}
+	command := exec.CommandContext(ctx, "python3", "launcher_tray.py", coursesURL, icon)
+	command.Stderr = os.Stderr
+	if err := command.Run(); err != nil && ctx.Err() == nil {
+		return fmt.Errorf("run tray controller: %w", err)
+	}
+	return nil
+}
+
+func waitForLauncher(ctx context.Context, serverErr, trayErr <-chan error) (bool, error) {
 	select {
 	case err := <-serverErr:
-		return err
-	case <-time.After(40 * time.Second):
-		return errors.New("timed out cleaning up Drillbox")
+		return true, err
+	case err := <-trayErr:
+		return false, err
+	case <-ctx.Done():
+		return false, ctx.Err()
 	}
 }
 

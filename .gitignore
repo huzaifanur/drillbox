@@ -1,7 +1,7 @@
 node_modules/
+__pycache__/
 .gstack/
 .read-run-state/
 read-run
 drillbox
 *.log
-

@@ -4,7 +4,7 @@ A lean local practice platform: read a lesson, edit or run the exercise, and pas
 
 ## Install the course launcher
 
-Requires Go 1.22 or newer, Python 3 with its standard SQLite module, Docker with Compose, Zenity, and `xdg-open`. Install once:
+Requires Go 1.22 or newer, Python 3 with SQLite and PyGObject, Ayatana AppIndicator, Docker with Compose, Zenity, and `xdg-open`. On Ubuntu, the tray dependencies are provided by `python3-gi` and `gir1.2-ayatanaappindicator3-0.1`. Install once:
 
 ```sh
 git clone https://github.com/huzaifanur/drillbox.git
@@ -12,7 +12,7 @@ cd drillbox
 ./install.sh
 ```
 
-Then open **Drillbox** from the application menu. The launcher opens the catalog in your browser and stays visible as a small controller. **Stop & Close** (or closing the controller) shuts down the course server and Grafana lab containers automatically. Browser progress, drafts, Grafana dashboards, and Prometheus data remain available after a restart.
+Then open **Drillbox** from the application menu. The launcher opens the catalog in your browser and stays available from the system tray without covering the lesson. **Stop & Close** shuts down the course server and Grafana lab containers automatically. Browser progress, drafts, Grafana dashboards, and Prometheus data remain available after a restart.
 
 For development, `go run .` still starts the server at <http://127.0.0.1:8080> without the desktop controller.
 
