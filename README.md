@@ -2,6 +2,10 @@
 
 A lean local practice platform: read a lesson, edit or run the exercise, and pass or fail.
 
+## Supported interface
+
+Drillbox is a desktop-only application with a minimum supported viewport width of 1024px. Mobile and tablet layouts, responsive behavior, SEO, and dedicated accessibility optimization are intentionally outside the project scope.
+
 ## Install the course launcher
 
 Requires Go 1.22 or newer, Python 3 with SQLite and PyGObject, Ayatana AppIndicator, Docker with Compose, Zenity, and `xdg-open`. On Ubuntu, the tray dependencies are provided by `python3-gi` and `gir1.2-ayatanaappindicator3-0.1`. Install once:

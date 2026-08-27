@@ -18,6 +18,7 @@
 
 body {
   margin: 0;
+  min-width: 1024px;
   min-height: 100vh;
   background: var(--background);
   color: var(--text);
@@ -540,17 +541,3 @@ main.courses-main {
 .course-card-progress span { display: block; height: 100%; background: var(--pass); }
 .course-card-footer { display: flex; justify-content: space-between; color: var(--muted); font: 12px ui-monospace, monospace; }
 .course-card-footer strong { color: var(--text); }
-
-@media (max-width: 800px) {
-  header { height: auto; min-height: 64px; padding-block: 10px; gap: 12px; }
-  .brand-group { align-self: flex-start; }
-  .track-nav { flex-wrap: wrap; justify-content: flex-end; }
-  select { max-width: min(220px, 70vw); }
-  main { height: auto; grid-template-columns: 1fr; }
-  .lesson { min-height: 70vh; border-right: 0; border-bottom: 1px solid var(--border); }
-  .lesson-brief { grid-template-columns: 1fr; gap: 6px; }
-  .workspace { min-height: 90vh; }
-  select, button { min-height: 44px; }
-  .map-close { width: 44px; height: 44px; }
-  button.outline-lesson { min-height: 44px; }
-}
