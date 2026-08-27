@@ -39,6 +39,7 @@ type lesson struct {
 	CourseTitle string   `json:"courseTitle"`
 	Chapter     string   `json:"chapter"`
 	Title       string   `json:"title"`
+	Concept     string   `json:"concept,omitempty"`
 	Instruction string   `json:"instruction"`
 	Starter     string   `json:"starter"`
 	Expected    string   `json:"expected"`
@@ -129,6 +130,7 @@ func runServer(ctx context.Context) error {
 	lessons = append(lessons, grafanaLessons...)
 	sqlCourse, sqlLessons := loadSQLCourse()
 	lessons = append(lessons, sqlLessons...)
+	prepareLessonContent(lessons)
 	courses := []course{
 		{ID: "learn-go", Title: "Learn Go", Description: "Go fundamentals from variables through concurrency and generics.", LessonCount: 145},
 		{ID: "http-clients", Title: "Learn HTTP Clients in Go", Description: "HTTP, JSON, URLs, headers, methods, errors, and command-line clients.", LessonCount: len(httpLessons)},
@@ -1021,11 +1023,12 @@ func (a *app) getLesson(w http.ResponseWriter, r *http.Request) {
 		CourseTitle string `json:"courseTitle"`
 		Chapter     string `json:"chapter"`
 		Title       string `json:"title"`
+		Concept     string `json:"concept"`
 		Instruction string `json:"instruction"`
 		Starter     string `json:"starter"`
 		Mode        string `json:"mode"`
 		EditorLabel string `json:"editorLabel"`
-	}{item.ID, item.CourseID, item.CourseTitle, item.Chapter, item.Title, item.Instruction, item.Starter, lessonMode(item), editorLabel(item)})
+	}{item.ID, item.CourseID, item.CourseTitle, item.Chapter, item.Title, item.Concept, item.Instruction, item.Starter, lessonMode(item), editorLabel(item)})
 }
 
 func (a *app) runLesson(w http.ResponseWriter, r *http.Request) {
