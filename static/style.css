@@ -73,7 +73,7 @@ select {
 main {
   height: calc(100vh - 64px);
   display: grid;
-  grid-template-columns: minmax(320px, 42%) 1fr;
+  grid-template-columns: minmax(360px, 48%) 1fr;
 }
 
 .course-map {
@@ -231,12 +231,16 @@ body.map-open .course-map { transform: translateX(0); }
 body.map-open .map-backdrop { opacity: 1; visibility: visible; }
 
 .lesson {
-  padding: clamp(32px, 6vw, 80px);
+  padding: clamp(32px, 5vw, 64px);
   border-right: 1px solid var(--border);
   overflow: auto;
   display: flex;
   flex-direction: column;
-  background: var(--background);
+  background:
+    linear-gradient(rgb(255 255 255 / 1.5%) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 1.2%) 1px, transparent 1px),
+    var(--background);
+  background-size: 48px 48px;
 }
 
 .eyebrow {
@@ -248,16 +252,60 @@ body.map-open .map-backdrop { opacity: 1; visibility: visible; }
 }
 
 h1 {
-  margin: 0 0 28px;
-  font-size: clamp(32px, 5vw, 60px);
-  line-height: 1.05;
-  letter-spacing: -.04em;
+  max-width: 16ch;
+  margin: 0 0 30px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(34px, 4vw, 46px);
+  line-height: 1.1;
+  letter-spacing: -.025em;
+  text-wrap: balance;
 }
 
 .instruction {
-  color: #c8ced8;
-  white-space: pre-line;
-  max-width: 62ch;
+  width: min(100%, 66ch);
+  color: #d7dee6;
+}
+
+.lesson-lead {
+  margin: 0;
+  color: #dbe2eb;
+  font-size: 17px;
+  line-height: 1.75;
+}
+
+.assignment {
+  margin-top: 30px;
+  padding: 24px 26px;
+  border: 1px solid #555d6e;
+  border-radius: 8px;
+  background: rgb(24 27 38 / 88%);
+  box-shadow: 0 18px 36px rgb(0 0 0 / 13%);
+}
+
+.assignment h2 {
+  margin: 0 0 14px;
+  color: var(--text);
+  font: 700 25px/1.2 Georgia, "Times New Roman", serif;
+}
+
+.assignment p {
+  margin: 0;
+  color: #d7dee6;
+  line-height: 1.7;
+}
+
+.assignment p + p,
+.assignment p + .expected-output { margin-top: 16px; }
+
+.expected-output {
+  margin: 16px 0 0;
+  padding: 13px 15px;
+  overflow-x: auto;
+  border: 1px solid #424a5a;
+  border-radius: 6px;
+  background: var(--workspace-deep);
+  color: #f3f5f8;
+  font: 14px/1.55 "JetBrains Mono", "Cascadia Code", ui-monospace, monospace;
 }
 
 .lab-panel {
@@ -294,8 +342,8 @@ h1 {
 .lab-panel #lab-retry { padding: 6px 10px; }
 
 .lesson-nav {
-  margin-top: auto;
-  padding-top: 40px;
+  margin-top: 28px;
+  padding-top: 0;
   display: flex;
   gap: 12px;
 }

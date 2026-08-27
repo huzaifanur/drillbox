@@ -53,7 +53,7 @@ async function loadLesson() {
   localStorage.setItem(`${storageKey}:current:${state.course.id}`, summary.id);
   elements.chapter.textContent = state.lesson.chapter;
   elements.title.textContent = state.lesson.title;
-  elements.instruction.textContent = state.lesson.instruction;
+  renderInstruction(state.lesson.instruction);
   configureWorkspace();
   setEditorValue(localStorage.getItem(`${storageKey}:draft:${summary.id}`) || state.lesson.starter);
   elements.output.textContent = state.lesson.mode === "lab" ? "Complete the task in Grafana, then run Check." : "Output will appear here.";
@@ -64,6 +64,35 @@ async function loadLesson() {
   updateRunAvailability();
   scheduleSQLLint();
   focusEditor();
+}
+
+function renderInstruction(text) {
+  const blocks = text.split(/\n\s*\n/).map((block) => block.trim()).filter(Boolean);
+  const fragment = document.createDocumentFragment();
+
+  if (blocks.length > 1) {
+    const lead = document.createElement("p");
+    lead.className = "lesson-lead";
+    lead.textContent = blocks.shift();
+    fragment.append(lead);
+  }
+
+  const assignment = document.createElement("section");
+  assignment.className = "assignment";
+  const heading = document.createElement("h2");
+  heading.textContent = "Assignment";
+  assignment.append(heading);
+
+  blocks.forEach((block, index) => {
+    const exactOutput = blocks.length > 1 && index === blocks.length - 1 && !/[.!?]$/.test(block);
+    const element = document.createElement(exactOutput ? "pre" : "p");
+    if (exactOutput) element.className = "expected-output";
+    element.textContent = block;
+    assignment.append(element);
+  });
+
+  fragment.append(assignment);
+  elements.instruction.replaceChildren(fragment);
 }
 
 function configureWorkspace() {
