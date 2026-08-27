@@ -53,7 +53,7 @@ async function loadLesson() {
   localStorage.setItem(`${storageKey}:current:${state.course.id}`, summary.id);
   elements.chapter.textContent = state.lesson.chapter;
   elements.title.textContent = state.lesson.title;
-  renderInstruction(state.lesson.instruction);
+  renderInstruction(state.lesson.concept, state.lesson.instruction);
   configureWorkspace();
   setEditorValue(localStorage.getItem(`${storageKey}:draft:${summary.id}`) || state.lesson.starter);
   elements.output.textContent = state.lesson.mode === "lab" ? "Complete the task in Grafana, then run Check." : "Output will appear here.";
@@ -66,24 +66,36 @@ async function loadLesson() {
   focusEditor();
 }
 
-function renderInstruction(text) {
+function renderInstruction(concept, text) {
   const blocks = text.split(/\n\s*\n/).map((block) => block.trim()).filter(Boolean);
   const fragment = document.createDocumentFragment();
 
-  if (blocks.length > 1) {
-    const lead = document.createElement("p");
-    lead.className = "lesson-lead";
-    lead.textContent = blocks.shift();
-    fragment.append(lead);
-  }
+  const brief = document.createElement("section");
+  brief.className = "lesson-brief";
+  brief.setAttribute("aria-label", "Key idea");
+  const briefLabel = document.createElement("span");
+  briefLabel.className = "lesson-brief-label";
+  briefLabel.textContent = "Key idea";
+  const lead = document.createElement("p");
+  lead.className = "lesson-lead";
+  lead.textContent = concept;
+  brief.append(briefLabel, lead);
+  fragment.append(brief);
 
   const assignment = document.createElement("section");
   assignment.className = "assignment";
   const heading = document.createElement("h2");
-  heading.textContent = "Assignment";
+  heading.textContent = "Task";
   assignment.append(heading);
 
   blocks.forEach((block, index) => {
+    if (/^Expected output:?$/i.test(block)) {
+      const label = document.createElement("p");
+      label.className = "success-label";
+      label.textContent = "Success";
+      assignment.append(label);
+      return;
+    }
     const exactOutput = blocks.length > 1 && index === blocks.length - 1 && !/[.!?]$/.test(block);
     const element = document.createElement(exactOutput ? "pre" : "p");
     if (exactOutput) element.className = "expected-output";
