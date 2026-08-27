@@ -5,8 +5,19 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"testing"
 )
+
+func TestEditorWrapsLongLines(t *testing.T) {
+	source, err := os.ReadFile("static/editor-src.js")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(string(source), "EditorView.lineWrapping") {
+		t.Fatal("CodeMirror must wrap long lines inside the editor pane")
+	}
+}
 
 func TestLoadLessons(t *testing.T) {
 	dir := t.TempDir()
