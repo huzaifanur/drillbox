@@ -1,0 +1,342 @@
+{
+  "id": "pubsub",
+  "title": "Learn Pub/Sub in RabbitMQ and Go",
+  "description": "Build event-driven Go services with queues, exchanges, routing, and delivery guarantees.",
+  "requiredLab": "pubsub",
+  "lessons": [
+    {
+      "id": "pubsub-01-01-learn-pub-sub-architecture",
+      "chapter": "Chapter 1 · Pub/Sub Architecture",
+      "title": "Learn Pub/Sub Architecture",
+      "instruction": "A publisher emits an event without knowing which subscribers will handle it. The broker routes the event, allowing subscribers to evolve independently. Publish the user.created event so the matching handler runs.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype Event struct { Topic, Body string }\n\nfunc publish(event Event, handlers map[string][]func(Event)) {\n\tfor _, handle := range handlers[event.Topic] {\n\t\thandle(event)\n\t}\n}\n\nfunc main() {\n\thandlers := map[string][]func(Event){\n\t\t\"user.created\": {func(event Event) { fmt.Println(\"welcome\", event.Body) }},\n\t}\n\tpublish(Event{Topic: \"user.deleted\", Body: \"user-42\"}, handlers)\n}\n",
+      "expected": "welcome user-42\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype Event struct { Topic, Body string }\n\nfunc publish(event Event, handlers map[string][]func(Event)) {\n\tfor _, handle := range handlers[event.Topic] {\n\t\thandle(event)\n\t}\n}\n\nfunc main() {\n\thandlers := map[string][]func(Event){\n\t\t\"user.created\": {func(event Event) { fmt.Println(\"welcome\", event.Body) }},\n\t}\n\tpublish(Event{Topic: \"user.created\", Body: \"user-42\"}, handlers)\n}\n"
+    },
+    {
+      "id": "pubsub-01-02-publisher",
+      "chapter": "Chapter 1 · Pub/Sub Architecture",
+      "title": "Publisher",
+      "instruction": "A RabbitMQ publisher sends a body to an exchange with a routing key; it does not address a consumer directly. Publish the order event with the routing key expected by downstream bindings.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc publish(exchange, key, body string) {\n\tfmt.Println(exchange, key, body)\n}\n\nfunc main() {\n\tpublish(\"events\", \"orders.failed\", \"order-17\")\n}\n",
+      "expected": "events orders.created order-17\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc publish(exchange, key, body string) {\n\tfmt.Println(exchange, key, body)\n}\n\nfunc main() {\n\tpublish(\"events\", \"orders.created\", \"order-17\")\n}\n"
+    },
+    {
+      "id": "pubsub-01-03-subscriber",
+      "chapter": "Chapter 1 · Pub/Sub Architecture",
+      "title": "Subscriber",
+      "instruction": "A subscriber processes deliveries selected by its queue bindings. Handle the orders.created delivery and ignore unrelated topics.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype Event struct { Topic, Body string }\n\nfunc consume(event Event) {\n\tif event.Topic == \"orders.created\" {\n\t\tfmt.Println(\"processed\", event.Body)\n\t}\n}\n\nfunc main() {\n\tconsume(Event{Topic: \"orders.failed\", Body: \"order-17\"})\n}\n",
+      "expected": "processed order-17\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype Event struct { Topic, Body string }\n\nfunc consume(event Event) {\n\tif event.Topic == \"orders.created\" {\n\t\tfmt.Println(\"processed\", event.Body)\n\t}\n}\n\nfunc main() {\n\tconsume(Event{Topic: \"orders.created\", Body: \"order-17\"})\n}\n"
+    },
+    {
+      "id": "pubsub-01-04-event-driven-design",
+      "chapter": "Chapter 1 · Pub/Sub Architecture",
+      "title": "Event-Driven Design",
+      "instruction": "One event can fan out to independent reactions, but that decoupling also introduces eventual consistency and retry concerns. Register both reactions without making either handler call the other.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\thandlers := []func(){\n\t\tfunc() { fmt.Println(\"audit recorded\") },\n\t}\n\tfor _, handle := range handlers { handle() }\n}\n",
+      "expected": "audit recorded\nemail queued\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\thandlers := []func(){\n\t\tfunc() { fmt.Println(\"audit recorded\") },\n\t\tfunc() { fmt.Println(\"email queued\") },\n\t}\n\tfor _, handle := range handlers { handle() }\n}\n"
+    },
+    {
+      "id": "pubsub-02-01-rabbitmq",
+      "chapter": "Chapter 2 · Message Brokers",
+      "title": "RabbitMQ",
+      "instruction": "RabbitMQ is the broker used by this course. Run Check to verify that its management endpoint is responding before you build publishers and consumers.",
+      "starter": "check\n",
+      "expected": "PASS · The live pubsub services are ready.",
+      "mode": "lab",
+      "validator": "service-ready"
+    },
+    {
+      "id": "pubsub-02-02-alternative-brokers",
+      "chapter": "Chapter 2 · Message Brokers",
+      "title": "Alternative Brokers",
+      "instruction": "RabbitMQ excels at queueing and flexible routing, Kafka at durable replayable logs, and NATS at lightweight low-latency messaging. Complete the chooser so each workload gets the intended broker.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc choose(replay, routing bool) string {\n\treturn \"nats\"\n}\n\nfunc main() {\n\tfmt.Println(choose(true, false), choose(false, true), choose(false, false))\n}\n",
+      "expected": "kafka rabbitmq nats\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc choose(replay, routing bool) string {\n\tif replay { return \"kafka\" }\n\tif routing { return \"rabbitmq\" }\n\treturn \"nats\"\n}\n\nfunc main() {\n\tfmt.Println(choose(true, false), choose(false, true), choose(false, false))\n}\n"
+    },
+    {
+      "id": "pubsub-02-03-connect",
+      "chapter": "Chapter 2 · Message Brokers",
+      "title": "Connect",
+      "instruction": "An AMQP connection is long-lived, while channels are lighter logical sessions created from it. Open a channel and close it before the connection when main returns.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype connection struct{}\ntype channel struct{}\nfunc (connection) Close() { fmt.Println(\"connection closed\") }\nfunc (connection) Channel() channel { return channel{} }\nfunc (channel) Close() { fmt.Println(\"channel closed\") }\n\nfunc main() {\n\tconn := connection{}\n\tdefer conn.Close()\n}\n",
+      "expected": "channel closed\nconnection closed\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype connection struct{}\ntype channel struct{}\nfunc (connection) Close() { fmt.Println(\"connection closed\") }\nfunc (connection) Channel() channel { return channel{} }\nfunc (channel) Close() { fmt.Println(\"channel closed\") }\n\nfunc main() {\n\tconn := connection{}\n\tdefer conn.Close()\n\tch := conn.Channel()\n\tdefer ch.Close()\n}\n"
+    },
+    {
+      "id": "pubsub-02-04-amqp-protocol",
+      "chapter": "Chapter 2 · Message Brokers",
+      "title": "AMQP Protocol",
+      "instruction": "AMQP separates routing metadata from message content. Fill the envelope with an exchange, routing key, content type, and body like a publisher would send.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype Envelope struct { Exchange, Key, ContentType, Body string }\n\nfunc main() {\n\tmessage := Envelope{Exchange: \"events\"}\n\tfmt.Println(message.Exchange, message.Key, message.ContentType, message.Body)\n}\n",
+      "expected": "events game.started application/json player-7\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype Envelope struct { Exchange, Key, ContentType, Body string }\n\nfunc main() {\n\tmessage := Envelope{Exchange: \"events\", Key: \"game.started\", ContentType: \"application/json\", Body: \"player-7\"}\n\tfmt.Println(message.Exchange, message.Key, message.ContentType, message.Body)\n}\n"
+    },
+    {
+      "id": "pubsub-02-05-mqtt-and-stomp",
+      "chapter": "Chapter 2 · Message Brokers",
+      "title": "MQTT and STOMP",
+      "instruction": "MQTT is compact topic-based messaging for constrained clients; STOMP uses simple text frames; AMQP exposes richer broker semantics. Return the protocol that matches each client need.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc protocol(lowPower, textFrames bool) string {\n\treturn \"AMQP\"\n}\n\nfunc main() {\n\tfmt.Println(protocol(true, false), protocol(false, true), protocol(false, false))\n}\n",
+      "expected": "MQTT STOMP AMQP\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc protocol(lowPower, textFrames bool) string {\n\tif lowPower { return \"MQTT\" }\n\tif textFrames { return \"STOMP\" }\n\treturn \"AMQP\"\n}\n\nfunc main() {\n\tfmt.Println(protocol(true, false), protocol(false, true), protocol(false, false))\n}\n"
+    },
+    {
+      "id": "pubsub-03-01-exchanges-and-queues",
+      "chapter": "Chapter 3 · Publishers & Queues",
+      "title": "Exchanges and Queues",
+      "instruction": "Publishers send to exchanges; bindings decide which queues receive a message; consumers read from queues. Use the binding key that routes this email job into the jobs queue.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc route(binding, key, queue, body string) {\n\tif binding == key { fmt.Println(queue, body) }\n}\n\nfunc main() {\n\troute(\"email.send\", \"email.cancel\", \"jobs\", \"email-7\")\n}\n",
+      "expected": "jobs email-7\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc route(binding, key, queue, body string) {\n\tif binding == key { fmt.Println(queue, body) }\n}\n\nfunc main() {\n\troute(\"email.send\", \"email.send\", \"jobs\", \"email-7\")\n}\n"
+    },
+    {
+      "id": "pubsub-03-02-types-of-exchanges",
+      "chapter": "Chapter 3 · Publishers & Queues",
+      "title": "Types of Exchanges",
+      "instruction": "Direct exchanges match exact keys, fanout exchanges ignore keys, topic exchanges match dot-delimited patterns, and headers exchanges inspect metadata. Implement those four routing decisions.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc route(kind, binding, key string, headers map[string]string) bool {\n\t_ = strings.Split(key, \".\")\n\treturn false\n}\n\nfunc main() {\n\th := map[string]string{\"format\": \"pdf\"}\n\tfmt.Printf(\"direct=%v fanout=%v topic=%v headers=%v\\n\", route(\"direct\", \"order.created\", \"order.created\", nil), route(\"fanout\", \"\", \"anything\", nil), route(\"topic\", \"logs.*\", \"logs.error\", nil), route(\"headers\", \"format=pdf\", \"\", h))\n}\n",
+      "expected": "direct=true fanout=true topic=true headers=true\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc route(kind, binding, key string, headers map[string]string) bool {\n\tswitch kind {\n\tcase \"direct\":\n\t\treturn binding == key\n\tcase \"fanout\":\n\t\treturn true\n\tcase \"topic\":\n\t\tb, k := strings.Split(binding, \".\"), strings.Split(key, \".\")\n\t\treturn len(b) == len(k) && (b[0] == \"*\" || b[0] == k[0]) && (b[1] == \"*\" || b[1] == k[1])\n\tcase \"headers\":\n\t\tparts := strings.SplitN(binding, \"=\", 2)\n\t\treturn len(parts) == 2 && headers[parts[0]] == parts[1]\n\t}\n\treturn false\n}\n\nfunc main() {\n\th := map[string]string{\"format\": \"pdf\"}\n\tfmt.Printf(\"direct=%v fanout=%v topic=%v headers=%v\\n\", route(\"direct\", \"order.created\", \"order.created\", nil), route(\"fanout\", \"\", \"anything\", nil), route(\"topic\", \"logs.*\", \"logs.error\", nil), route(\"headers\", \"format=pdf\", \"\", h))\n}\n"
+    },
+    {
+      "id": "pubsub-03-03-create-a-queue",
+      "chapter": "Chapter 3 · Publishers & Queues",
+      "title": "Create a Queue",
+      "instruction": "Queue declaration is idempotent only when the existing queue has the same properties. Make both declarations agree so a second declaration succeeds.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype Queue struct { Name string; Durable, AutoDelete, Exclusive bool }\n\nfunc same(a, b Queue) bool { return a == b }\n\nfunc main() {\n\tfirst := Queue{Name: \"orders\", Durable: true}\n\tsecond := Queue{Name: \"orders\", Durable: false}\n\tfmt.Println(same(first, second))\n}\n",
+      "expected": "true\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype Queue struct { Name string; Durable, AutoDelete, Exclusive bool }\n\nfunc same(a, b Queue) bool { return a == b }\n\nfunc main() {\n\tfirst := Queue{Name: \"orders\", Durable: true}\n\tsecond := Queue{Name: \"orders\", Durable: true}\n\tfmt.Println(same(first, second))\n}\n"
+    },
+    {
+      "id": "pubsub-03-04-transient-queues",
+      "chapter": "Chapter 3 · Publishers & Queues",
+      "title": "Transient Queues",
+      "instruction": "A private temporary subscriber commonly uses a server-generated, non-durable, exclusive, auto-delete queue. Configure those lifecycle properties.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype Queue struct { Name string; Durable, AutoDelete, Exclusive bool }\n\nfunc main() {\n\tqueue := Queue{Name: \"shared\", Durable: true}\n\tfmt.Println(queue.Name, queue.Durable, queue.AutoDelete, queue.Exclusive)\n}\n",
+      "expected": "generated false true true\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype Queue struct { Name string; Durable, AutoDelete, Exclusive bool }\n\nfunc main() {\n\tqueue := Queue{Name: \"generated\", Durable: false, AutoDelete: true, Exclusive: true}\n\tfmt.Println(queue.Name, queue.Durable, queue.AutoDelete, queue.Exclusive)\n}\n"
+    },
+    {
+      "id": "pubsub-03-05-decoupling",
+      "chapter": "Chapter 3 · Publishers & Queues",
+      "title": "Decoupling",
+      "instruction": "A service can depend on an event contract and a publisher interface instead of a concrete downstream service. Emit user.created through the provided publisher.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype Publisher interface { Publish(string) }\ntype recorder struct{}\nfunc (recorder) Publish(event string) { fmt.Println(event) }\n\nfunc createUser(p Publisher) {\n\t_ = p\n\tfmt.Println(\"send email\")\n}\n\nfunc main() { createUser(recorder{}) }\n",
+      "expected": "user.created\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype Publisher interface { Publish(string) }\ntype recorder struct{}\nfunc (recorder) Publish(event string) { fmt.Println(event) }\n\nfunc createUser(p Publisher) {\n\tp.Publish(\"user.created\")\n}\n\nfunc main() { createUser(recorder{}) }\n"
+    },
+    {
+      "id": "pubsub-03-06-client-repl",
+      "chapter": "Chapter 3 · Publishers & Queues",
+      "title": "Client REPL",
+      "instruction": "A small publisher REPL should parse a command, reject malformed input, and preserve a multi-word body. Correct the command verb so it prints the parsed topic and body.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc parse(line string) {\n\tparts := strings.Fields(line)\n\tif len(parts) < 3 || parts[0] != \"publish\" { fmt.Println(\"invalid\"); return }\n\tfmt.Println(parts[0], parts[1], strings.Join(parts[2:], \" \"))\n}\n\nfunc main() { parse(\"send game.started player 7\") }\n",
+      "expected": "publish game.started player 7\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc parse(line string) {\n\tparts := strings.Fields(line)\n\tif len(parts) < 3 || parts[0] != \"publish\" { fmt.Println(\"invalid\"); return }\n\tfmt.Println(parts[0], parts[1], strings.Join(parts[2:], \" \"))\n}\n\nfunc main() { parse(\"publish game.started player 7\") }\n"
+    },
+    {
+      "id": "pubsub-03-07-sync-vs-async",
+      "chapter": "Chapter 3 · Publishers & Queues",
+      "title": "Sync vs. Async",
+      "instruction": "An unbuffered channel models a synchronous handoff; a buffer allows producers to enqueue limited work without waiting for an immediate receiver. Give the asynchronous path room for three events.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tsyncEvents := make(chan int)\n\tasyncEvents := make(chan int)\n\tfmt.Printf(\"sync=%d async=%d\\n\", cap(syncEvents), cap(asyncEvents))\n}\n",
+      "expected": "sync=0 async=3\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tsyncEvents := make(chan int)\n\tasyncEvents := make(chan int, 3)\n\tfmt.Printf(\"sync=%d async=%d\\n\", cap(syncEvents), cap(asyncEvents))\n}\n"
+    },
+    {
+      "id": "pubsub-03-08-topic-exchange",
+      "chapter": "Chapter 3 · Publishers & Queues",
+      "title": "Topic Exchange",
+      "instruction": "Topic bindings use dot-delimited words: * matches exactly one word and # matches zero or more. Implement matching for the supplied bindings and routing keys.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc match(pattern, key string) bool {\n\treturn pattern == key\n}\n\nfunc main() {\n\tfmt.Println(match(\"logs.*\", \"logs.error\"), match(\"audit.#\", \"audit.user.created\"), match(\"logs.*\", \"logs.api.error\"))\n\t_ = strings.Split\n}\n",
+      "expected": "true true false\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc match(pattern, key string) bool {\n\tp, k := strings.Split(pattern, \".\"), strings.Split(key, \".\")\n\tvar walk func(int, int) bool\n\twalk = func(i, j int) bool {\n\t\tif i == len(p) { return j == len(k) }\n\t\tif p[i] == \"#\" {\n\t\t\tif walk(i+1, j) { return true }\n\t\t\treturn j < len(k) && walk(i, j+1)\n\t\t}\n\t\treturn j < len(k) && (p[i] == \"*\" || p[i] == k[j]) && walk(i+1, j+1)\n\t}\n\treturn walk(0, 0)\n}\n\nfunc main() {\n\tfmt.Println(match(\"logs.*\", \"logs.error\"), match(\"audit.#\", \"audit.user.created\"), match(\"logs.*\", \"logs.api.error\"))\n}\n"
+    },
+    {
+      "id": "pubsub-03-09-durable",
+      "chapter": "Chapter 3 · Publishers & Queues",
+      "title": "Durable",
+      "instruction": "A durable exchange, durable queue, and persistent message are separate settings. Enable all three; one setting alone does not make the complete route survive a broker restart.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype Route struct { ExchangeDurable, QueueDurable, MessagePersistent bool }\n\nfunc main() {\n\troute := Route{ExchangeDurable: true, QueueDurable: true}\n\tfmt.Println(route.ExchangeDurable, route.QueueDurable, route.MessagePersistent)\n}\n",
+      "expected": "true true true\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype Route struct { ExchangeDurable, QueueDurable, MessagePersistent bool }\n\nfunc main() {\n\troute := Route{ExchangeDurable: true, QueueDurable: true, MessagePersistent: true}\n\tfmt.Println(route.ExchangeDurable, route.QueueDurable, route.MessagePersistent)\n}\n"
+    },
+    {
+      "id": "pubsub-04-01-consumers",
+      "chapter": "Chapter 4 · Subscribers & Routing",
+      "title": "Consumers",
+      "instruction": "A Go consumer commonly ranges over a delivery channel until it closes. Send both deliveries before closing the channel so the loop drains them cleanly.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tdeliveries := make(chan string, 2)\n\tdeliveries <- \"alpha\"\n\tclose(deliveries)\n\tfor body := range deliveries { fmt.Println(body) }\n}\n",
+      "expected": "alpha\nbeta\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tdeliveries := make(chan string, 2)\n\tdeliveries <- \"alpha\"\n\tdeliveries <- \"beta\"\n\tclose(deliveries)\n\tfor body := range deliveries { fmt.Println(body) }\n}\n"
+    },
+    {
+      "id": "pubsub-04-02-multi-consumers",
+      "chapter": "Chapter 4 · Subscribers & Routing",
+      "title": "Multi Consumers",
+      "instruction": "Consumers sharing one queue compete for work: each delivery goes to one consumer rather than every consumer. Distribute the jobs round-robin across two workers.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tjobs := []string{\"job-1\", \"job-2\", \"job-3\", \"job-4\"}\n\tfor _, job := range jobs {\n\t\tfmt.Println(\"consumer-1\", job)\n\t}\n}\n",
+      "expected": "consumer-1 job-1\nconsumer-2 job-2\nconsumer-1 job-3\nconsumer-2 job-4\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tjobs := []string{\"job-1\", \"job-2\", \"job-3\", \"job-4\"}\n\tfor i, job := range jobs {\n\t\tfmt.Printf(\"consumer-%d %s\\n\", i%2+1, job)\n\t}\n}\n"
+    },
+    {
+      "id": "pubsub-04-03-routing-patterns",
+      "chapter": "Chapter 4 · Subscribers & Routing",
+      "title": "Routing Patterns",
+      "instruction": "Bindings describe subscription intent, and overlapping bindings can route one publication to multiple queues. Publish the order.created key and print the matching queues in stable order.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"sort\"\n\t\"strings\"\n)\n\nfunc match(pattern, key string) bool {\n\tif strings.HasSuffix(pattern, \".#\") { return strings.HasPrefix(key, strings.TrimSuffix(pattern, \"#\")) }\n\treturn pattern == key\n}\n\nfunc main() {\n\tbindings := map[string][]string{\"audit\": {\"order.#\"}, \"billing\": {\"order.created\"}, \"search\": {\"catalog.*\"}}\n\tkey := \"order.cancelled\"\n\tqueues := []string{}\n\tfor queue, patterns := range bindings { for _, pattern := range patterns { if match(pattern, key) { queues = append(queues, queue); break } } }\n\tsort.Strings(queues)\n\tfmt.Println(strings.Join(queues, \" \"))\n}\n",
+      "expected": "audit billing\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"sort\"\n\t\"strings\"\n)\n\nfunc match(pattern, key string) bool {\n\tif strings.HasSuffix(pattern, \".#\") { return strings.HasPrefix(key, strings.TrimSuffix(pattern, \"#\")) }\n\treturn pattern == key\n}\n\nfunc main() {\n\tbindings := map[string][]string{\"audit\": {\"order.#\"}, \"billing\": {\"order.created\"}, \"search\": {\"catalog.*\"}}\n\tkey := \"order.created\"\n\tqueues := []string{}\n\tfor queue, patterns := range bindings { for _, pattern := range patterns { if match(pattern, key) { queues = append(queues, queue); break } } }\n\tsort.Strings(queues)\n\tfmt.Println(strings.Join(queues, \" \"))\n}\n"
+    },
+    {
+      "id": "pubsub-04-04-naming",
+      "chapter": "Chapter 4 · Subscribers & Routing",
+      "title": "Naming",
+      "instruction": "Shared durable queues need stable semantic names; private exclusive queues can use server-generated names. Return the appropriate name for each lifecycle.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc queueName(shared bool) string {\n\treturn \"amq.gen-42\"\n}\n\nfunc main() {\n\tfmt.Println(queueName(true))\n\tfmt.Println(queueName(false))\n}\n",
+      "expected": "orders\namq.gen-42\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc queueName(shared bool) string {\n\tif shared { return \"orders\" }\n\treturn \"amq.gen-42\"\n}\n\nfunc main() {\n\tfmt.Println(queueName(true))\n\tfmt.Println(queueName(false))\n}\n"
+    },
+    {
+      "id": "pubsub-05-01-dead-letter",
+      "chapter": "Chapter 5 · Delivery",
+      "title": "Dead Letter",
+      "instruction": "RabbitMQ can dead-letter messages that are rejected without requeue, expire, or exceed a queue limit. Mark the broker-managed dead-letter reasons without treating shutdown as one.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc deadLetters(reason string) bool {\n\treturn reason == \"expired\"\n}\n\nfunc main() {\n\tfmt.Println(deadLetters(\"rejected\"), deadLetters(\"expired\"), deadLetters(\"shutdown\"))\n}\n",
+      "expected": "true true false\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc deadLetters(reason string) bool {\n\treturn reason == \"rejected\" || reason == \"expired\" || reason == \"maxlen\"\n}\n\nfunc main() {\n\tfmt.Println(deadLetters(\"rejected\"), deadLetters(\"expired\"), deadLetters(\"shutdown\"))\n}\n"
+    },
+    {
+      "id": "pubsub-05-02-ack-and-nack",
+      "chapter": "Chapter 5 · Delivery",
+      "title": "Ack and Nack",
+      "instruction": "Ack removes a successfully processed delivery. Nack can requeue a transient failure or discard a permanent failure. Return the settlement that matches each handler result.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc settle(result string) string {\n\treturn \"ack\"\n}\n\nfunc main() {\n\tfmt.Println(settle(\"ok\"), settle(\"transient\"), settle(\"permanent\"))\n}\n",
+      "expected": "ack nack-requeue nack-drop\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc settle(result string) string {\n\tswitch result {\n\tcase \"transient\": return \"nack-requeue\"\n\tcase \"permanent\": return \"nack-drop\"\n\tdefault: return \"ack\"\n\t}\n}\n\nfunc main() {\n\tfmt.Println(settle(\"ok\"), settle(\"transient\"), settle(\"permanent\"))\n}\n"
+    },
+    {
+      "id": "pubsub-05-03-dead-letter-queue",
+      "chapter": "Chapter 5 · Delivery",
+      "title": "Dead Letter Queue",
+      "instruction": "A dead-letter exchange routes failed messages; a dead-letter queue is a queue bound to it. Preserve the original routing key and failure reason so operators can diagnose the message.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype DeadLetter struct { Queue, OriginalKey, Reason string }\n\nfunc main() {\n\tfailed := DeadLetter{Queue: \"orders.dlq\", OriginalKey: \"orders.created\"}\n\tfmt.Println(failed.Queue, failed.OriginalKey, failed.Reason)\n}\n",
+      "expected": "orders.dlq orders.created rejected\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype DeadLetter struct { Queue, OriginalKey, Reason string }\n\nfunc main() {\n\tfailed := DeadLetter{Queue: \"orders.dlq\", OriginalKey: \"orders.created\", Reason: \"rejected\"}\n\tfmt.Println(failed.Queue, failed.OriginalKey, failed.Reason)\n}\n"
+    },
+    {
+      "id": "pubsub-05-04-exact-delivery",
+      "chapter": "Chapter 5 · Delivery",
+      "title": "Exact Delivery",
+      "instruction": "A broker commonly provides at-most-once or at-least-once delivery, not end-to-end exactly-once effects. Make the consumer idempotent by recording message IDs and skipping a duplicate.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tseen := map[string]bool{}\n\tfor _, id := range []string{\"m1\", \"m1\", \"m2\"} {\n\t\tif seen[id] { fmt.Println(\"skipped\", id); continue }\n\t\tfmt.Println(\"handled\", id)\n\t}\n}\n",
+      "expected": "handled m1\nskipped m1\nhandled m2\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tseen := map[string]bool{}\n\tfor _, id := range []string{\"m1\", \"m1\", \"m2\"} {\n\t\tif seen[id] { fmt.Println(\"skipped\", id); continue }\n\t\tseen[id] = true\n\t\tfmt.Println(\"handled\", id)\n\t}\n}\n"
+    },
+    {
+      "id": "pubsub-05-05-nack-requeue",
+      "chapter": "Chapter 5 · Delivery",
+      "title": "Nack Requeue",
+      "instruction": "Requeue failures that may succeed later, dead-letter permanently invalid messages, and acknowledge successful work. Correct the policy for invalid payloads.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc action(result string) string {\n\tif result == \"ok\" { return \"ack\" }\n\treturn \"requeue\"\n}\n\nfunc main() {\n\tfmt.Printf(\"timeout=%s invalid=%s ok=%s\\n\", action(\"timeout\"), action(\"invalid\"), action(\"ok\"))\n}\n",
+      "expected": "timeout=requeue invalid=dead-letter ok=ack\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc action(result string) string {\n\tswitch result {\n\tcase \"ok\": return \"ack\"\n\tcase \"timeout\": return \"requeue\"\n\tdefault: return \"dead-letter\"\n\t}\n}\n\nfunc main() {\n\tfmt.Printf(\"timeout=%s invalid=%s ok=%s\\n\", action(\"timeout\"), action(\"invalid\"), action(\"ok\"))\n}\n"
+    },
+    {
+      "id": "pubsub-05-06-nack-requeue-fix",
+      "chapter": "Chapter 5 · Delivery",
+      "title": "Nack Requeue Fix",
+      "instruction": "Requeueing a poison message forever creates a hot failure loop. Allow two retries, then dead-letter the third failed attempt.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc action(attempt int) string { return \"requeue\" }\n\nfunc main() {\n\tfor attempt := 1; attempt <= 3; attempt++ { fmt.Println(attempt, action(attempt)) }\n}\n",
+      "expected": "1 requeue\n2 requeue\n3 dead-letter\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc action(attempt int) string {\n\tif attempt >= 3 { return \"dead-letter\" }\n\treturn \"requeue\"\n}\n\nfunc main() {\n\tfor attempt := 1; attempt <= 3; attempt++ { fmt.Println(attempt, action(attempt)) }\n}\n"
+    },
+    {
+      "id": "pubsub-06-01-data-serialization",
+      "chapter": "Chapter 6 · Serialization",
+      "title": "Data Serialization",
+      "instruction": "RabbitMQ carries bytes, so producers and consumers need an agreed content type and payload shape. Encode a versioned JSON event with explicit fields.",
+      "starter": "package main\n\nimport (\n\t\"encoding/json\"\n\t\"fmt\"\n)\n\ntype Event struct { Version int `json:\"version\"`; Type string `json:\"type\"`; Player string `json:\"player\"` }\n\nfunc main() {\n\tbody, _ := json.Marshal(Event{Type: \"game.started\", Player: \"p7\"})\n\tfmt.Println(string(body))\n}\n",
+      "expected": "{\"version\":1,\"type\":\"game.started\",\"player\":\"p7\"}\n",
+      "solution": "package main\n\nimport (\n\t\"encoding/json\"\n\t\"fmt\"\n)\n\ntype Event struct { Version int `json:\"version\"`; Type string `json:\"type\"`; Player string `json:\"player\"` }\n\nfunc main() {\n\tbody, _ := json.Marshal(Event{Version: 1, Type: \"game.started\", Player: \"p7\"})\n\tfmt.Println(string(body))\n}\n"
+    },
+    {
+      "id": "pubsub-06-02-game-logs",
+      "chapter": "Chapter 6 · Serialization",
+      "title": "Game Logs",
+      "instruction": "Structured game events should carry stable fields such as event type, timestamp, player, and outcome instead of an ambiguous log sentence. Complete the typed event.",
+      "starter": "package main\n\nimport (\n\t\"encoding/json\"\n\t\"fmt\"\n)\n\ntype GameLog struct { Type string `json:\"type\"`; At string `json:\"at\"`; Player string `json:\"player\"`; Result string `json:\"result\"` }\n\nfunc main() {\n\tbody, _ := json.Marshal(GameLog{Type: \"TODO\", At: \"2026-01-02T03:04:05Z\", Player: \"p7\", Result: \"win\"})\n\tfmt.Println(string(body))\n}\n",
+      "expected": "{\"type\":\"match.finished\",\"at\":\"2026-01-02T03:04:05Z\",\"player\":\"p7\",\"result\":\"win\"}\n",
+      "solution": "package main\n\nimport (\n\t\"encoding/json\"\n\t\"fmt\"\n)\n\ntype GameLog struct { Type string `json:\"type\"`; At string `json:\"at\"`; Player string `json:\"player\"`; Result string `json:\"result\"` }\n\nfunc main() {\n\tbody, _ := json.Marshal(GameLog{Type: \"match.finished\", At: \"2026-01-02T03:04:05Z\", Player: \"p7\", Result: \"win\"})\n\tfmt.Println(string(body))\n}\n"
+    },
+    {
+      "id": "pubsub-06-03-consume-logs",
+      "chapter": "Chapter 6 · Serialization",
+      "title": "Consume Logs",
+      "instruction": "Decode and validate an event before performing side effects. A valid log is acknowledged; malformed JSON or a missing event type is dead-lettered instead of retried forever. Fix the valid payload.",
+      "starter": "package main\n\nimport (\n\t\"encoding/json\"\n\t\"fmt\"\n)\n\ntype Event struct { Type string `json:\"type\"` }\n\nfunc consume(body []byte) string {\n\tvar event Event\n\tif json.Unmarshal(body, &event) != nil || event.Type == \"\" { return \"dead-letter\" }\n\treturn \"ack\"\n}\n\nfunc main() {\n\tfmt.Println(consume([]byte(`{\"type\":\"\"}`)))\n\tfmt.Println(consume([]byte(`not-json`)))\n}\n",
+      "expected": "ack\ndead-letter\n",
+      "solution": "package main\n\nimport (\n\t\"encoding/json\"\n\t\"fmt\"\n)\n\ntype Event struct { Type string `json:\"type\"` }\n\nfunc consume(body []byte) string {\n\tvar event Event\n\tif json.Unmarshal(body, &event) != nil || event.Type == \"\" { return \"dead-letter\" }\n\treturn \"ack\"\n}\n\nfunc main() {\n\tfmt.Println(consume([]byte(`{\"type\":\"player.joined\"}`)))\n\tfmt.Println(consume([]byte(`not-json`)))\n}\n"
+    },
+    {
+      "id": "pubsub-06-04-schema",
+      "chapter": "Chapter 6 · Serialization",
+      "title": "Schema",
+      "instruction": "Additive schema changes are easiest to roll out when consumers tolerate missing and unknown fields. Decode the older payload and supply the new field's backward-compatible default.",
+      "starter": "package main\n\nimport (\n\t\"encoding/json\"\n\t\"fmt\"\n)\n\ntype EventV2 struct { Type string `json:\"type\"`; Region string `json:\"region\"` }\n\nfunc main() {\n\tvar event EventV2\n\t_ = json.Unmarshal([]byte(`{\"type\":\"player.joined\"}`), &event)\n\tfmt.Println(event.Type, event.Region)\n}\n",
+      "expected": "player.joined global\n",
+      "solution": "package main\n\nimport (\n\t\"encoding/json\"\n\t\"fmt\"\n)\n\ntype EventV2 struct { Type string `json:\"type\"`; Region string `json:\"region\"` }\n\nfunc main() {\n\tvar event EventV2\n\t_ = json.Unmarshal([]byte(`{\"type\":\"player.joined\"}`), &event)\n\tif event.Region == \"\" { event.Region = \"global\" }\n\tfmt.Println(event.Type, event.Region)\n}\n"
+    },
+    {
+      "id": "pubsub-07-01-nodes-and-clusters",
+      "chapter": "Chapter 7 · Scalability",
+      "title": "Nodes and Clusters",
+      "instruction": "A RabbitMQ cluster shares broker topology, while queue replication and consumer count are separate choices. Model three broker nodes, three queue replicas, and six consumers.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype Topology struct { Nodes, Replicas, Consumers int }\n\nfunc main() {\n\ttopology := Topology{Nodes: 3, Replicas: 1, Consumers: 6}\n\tfmt.Printf(\"nodes=%d replicas=%d consumers=%d\\n\", topology.Nodes, topology.Replicas, topology.Consumers)\n}\n",
+      "expected": "nodes=3 replicas=3 consumers=6\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype Topology struct { Nodes, Replicas, Consumers int }\n\nfunc main() {\n\ttopology := Topology{Nodes: 3, Replicas: 3, Consumers: 6}\n\tfmt.Printf(\"nodes=%d replicas=%d consumers=%d\\n\", topology.Nodes, topology.Replicas, topology.Consumers)\n}\n"
+    },
+    {
+      "id": "pubsub-07-02-backpressure",
+      "chapter": "Chapter 7 · Scalability",
+      "title": "Backpressure",
+      "instruction": "Backpressure bounds in-flight work instead of allowing producers to create an unlimited backlog. Give the local work queue a capacity of two.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tinflight := make(chan struct{})\n\tfmt.Println(\"inflight limit\", cap(inflight))\n}\n",
+      "expected": "inflight limit 2\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tinflight := make(chan struct{}, 2)\n\tfmt.Println(\"inflight limit\", cap(inflight))\n}\n"
+    },
+    {
+      "id": "pubsub-07-03-healthy-queues-are-empty",
+      "chapter": "Chapter 7 · Scalability",
+      "title": "Healthy Queues Are Empty",
+      "instruction": "A near-empty queue can indicate balanced flow, but queue depth alone is not a health check. Compare publish and delivery rates plus message age to distinguish flowing traffic from a growing backlog.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc health(ready, published, delivered, oldest int) string {\n\tif ready == 0 { return \"flowing\" }\n\treturn \"unhealthy\"\n}\n\nfunc main() {\n\tfmt.Println(health(0, 100, 100, 0))\n\tfmt.Println(health(40, 100, 60, 30))\n}\n",
+      "expected": "flowing\nbacklog\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc health(ready, published, delivered, oldest int) string {\n\tif published == delivered && oldest < 5 { return \"flowing\" }\n\tif ready > 0 && (published > delivered || oldest >= 5) { return \"backlog\" }\n\treturn \"idle\"\n}\n\nfunc main() {\n\tfmt.Println(health(0, 100, 100, 0))\n\tfmt.Println(health(40, 100, 60, 30))\n}\n"
+    },
+    {
+      "id": "pubsub-07-04-prefetch",
+      "chapter": "Chapter 7 · Scalability",
+      "title": "Prefetch",
+      "instruction": "Consumer prefetch caps unacknowledged deliveries and trades throughput against fairness. Process five deliveries in batches no larger than two.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tdeliveries, prefetch := 5, 5\n\tfor batch, remaining := 1, deliveries; remaining > 0; batch++ {\n\t\tsize := prefetch\n\t\tif remaining < size { size = remaining }\n\t\tfmt.Printf(\"batch %d: %d\\n\", batch, size)\n\t\tremaining -= size\n\t}\n}\n",
+      "expected": "batch 1: 2\nbatch 2: 2\nbatch 3: 1\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tdeliveries, prefetch := 5, 2\n\tfor batch, remaining := 1, deliveries; remaining > 0; batch++ {\n\t\tsize := prefetch\n\t\tif remaining < size { size = remaining }\n\t\tfmt.Printf(\"batch %d: %d\\n\", batch, size)\n\t\tremaining -= size\n\t}\n}\n"
+    },
+    {
+      "id": "pubsub-07-05-quorum-queues",
+      "chapter": "Chapter 7 · Scalability",
+      "title": "Quorum Queues",
+      "instruction": "Quorum queues replicate data with Raft and need a majority of members available. Compute the majority required by three-member and five-member groups.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc majority(nodes int) int { return nodes / 2 }\n\nfunc main() {\n\tfmt.Printf(\"3 nodes need %d\\n\", majority(3))\n\tfmt.Printf(\"5 nodes need %d\\n\", majority(5))\n}\n",
+      "expected": "3 nodes need 2\n5 nodes need 3\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc majority(nodes int) int { return nodes/2 + 1 }\n\nfunc main() {\n\tfmt.Printf(\"3 nodes need %d\\n\", majority(3))\n\tfmt.Printf(\"5 nodes need %d\\n\", majority(5))\n}\n"
+    }
+  ]
+}

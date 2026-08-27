@@ -1,0 +1,511 @@
+{
+  "id": "http-clients",
+  "title": "Learn HTTP Clients in Go",
+  "description": "Build requests, inspect responses, decode representations, resolve addresses, and use HTTP tooling safely.",
+  "lessons": [
+    {
+      "id": "http-01-01-communicating-on-the-web",
+      "chapter": "Chapter 1 · Why HTTP?",
+      "title": "Communicating on the Web",
+      "instruction": "Web communication is a request-response exchange: a client asks and a server replies. Complete the round-trip description.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tsteps := []string{\"client\", \"server\"}\n\tfmt.Println(strings.Join(steps, \" -> \"))\n}\n",
+      "expected": "client -> server -> client\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tsteps := []string{\"client\", \"server\", \"client\"}\n\tfmt.Println(strings.Join(steps, \" -> \"))\n}\n"
+    },
+    {
+      "id": "http-01-02-http-requests-and-responses",
+      "chapter": "Chapter 1 · Why HTTP?",
+      "title": "HTTP Requests and Responses",
+      "instruction": "An HTTP response separates outcome metadata from its body. Send a GET request to the local server, then print both status and body.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n)\n\nfunc main() {\n\tserver := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { fmt.Fprint(w, r.Method) }))\n\tdefer server.Close()\n\tresponse, _ := http.Post(server.URL, \"text/plain\", nil)\n\tdefer response.Body.Close()\n\tfmt.Println(response.StatusCode, \"POST\")\n}\n",
+      "expected": "200 GET\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"io\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n)\n\nfunc main() {\n\tserver := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { fmt.Fprint(w, r.Method) }))\n\tdefer server.Close()\n\tresponse, _ := http.Get(server.URL)\n\tdefer response.Body.Close()\n\tbody, _ := io.ReadAll(response.Body)\n\tfmt.Println(response.StatusCode, string(body))\n}\n"
+    },
+    {
+      "id": "http-01-03-http-powers-websites",
+      "chapter": "Chapter 1 · Why HTTP?",
+      "title": "HTTP Powers Websites",
+      "instruction": "Browsers retrieve HTML and use Content-Type to interpret it. Request the local home page and print its media type and body.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n)\n\nfunc main() {\n\tserver := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {\n\t\tw.Header().Set(\"Content-Type\", \"text/plain\")\n\t\tfmt.Fprint(w, \"home\")\n\t}))\n\tdefer server.Close()\n\tresponse, _ := http.Get(server.URL)\n\tdefer response.Body.Close()\n\tfmt.Println(response.Header.Get(\"Content-Type\"), \"home\")\n}\n",
+      "expected": "text/html <h1>Home</h1>\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"io\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n)\n\nfunc main() {\n\tserver := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {\n\t\tw.Header().Set(\"Content-Type\", \"text/html\")\n\t\tfmt.Fprint(w, \"<h1>Home</h1>\")\n\t}))\n\tdefer server.Close()\n\tresponse, _ := http.Get(server.URL)\n\tdefer response.Body.Close()\n\tbody, _ := io.ReadAll(response.Body)\n\tfmt.Println(response.Header.Get(\"Content-Type\"), string(body))\n}\n"
+    },
+    {
+      "id": "http-01-04-http-urls",
+      "chapter": "Chapter 1 · Why HTTP?",
+      "title": "HTTP URLs",
+      "instruction": "A URL identifies both a network host and a resource path. Parse this one and print those parts.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/url\"\n)\n\nfunc main() {\n\taddress, _ := url.Parse(\"http://wrong.example/\")\n\tfmt.Println(address.Host, address.Path)\n}\n",
+      "expected": "api.example.com /items\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/url\"\n)\n\nfunc main() {\n\taddress, _ := url.Parse(\"http://api.example.com/items\")\n\tfmt.Println(address.Host, address.Path)\n}\n"
+    },
+    {
+      "id": "http-01-05-using-urls-in-http",
+      "chapter": "Chapter 1 · Why HTTP?",
+      "title": "Using URLs in HTTP",
+      "instruction": "A request URL can include query parameters that refine a resource. Build one targeting page two of the items collection.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n)\n\nfunc main() {\n\trequest, _ := http.NewRequest(http.MethodGet, \"https://api.example.com/items?page=1\", nil)\n\tfmt.Println(request.URL.String())\n}\n",
+      "expected": "https://api.example.com/items?page=2\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n)\n\nfunc main() {\n\trequest, _ := http.NewRequest(http.MethodGet, \"https://api.example.com/items?page=2\", nil)\n\tfmt.Println(request.URL.String())\n}\n"
+    },
+    {
+      "id": "http-01-06-requests-and-responses-quiz",
+      "chapter": "Chapter 1 · Why HTTP?",
+      "title": "Requests and Responses Quiz",
+      "instruction": "The request asks for a resource; the response reports the result. Classify the two messages.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\trequest, response := \"HTTP/1.1 200 OK\", \"GET /items HTTP/1.1\"\n\tfmt.Println(\"request:\", request)\n\tfmt.Println(\"response:\", response)\n}\n",
+      "expected": "request: GET /items HTTP/1.1\nresponse: HTTP/1.1 200 OK\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\trequest, response := \"GET /items HTTP/1.1\", \"HTTP/1.1 200 OK\"\n\tfmt.Println(\"request:\", request)\n\tfmt.Println(\"response:\", response)\n}\n"
+    },
+    {
+      "id": "http-01-07-net-http",
+      "chapter": "Chapter 1 · Why HTTP?",
+      "title": "net/http",
+      "instruction": "Go's net/http package models clients, requests, responses, and servers. Use its constants to create a GET request and print its method and host.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n)\n\nfunc main() {\n\trequest, _ := http.NewRequest(http.MethodOptions, \"https://api.example.com/items\", nil)\n\tfmt.Println(request.Method, request.URL.Host)\n}\n",
+      "expected": "GET api.example.com\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n)\n\nfunc main() {\n\trequest, _ := http.NewRequest(http.MethodGet, \"https://api.example.com/items\", nil)\n\tfmt.Println(request.Method, request.URL.Host)\n}\n"
+    },
+    {
+      "id": "http-01-08-web-clients",
+      "chapter": "Chapter 1 · Why HTTP?",
+      "title": "Web Clients",
+      "instruction": "http.Client sends requests and manages transport details such as connections and redirects. Call the local service and print its body.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n)\n\nfunc main() {\n\tserver := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { fmt.Fprint(w, \"client received data\") }))\n\tdefer server.Close()\n\tclient := &http.Client{}\n\tresponse, _ := client.Get(server.URL)\n\tdefer response.Body.Close()\n\tfmt.Println(\"request sent\")\n}\n",
+      "expected": "client received data\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"io\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n)\n\nfunc main() {\n\tserver := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { fmt.Fprint(w, \"client received data\") }))\n\tdefer server.Close()\n\tclient := &http.Client{}\n\tresponse, _ := client.Get(server.URL)\n\tdefer response.Body.Close()\n\tbody, _ := io.ReadAll(response.Body)\n\tfmt.Println(string(body))\n}\n"
+    },
+    {
+      "id": "http-01-09-web-servers",
+      "chapter": "Chapter 1 · Why HTTP?",
+      "title": "Web Servers",
+      "instruction": "A server handler turns an incoming request into a response. Return status 201 and the requested path from this local handler.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n)\n\nfunc main() {\n\thandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { fmt.Fprint(w, \"wrong\") })\n\tresponse := httptest.NewRecorder()\n\thandler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, \"/health\", nil))\n\tfmt.Println(response.Code, response.Body.String())\n}\n",
+      "expected": "201 /health\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n)\n\nfunc main() {\n\thandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {\n\t\tw.WriteHeader(http.StatusCreated)\n\t\tfmt.Fprint(w, r.URL.Path)\n\t})\n\tresponse := httptest.NewRecorder()\n\thandler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, \"/health\", nil))\n\tfmt.Println(response.Code, response.Body.String())\n}\n"
+    },
+
+    {
+      "id": "http-02-01-json-syntax",
+      "chapter": "Chapter 2 · JSON",
+      "title": "JSON Syntax",
+      "instruction": "JSON objects use quoted keys, colons, and comma-separated values. Correct this object so encoding/json accepts it.",
+      "starter": "package main\n\nimport (\n\t\"encoding/json\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tdocument := []byte(`{status: \"ready\"}`)\n\tfmt.Println(json.Valid(document))\n}\n",
+      "expected": "true\n",
+      "solution": "package main\n\nimport (\n\t\"encoding/json\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tdocument := []byte(`{\"status\": \"ready\"}`)\n\tfmt.Println(json.Valid(document))\n}\n"
+    },
+    {
+      "id": "http-02-02-decoding-json",
+      "chapter": "Chapter 2 · JSON",
+      "title": "Decoding JSON",
+      "instruction": "json.Decoder reads one JSON value directly from a stream such as an HTTP body. Decode this body and print its status field.",
+      "starter": "package main\n\nimport (\n\t\"encoding/json\"\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tvar response struct{ Status string `json:\"state\"` }\n\t_ = json.NewDecoder(strings.NewReader(`{\"status\":\"ready\"}`)).Decode(&response)\n\tfmt.Println(response.Status)\n}\n",
+      "expected": "ready\n",
+      "solution": "package main\n\nimport (\n\t\"encoding/json\"\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tvar response struct{ Status string `json:\"status\"` }\n\t_ = json.NewDecoder(strings.NewReader(`{\"status\":\"ready\"}`)).Decode(&response)\n\tfmt.Println(response.Status)\n}\n"
+    },
+    {
+      "id": "http-02-03-json-review",
+      "chapter": "Chapter 2 · JSON",
+      "title": "JSON Review",
+      "instruction": "A JSON array maps naturally to a Go slice when its elements share a shape. Decode this one and print its length and final value.",
+      "starter": "package main\n\nimport (\n\t\"encoding/json\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tvar values []int\n\t_ = json.Unmarshal([]byte(`[2,4,6]`), &values)\n\tfmt.Println(len(values), values[0])\n}\n",
+      "expected": "3 6\n",
+      "solution": "package main\n\nimport (\n\t\"encoding/json\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tvar values []int\n\t_ = json.Unmarshal([]byte(`[2,4,6]`), &values)\n\tfmt.Println(len(values), values[len(values)-1])\n}\n"
+    },
+    {
+      "id": "http-02-04-unmarshal-json",
+      "chapter": "Chapter 2 · JSON",
+      "title": "Unmarshal JSON",
+      "instruction": "json.Unmarshal decodes an in-memory byte slice into a destination value. Populate the typed Item and print both fields.",
+      "starter": "package main\n\nimport (\n\t\"encoding/json\"\n\t\"fmt\"\n)\n\ntype Item struct {\n\tName string `json:\"name\"`\n\tID int `json:\"wrong\"`\n}\n\nfunc main() {\n\tvar item Item\n\t_ = json.Unmarshal([]byte(`{\"name\":\"book\",\"id\":7}`), &item)\n\tfmt.Println(item.Name, item.ID)\n}\n",
+      "expected": "book 7\n",
+      "solution": "package main\n\nimport (\n\t\"encoding/json\"\n\t\"fmt\"\n)\n\ntype Item struct {\n\tName string `json:\"name\"`\n\tID int `json:\"id\"`\n}\n\nfunc main() {\n\tvar item Item\n\t_ = json.Unmarshal([]byte(`{\"name\":\"book\",\"id\":7}`), &item)\n\tfmt.Println(item.Name, item.ID)\n}\n"
+    },
+    {
+      "id": "http-02-05-marshal-json",
+      "chapter": "Chapter 2 · JSON",
+      "title": "Marshal JSON",
+      "instruction": "json.Marshal encodes a Go value, while struct tags control its wire keys. Produce the response with lowercase JSON field names.",
+      "starter": "package main\n\nimport (\n\t\"encoding/json\"\n\t\"fmt\"\n)\n\ntype Response struct { Status string; Code int }\n\nfunc main() {\n\tdata, _ := json.Marshal(Response{Status: \"ready\", Code: 200})\n\tfmt.Println(string(data))\n}\n",
+      "expected": "{\"status\":\"ready\",\"code\":200}\n",
+      "solution": "package main\n\nimport (\n\t\"encoding/json\"\n\t\"fmt\"\n)\n\ntype Response struct { Status string `json:\"status\"`; Code int `json:\"code\"` }\n\nfunc main() {\n\tdata, _ := json.Marshal(Response{Status: \"ready\", Code: 200})\n\tfmt.Println(string(data))\n}\n"
+    },
+    {
+      "id": "http-02-06-xml",
+      "chapter": "Chapter 2 · JSON",
+      "title": "XML",
+      "instruction": "encoding/xml maps elements and attributes onto tagged Go fields. Decode this element and print its name and identifier.",
+      "starter": "package main\n\nimport (\n\t\"encoding/xml\"\n\t\"fmt\"\n)\n\ntype Item struct { Name string `xml:\"label\"`; ID int `xml:\"id,attr\"` }\n\nfunc main() {\n\tvar item Item\n\t_ = xml.Unmarshal([]byte(`<item id=\"7\"><name>book</name></item>`), &item)\n\tfmt.Println(item.Name, item.ID)\n}\n",
+      "expected": "book 7\n",
+      "solution": "package main\n\nimport (\n\t\"encoding/xml\"\n\t\"fmt\"\n)\n\ntype Item struct { Name string `xml:\"name\"`; ID int `xml:\"id,attr\"` }\n\nfunc main() {\n\tvar item Item\n\t_ = xml.Unmarshal([]byte(`<item id=\"7\"><name>book</name></item>`), &item)\n\tfmt.Println(item.Name, item.ID)\n}\n"
+    },
+    {
+      "id": "http-02-07-why-use-xml",
+      "chapter": "Chapter 2 · JSON",
+      "title": "Why Use XML?",
+      "instruction": "Marshal a document that uses an XML attribute, a representation useful in attribute-heavy protocols.",
+      "starter": "package main\n\nimport (\n\t\"encoding/xml\"\n\t\"fmt\"\n)\n\ntype Feed struct { Version string `xml:\"version\"`; Name string `xml:\"name\"` }\n\nfunc main() {\n\tdata, _ := xml.Marshal(Feed{Version: \"2.0\", Name: \"news\"})\n\tfmt.Println(string(data))\n}\n",
+      "expected": "<Feed version=\"2.0\"><name>news</name></Feed>\n",
+      "solution": "package main\n\nimport (\n\t\"encoding/xml\"\n\t\"fmt\"\n)\n\ntype Feed struct { Version string `xml:\"version,attr\"`; Name string `xml:\"name\"` }\n\nfunc main() {\n\tdata, _ := xml.Marshal(Feed{Version: \"2.0\", Name: \"news\"})\n\tfmt.Println(string(data))\n}\n"
+    },
+    {
+      "id": "http-02-08-map-string-interface",
+      "chapter": "Chapter 2 · JSON",
+      "title": "map[string]interface{}",
+      "instruction": "An unknown JSON object can decode into map[string]interface{}, where numbers become float64 by default. Read its string and numeric values.",
+      "starter": "package main\n\nimport (\n\t\"encoding/json\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tvar value map[string]interface{}\n\t_ = json.Unmarshal([]byte(`{\"name\":\"Ada\",\"score\":9}`), &value)\n\tfmt.Println(value[\"name\"], value[\"missing\"])\n}\n",
+      "expected": "Ada 9\n",
+      "solution": "package main\n\nimport (\n\t\"encoding/json\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tvar value map[string]interface{}\n\t_ = json.Unmarshal([]byte(`{\"name\":\"Ada\",\"score\":9}`), &value)\n\tfmt.Println(value[\"name\"], value[\"score\"])\n}\n"
+    },
+
+    {
+      "id": "http-03-01-web-addresses",
+      "chapter": "Chapter 3 · DNS",
+      "title": "Web Addresses",
+      "instruction": "A network endpoint combines a host with a port. Separate them safely with net.SplitHostPort.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net\"\n)\n\nfunc main() {\n\thost, port, _ := net.SplitHostPort(\"api.example.com:80\")\n\tfmt.Println(host, port)\n}\n",
+      "expected": "api.example.com 443\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net\"\n)\n\nfunc main() {\n\thost, port, _ := net.SplitHostPort(\"api.example.com:443\")\n\tfmt.Println(host, port)\n}\n"
+    },
+    {
+      "id": "http-03-02-web-addresses-quiz",
+      "chapter": "Chapter 3 · DNS",
+      "title": "Web Addresses Quiz",
+      "instruction": "A domain is a human-readable name; an IP address identifies a network interface numerically. Classify both values.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net\"\n)\n\nfunc kind(value string) string { if net.ParseIP(value) != nil { return \"domain\" }; return \"IP\" }\n\nfunc main() { fmt.Println(kind(\"api.example.com\"), kind(\"192.0.2.1\")) }\n",
+      "expected": "domain IP\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net\"\n)\n\nfunc kind(value string) string { if net.ParseIP(value) != nil { return \"IP\" }; return \"domain\" }\n\nfunc main() { fmt.Println(kind(\"api.example.com\"), kind(\"192.0.2.1\")) }\n"
+    },
+    {
+      "id": "http-03-03-dns",
+      "chapter": "Chapter 3 · DNS",
+      "title": "DNS",
+      "instruction": "DNS resolves a host name to an address a client can contact. Use the deterministic local table and print the result.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\trecords := map[string]string{\"www.example.com\": \"192.0.2.10\"}\n\tfmt.Println(records[\"api.example.com\"])\n}\n",
+      "expected": "192.0.2.10\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\trecords := map[string]string{\"api.example.com\": \"192.0.2.10\"}\n\tfmt.Println(records[\"api.example.com\"])\n}\n"
+    },
+    {
+      "id": "http-03-04-what-is-the-domain-name-system",
+      "chapter": "Chapter 3 · DNS",
+      "title": "What Is the Domain Name System?",
+      "instruction": "DNS is a distributed naming system that maps hostnames to network addresses. Follow this local mapping and print the endpoint.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc resolve(name string, dns map[string]string) string { return name }\n\nfunc main() {\n\tdns := map[string]string{\"service.test\": \"203.0.113.8\"}\n\tfmt.Println(resolve(\"service.test\", dns))\n}\n",
+      "expected": "203.0.113.8\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc resolve(name string, dns map[string]string) string { return dns[name] }\n\nfunc main() {\n\tdns := map[string]string{\"service.test\": \"203.0.113.8\"}\n\tfmt.Println(resolve(\"service.test\", dns))\n}\n"
+    },
+    {
+      "id": "http-03-05-subdomains",
+      "chapter": "Chapter 3 · DNS",
+      "title": "Subdomains",
+      "instruction": "Subdomains add labels to the left of a parent domain. Extract the nested portion of docs.api.example.com relative to example.com.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\thost := \"docs.api.example.com\"\n\tfmt.Println(strings.TrimSuffix(host, \"api.example.com\"))\n}\n",
+      "expected": "docs.api\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\thost := \"docs.api.example.com\"\n\tfmt.Println(strings.TrimSuffix(host, \".example.com\"))\n}\n"
+    },
+
+    {
+      "id": "http-04-01-uniform-resource-identifiers",
+      "chapter": "Chapter 4 · URIs",
+      "title": "Uniform Resource Identifiers",
+      "instruction": "A URI identifies a resource; a URL is a URI that also describes where to access it. Parse this URI and print its scheme and resource.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/url\"\n)\n\nfunc main() {\n\turi, _ := url.Parse(\"https://api.example.com/wrong\")\n\tfmt.Println(uri.Scheme, uri.Path)\n}\n",
+      "expected": "https /items/7\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/url\"\n)\n\nfunc main() {\n\turi, _ := url.Parse(\"https://api.example.com/items/7\")\n\tfmt.Println(uri.Scheme, uri.Path)\n}\n"
+    },
+    {
+      "id": "http-04-02-sections-of-a-url",
+      "chapter": "Chapter 4 · URIs",
+      "title": "Sections of a URL",
+      "instruction": "A URL separates protocol, authority, path, and query data. Print its scheme, hostname, path, and query value in order.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/url\"\n)\n\nfunc main() {\n\tu, _ := url.Parse(\"http://api.example.com/items?page=2\")\n\tfmt.Println(u.Scheme, u.Hostname(), u.Path, u.Query().Get(\"page\"))\n}\n",
+      "expected": "https api.example.com /items 2\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/url\"\n)\n\nfunc main() {\n\tu, _ := url.Parse(\"https://api.example.com/items?page=2\")\n\tfmt.Println(u.Scheme, u.Hostname(), u.Path, u.Query().Get(\"page\"))\n}\n"
+    },
+    {
+      "id": "http-04-03-further-dissecting-a-url",
+      "chapter": "Chapter 4 · URIs",
+      "title": "Further Dissecting a URL",
+      "instruction": "URLs may also carry user information, escaped path bytes, and a client-side fragment. Inspect all three in this example.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/url\"\n)\n\nfunc main() {\n\tu, _ := url.Parse(\"https://guest@example.com/a%20b#top\")\n\tfmt.Println(u.User.Username(), u.Path, u.Fragment)\n}\n",
+      "expected": "guest /a%20b top\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/url\"\n)\n\nfunc main() {\n\tu, _ := url.Parse(\"https://guest@example.com/a%20b#top\")\n\tfmt.Println(u.User.Username(), u.EscapedPath(), u.Fragment)\n}\n"
+    },
+    {
+      "id": "http-04-04-the-protocol",
+      "chapter": "Chapter 4 · URIs",
+      "title": "The Protocol",
+      "instruction": "The URL scheme selects the access protocol, such as HTTP or HTTPS. Read it from this URL.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/url\"\n)\n\nfunc main() {\n\tu, _ := url.Parse(\"http://example.com\")\n\tfmt.Println(u.Scheme)\n}\n",
+      "expected": "https\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/url\"\n)\n\nfunc main() {\n\tu, _ := url.Parse(\"https://example.com\")\n\tfmt.Println(u.Scheme)\n}\n"
+    },
+    {
+      "id": "http-04-05-url-ports",
+      "chapter": "Chapter 4 · URIs",
+      "title": "URL Ports",
+      "instruction": "The URL authority can contain a hostname and an optional port. Inspect both with their dedicated accessors.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/url\"\n)\n\nfunc main() {\n\tu, _ := url.Parse(\"https://api.example.com:80/items\")\n\tfmt.Println(u.Hostname(), u.Port())\n}\n",
+      "expected": "api.example.com 8443\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/url\"\n)\n\nfunc main() {\n\tu, _ := url.Parse(\"https://api.example.com:8443/items\")\n\tfmt.Println(u.Hostname(), u.Port())\n}\n"
+    },
+    {
+      "id": "http-04-06-url-paths",
+      "chapter": "Chapter 4 · URIs",
+      "title": "URL Paths",
+      "instruction": "URL paths identify hierarchical resources and require slash-safe joining. Combine the collection and item segments cleanly.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"path\"\n)\n\nfunc main() { fmt.Println(path.Join(\"/users\", \"42\", \"..\")) }\n",
+      "expected": "/users/42/posts\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"path\"\n)\n\nfunc main() { fmt.Println(path.Join(\"/users\", \"42\", \"posts\")) }\n"
+    },
+    {
+      "id": "http-04-07-query-parameters",
+      "chapter": "Chapter 4 · URIs",
+      "title": "Query Parameters",
+      "instruction": "Query parameters are key-value data after the URL's question mark. Set page through url.Values and print its encoded form.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/url\"\n)\n\nfunc main() {\n\tquery := url.Values{}\n\tquery.Set(\"limit\", \"2\")\n\tfmt.Println(query.Encode())\n}\n",
+      "expected": "page=2\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/url\"\n)\n\nfunc main() {\n\tquery := url.Values{}\n\tquery.Set(\"page\", \"2\")\n\tfmt.Println(query.Encode())\n}\n"
+    },
+
+    {
+      "id": "http-05-01-what-are-http-headers",
+      "chapter": "Chapter 5 · Headers",
+      "title": "What Are HTTP Headers?",
+      "instruction": "HTTP headers carry metadata as case-insensitive names with one or more values. Set and retrieve one with http.Header.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n)\n\nfunc main() {\n\theaders := http.Header{}\n\theaders.Set(\"Content-Type\", \"text/plain\")\n\tfmt.Println(headers.Get(\"Content-Type\"))\n}\n",
+      "expected": "application/json\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n)\n\nfunc main() {\n\theaders := http.Header{}\n\theaders.Set(\"Content-Type\", \"application/json\")\n\tfmt.Println(headers.Get(\"Content-Type\"))\n}\n"
+    },
+    {
+      "id": "http-05-02-using-the-browser-s-developer-tools",
+      "chapter": "Chapter 5 · Headers",
+      "title": "Using the Browser's Developer Tools",
+      "instruction": "Print the request detail a browser Network panel exposes: method, path, and request identifier.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http/httptest\"\n)\n\nfunc main() {\n\trequest := httptest.NewRequest(\"GET\", \"/items\", nil)\n\trequest.Header.Set(\"X-Request-ID\", \"missing\")\n\tfmt.Println(request.Method, request.URL.Path, request.Header.Get(\"X-Request-ID\"))\n}\n",
+      "expected": "GET /items req-7\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http/httptest\"\n)\n\nfunc main() {\n\trequest := httptest.NewRequest(\"GET\", \"/items\", nil)\n\trequest.Header.Set(\"X-Request-ID\", \"req-7\")\n\tfmt.Println(request.Method, request.URL.Path, request.Header.Get(\"X-Request-ID\"))\n}\n"
+    },
+    {
+      "id": "http-05-03-why-are-headers-useful",
+      "chapter": "Chapter 5 · Headers",
+      "title": "Why Are Headers Useful?",
+      "instruction": "Accept lets a client state which response media types it understands. Request JSON without changing the URL.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n)\n\nfunc main() {\n\thandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { fmt.Fprint(w, r.Header.Get(\"Accept\")) })\n\trequest := httptest.NewRequest(http.MethodGet, \"/profile\", nil)\n\trequest.Header.Set(\"Accept\", \"text/plain\")\n\tresponse := httptest.NewRecorder()\n\thandler.ServeHTTP(response, request)\n\tfmt.Print(response.Body.String())\n}\n",
+      "expected": "application/json\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n)\n\nfunc main() {\n\thandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) { fmt.Fprint(w, r.Header.Get(\"Accept\")) })\n\trequest := httptest.NewRequest(http.MethodGet, \"/profile\", nil)\n\trequest.Header.Set(\"Accept\", \"application/json\")\n\tresponse := httptest.NewRecorder()\n\thandler.ServeHTTP(response, request)\n\tfmt.Print(response.Body.String())\n}\n"
+    },
+    {
+      "id": "http-05-04-network-tab-practice",
+      "chapter": "Chapter 5 · Headers",
+      "title": "Network Tab Practice",
+      "instruction": "A browser Network panel exposes request timing plus response status, headers, and size. Summarize the three supplied response details.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n)\n\nfunc main() {\n\tresponse := httptest.NewRecorder()\n\tresponse.Header().Set(\"Content-Type\", \"text/plain\")\n\tresponse.WriteHeader(http.StatusNotFound)\n\tfmt.Fprint(response, \"hello\")\n\tfmt.Println(response.Code, response.Header().Get(\"Content-Type\"), response.Body.Len())\n}\n",
+      "expected": "200 text/plain 5\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n)\n\nfunc main() {\n\tresponse := httptest.NewRecorder()\n\tresponse.Header().Set(\"Content-Type\", \"text/plain\")\n\tresponse.WriteHeader(http.StatusOK)\n\tfmt.Fprint(response, \"hello\")\n\tfmt.Println(response.Code, response.Header().Get(\"Content-Type\"), response.Body.Len())\n}\n"
+    },
+
+    {
+      "id": "http-06-01-http-methods-get",
+      "chapter": "Chapter 6 · Methods",
+      "title": "HTTP Methods - GET",
+      "instruction": "GET retrieves a representation and should not request a state change. Create a GET request for the items collection.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n)\n\nfunc main() {\n\trequest, _ := http.NewRequest(http.MethodPost, \"https://example.com/items\", nil)\n\tfmt.Println(request.Method)\n}\n",
+      "expected": "GET\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n)\n\nfunc main() {\n\trequest, _ := http.NewRequest(http.MethodGet, \"https://example.com/items\", nil)\n\tfmt.Println(request.Method)\n}\n"
+    },
+    {
+      "id": "http-06-02-why-use-http-methods",
+      "chapter": "Chapter 6 · Methods",
+      "title": "Why Use HTTP Methods?",
+      "instruction": "HTTP methods communicate an operation's intent independently of its path. Map read and create to their standard methods.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n)\n\nfunc main() {\n\tmethods := map[string]string{\"read\": http.MethodPost, \"create\": http.MethodGet}\n\tfmt.Println(methods[\"read\"], methods[\"create\"])\n}\n",
+      "expected": "GET POST\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n)\n\nfunc main() {\n\tmethods := map[string]string{\"read\": http.MethodGet, \"create\": http.MethodPost}\n\tfmt.Println(methods[\"read\"], methods[\"create\"])\n}\n"
+    },
+    {
+      "id": "http-06-03-post-requests",
+      "chapter": "Chapter 6 · Methods",
+      "title": "POST Requests",
+      "instruction": "POST submits a representation for processing, often to create a resource. Send the new item's JSON body.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\t\"strings\"\n)\n\nfunc main() {\n\trequest, _ := http.NewRequest(http.MethodGet, \"https://example.com/items\", strings.NewReader(`{\"name\":\"book\"}`))\n\tfmt.Println(request.Method, request.ContentLength)\n}\n",
+      "expected": "POST 15\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\t\"strings\"\n)\n\nfunc main() {\n\trequest, _ := http.NewRequest(http.MethodPost, \"https://example.com/items\", strings.NewReader(`{\"name\":\"book\"}`))\n\tfmt.Println(request.Method, request.ContentLength)\n}\n"
+    },
+    {
+      "id": "http-06-04-status-codes",
+      "chapter": "Chapter 6 · Methods",
+      "title": "Status Codes",
+      "instruction": "HTTP status families group outcomes: 2xx success, 4xx client errors, and 5xx server errors. Classify this 404 response.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n)\n\nfunc main() {\n\tserver := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusNotFound) }))\n\tdefer server.Close()\n\tresponse, _ := http.Get(server.URL)\n\tdefer response.Body.Close()\n\tif response.StatusCode >= 500 { fmt.Println(\"client error\") } else { fmt.Println(\"other\") }\n}\n",
+      "expected": "client error\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n)\n\nfunc main() {\n\tserver := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusNotFound) }))\n\tdefer server.Close()\n\tresponse, _ := http.Get(server.URL)\n\tdefer response.Body.Close()\n\tif response.StatusCode >= 400 && response.StatusCode < 500 { fmt.Println(\"client error\") } else { fmt.Println(\"other\") }\n}\n"
+    },
+    {
+      "id": "http-06-05-status-code-property",
+      "chapter": "Chapter 6 · Methods",
+      "title": "Status Code Property",
+      "instruction": "The response status is protocol metadata, not something clients should infer from body text. Read StatusCode directly.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n)\n\nfunc main() {\n\tserver := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusAccepted) }))\n\tdefer server.Close()\n\tresponse, _ := http.Get(server.URL)\n\tdefer response.Body.Close()\n\tfmt.Println(http.StatusOK)\n}\n",
+      "expected": "202\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n)\n\nfunc main() {\n\tserver := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusAccepted) }))\n\tdefer server.Close()\n\tresponse, _ := http.Get(server.URL)\n\tdefer response.Body.Close()\n\tfmt.Println(response.StatusCode)\n}\n"
+    },
+    {
+      "id": "http-06-06-http-put",
+      "chapter": "Chapter 6 · Methods",
+      "title": "HTTP PUT",
+      "instruction": "PUT sends a complete replacement representation to a known resource URL. Build that request for item 7.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\t\"strings\"\n)\n\nfunc main() {\n\trequest, _ := http.NewRequest(http.MethodPatch, \"https://example.com/items/7\", strings.NewReader(\"replacement\"))\n\tfmt.Println(request.Method, request.URL.Path)\n}\n",
+      "expected": "PUT /items/7\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\t\"strings\"\n)\n\nfunc main() {\n\trequest, _ := http.NewRequest(http.MethodPut, \"https://example.com/items/7\", strings.NewReader(\"replacement\"))\n\tfmt.Println(request.Method, request.URL.Path)\n}\n"
+    },
+    {
+      "id": "http-06-07-patch-vs-put",
+      "chapter": "Chapter 6 · Methods",
+      "title": "Patch vs. PUT",
+      "instruction": "Associate PUT with complete replacement and PATCH with a partial update.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n)\n\nfunc main() {\n\tmeaning := map[string]string{http.MethodPut: \"partial\", http.MethodPatch: \"replacement\"}\n\tfmt.Println(meaning[http.MethodPut], meaning[http.MethodPatch])\n}\n",
+      "expected": "replacement partial\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n)\n\nfunc main() {\n\tmeaning := map[string]string{http.MethodPut: \"replacement\", http.MethodPatch: \"partial\"}\n\tfmt.Println(meaning[http.MethodPut], meaning[http.MethodPatch])\n}\n"
+    },
+    {
+      "id": "http-06-08-delete",
+      "chapter": "Chapter 6 · Methods",
+      "title": "Delete",
+      "instruction": "DELETE asks the server to remove the target resource. Create that request for item 7.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n)\n\nfunc main() {\n\trequest, _ := http.NewRequest(http.MethodGet, \"https://example.com/items/7\", nil)\n\tfmt.Println(request.Method, request.URL.Path)\n}\n",
+      "expected": "DELETE /items/7\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n)\n\nfunc main() {\n\trequest, _ := http.NewRequest(http.MethodDelete, \"https://example.com/items/7\", nil)\n\tfmt.Println(request.Method, request.URL.Path)\n}\n"
+    },
+
+    {
+      "id": "http-07-01-url-paths",
+      "chapter": "Chapter 7 · Paths",
+      "title": "URL Paths",
+      "instruction": "String concatenation can introduce missing or duplicate URL slashes. Use url.JoinPath to append the item identifier safely.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/url\"\n)\n\nfunc main() {\n\tjoined, _ := url.JoinPath(\"https://api.example.com/items\", \"wrong\")\n\tfmt.Println(joined)\n}\n",
+      "expected": "https://api.example.com/items/42\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/url\"\n)\n\nfunc main() {\n\tjoined, _ := url.JoinPath(\"https://api.example.com/items\", \"42\")\n\tfmt.Println(joined)\n}\n"
+    },
+    {
+      "id": "http-07-02-restful-apis",
+      "chapter": "Chapter 7 · Paths",
+      "title": "RESTful APIs",
+      "instruction": "REST-style APIs model nouns as resources and use HTTP methods for operations. Address user 42 with a resource path and GET.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n)\n\nfunc main() {\n\trequest, _ := http.NewRequest(http.MethodPost, \"https://api.example.com/getUser?id=42\", nil)\n\tfmt.Println(request.Method, request.URL.RequestURI())\n}\n",
+      "expected": "GET /users/42\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n)\n\nfunc main() {\n\trequest, _ := http.NewRequest(http.MethodGet, \"https://api.example.com/users/42\", nil)\n\tfmt.Println(request.Method, request.URL.RequestURI())\n}\n"
+    },
+    {
+      "id": "http-07-03-url-query-parameters",
+      "chapter": "Chapter 7 · Paths",
+      "title": "URL Query Parameters",
+      "instruction": "Query parameters refine a collection without changing its resource path. Add limit through the parsed URL's query values.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/url\"\n)\n\nfunc main() {\n\tu, _ := url.Parse(\"https://api.example.com/todos\")\n\tquery := u.Query()\n\tquery.Set(\"page\", \"10\")\n\tu.RawQuery = query.Encode()\n\tfmt.Println(u.RequestURI())\n}\n",
+      "expected": "/todos?limit=10\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/url\"\n)\n\nfunc main() {\n\tu, _ := url.Parse(\"https://api.example.com/todos\")\n\tquery := u.Query()\n\tquery.Set(\"limit\", \"10\")\n\tu.RawQuery = query.Encode()\n\tfmt.Println(u.RequestURI())\n}\n"
+    },
+    {
+      "id": "http-07-04-the-documentation-of-an-http-server",
+      "chapter": "Chapter 7 · Paths",
+      "title": "The Documentation of an HTTP Server",
+      "instruction": "A client must follow the server's documented method, path, and response contract. Call GET /health and confirm status 204.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n)\n\nfunc main() {\n\thandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {\n\t\tif r.Method == http.MethodPost && r.URL.Path == \"/health\" { w.WriteHeader(http.StatusNoContent); return }\n\t\tw.WriteHeader(http.StatusNotFound)\n\t})\n\tresponse := httptest.NewRecorder()\n\thandler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, \"/health\", nil))\n\tfmt.Println(response.Code)\n}\n",
+      "expected": "204\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n)\n\nfunc main() {\n\thandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {\n\t\tif r.Method == http.MethodGet && r.URL.Path == \"/health\" { w.WriteHeader(http.StatusNoContent); return }\n\t\tw.WriteHeader(http.StatusNotFound)\n\t})\n\tresponse := httptest.NewRecorder()\n\thandler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, \"/health\", nil))\n\tfmt.Println(response.Code)\n}\n"
+    },
+    {
+      "id": "http-07-05-multiple-query-parameters",
+      "chapter": "Chapter 7 · Paths",
+      "title": "Multiple Query Parameters",
+      "instruction": "Encode both page and sort parameters; url.Values will place keys deterministically.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/url\"\n)\n\nfunc main() {\n\tquery := url.Values{\"page\": {\"2\"}}\n\tfmt.Println(query.Encode())\n}\n",
+      "expected": "page=2&sort=name\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/url\"\n)\n\nfunc main() {\n\tquery := url.Values{\"page\": {\"2\"}, \"sort\": {\"name\"}}\n\tfmt.Println(query.Encode())\n}\n"
+    },
+
+    {
+      "id": "http-08-01-https",
+      "chapter": "Chapter 8 · HTTPS",
+      "title": "HTTPS",
+      "instruction": "HTTPS is HTTP carried over an authenticated, encrypted TLS connection. Call the trusted local TLS server and print its scheme and status.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n)\n\nfunc main() {\n\tserver := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusNoContent) }))\n\tdefer server.Close()\n\tresponse, _ := server.Client().Get(server.URL)\n\tdefer response.Body.Close()\n\tfmt.Println(\"http\", response.StatusCode)\n}\n",
+      "expected": "https 204\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n\t\"net/url\"\n)\n\nfunc main() {\n\tserver := httptest.NewTLSServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusNoContent) }))\n\tdefer server.Close()\n\tresponse, _ := server.Client().Get(server.URL)\n\tdefer response.Body.Close()\n\tu, _ := url.Parse(server.URL)\n\tfmt.Println(u.Scheme, response.StatusCode)\n}\n"
+    },
+    {
+      "id": "http-08-02-security-and-encryption",
+      "chapter": "Chapter 8 · HTTPS",
+      "title": "Security and Encryption",
+      "instruction": "TLS authenticates the endpoint certificate and encrypts traffic in transit. Describe both protections.",
+      "starter": "package main\n\nimport (\n\t\"crypto/tls\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tversion := tls.VersionTLS13\n\tfmt.Println(version == tls.VersionTLS13, \"encrypted only\")\n}\n",
+      "expected": "true verified and encrypted\n",
+      "solution": "package main\n\nimport (\n\t\"crypto/tls\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tversion := tls.VersionTLS13\n\tfmt.Println(version == tls.VersionTLS13, \"verified and encrypted\")\n}\n"
+    },
+
+    {
+      "id": "http-09-01-handling-errors",
+      "chapter": "Chapter 9 · Errors",
+      "title": "Handling Errors",
+      "instruction": "A completed HTTP exchange can still report failure through its status code. Turn this failing response into a useful Go error.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n)\n\nfunc main() {\n\tserver := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusBadGateway) }))\n\tdefer server.Close()\n\tresponse, _ := http.Get(server.URL)\n\tdefer response.Body.Close()\n\tif response.StatusCode < 400 { fmt.Printf(\"request failed: %d\\n\", response.StatusCode) } else { fmt.Println(\"ok\") }\n}\n",
+      "expected": "request failed: 502\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n)\n\nfunc main() {\n\tserver := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusBadGateway) }))\n\tdefer server.Close()\n\tresponse, _ := http.Get(server.URL)\n\tdefer response.Body.Close()\n\tif response.StatusCode >= 400 { fmt.Printf(\"request failed: %d\\n\", response.StatusCode) } else { fmt.Println(\"ok\") }\n}\n"
+    },
+    {
+      "id": "http-09-02-bugs-vs-errors",
+      "chapter": "Chapter 9 · Errors",
+      "title": "Bugs vs. Errors",
+      "instruction": "Classify a timeout as a runtime error and an impossible negative retry count as a programmer bug.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc classify(timeout bool, retries int) (string, string) {\n\treturn \"bug\", \"error\"\n}\n\nfunc main() { fmt.Println(classify(true, -1)) }\n",
+      "expected": "error bug\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc classify(timeout bool, retries int) (string, string) {\n\ttimeoutKind := \"none\"\n\tif timeout { timeoutKind = \"error\" }\n\tretryKind := \"none\"\n\tif retries < 0 { retryKind = \"bug\" }\n\treturn timeoutKind, retryKind\n}\n\nfunc main() { fmt.Println(classify(true, -1)) }\n"
+    },
+
+    {
+      "id": "http-10-01-install-curl",
+      "chapter": "Chapter 10 · cURL",
+      "title": "Install cURL",
+      "instruction": "Debian-family systems install packaged command-line tools with apt-get. Select the command that installs cURL.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tinstall := map[string]string{\"debian\": \"brew install curl\"}\n\tfmt.Println(install[\"debian\"])\n}\n",
+      "expected": "sudo apt-get install curl\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tinstall := map[string]string{\"debian\": \"sudo apt-get install curl\"}\n\tfmt.Println(install[\"debian\"])\n}\n"
+    },
+    {
+      "id": "http-10-02-curl-basics",
+      "chapter": "Chapter 10 · cURL",
+      "title": "cURL Basics",
+      "instruction": "cURL is a command-line HTTP client; a bare URL performs a GET by default. Print the command that retrieves the items endpoint.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"wget https://api.example.com/items\") }\n",
+      "expected": "curl https://api.example.com/items\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"curl https://api.example.com/items\") }\n"
+    },
+    {
+      "id": "http-10-03-curl-post-request",
+      "chapter": "Chapter 10 · cURL",
+      "title": "cURL POST Request",
+      "instruction": "cURL's -X option selects a method and -d supplies a request body. Print the POST command with the JSON item.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(`curl -X GET https://api.example.com/items`) }\n",
+      "expected": "curl -X POST -d {\"name\":\"book\"} https://api.example.com/items\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(`curl -X POST -d {\"name\":\"book\"} https://api.example.com/items`) }\n"
+    },
+    {
+      "id": "http-10-04-install-jq",
+      "chapter": "Chapter 10 · cURL",
+      "title": "Install jq",
+      "instruction": "jq is a command-line JSON processor distributed through system package managers. Select its Debian installation command.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tinstall := map[string]string{\"debian\": \"sudo apt-get install curl\"}\n\tfmt.Println(install[\"debian\"])\n}\n",
+      "expected": "sudo apt-get install jq\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tinstall := map[string]string{\"debian\": \"sudo apt-get install jq\"}\n\tfmt.Println(install[\"debian\"])\n}\n"
+    },
+    {
+      "id": "http-10-05-jq-basics",
+      "chapter": "Chapter 10 · cURL",
+      "title": "jq Basics",
+      "instruction": "A jq filter selects JSON data, and -r emits strings without JSON quotes. Print the command that reads name from response.json.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"jq .id response.json\") }\n",
+      "expected": "jq -r .name response.json\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"jq -r .name response.json\") }\n"
+    }
+  ]
+}

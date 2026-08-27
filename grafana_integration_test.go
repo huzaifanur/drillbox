@@ -44,12 +44,12 @@ func TestGrafanaDockerLifecycle(t *testing.T) {
 		_, _ = manager.compose(cleanupCtx, "down", "-v", "--remove-orphans")
 	}()
 
-	manager.start()
+	manager.start("grafana")
 	deadline := time.Now().Add(2 * time.Minute)
-	for manager.publicStatus().State == "starting" && time.Now().Before(deadline) {
+	for manager.publicStatus("grafana").State == "starting" && time.Now().Before(deadline) {
 		time.Sleep(250 * time.Millisecond)
 	}
-	status := manager.publicStatus()
+	status := manager.publicStatus("grafana")
 	if status.State != "ready" {
 		t.Fatalf("lab did not become ready: %s (%s)", status.State, status.Message)
 	}

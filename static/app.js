@@ -53,10 +53,10 @@ async function loadLesson() {
   localStorage.setItem(`${storageKey}:current:${state.course.id}`, summary.id);
   elements.chapter.textContent = state.lesson.chapter;
   elements.title.textContent = state.lesson.title;
-  renderInstruction(state.lesson.concept, state.lesson.instruction);
+  renderInstruction(state.lesson.instruction);
   configureWorkspace();
   setEditorValue(localStorage.getItem(`${storageKey}:draft:${summary.id}`) || state.lesson.starter);
-  elements.output.textContent = state.lesson.mode === "lab" ? "Complete the task in Grafana, then run Check." : "Output will appear here.";
+  elements.output.textContent = state.lesson.mode === "lab" ? "Complete the live-lab task, then run Check." : "Output will appear here.";
   setStatus(state.passed.has(summary.id) ? "passed" : "idle");
   updatePickers();
   updateNavigation();
@@ -66,45 +66,11 @@ async function loadLesson() {
   focusEditor();
 }
 
-function renderInstruction(concept, text) {
-  const blocks = text.split(/\n\s*\n/).map((block) => block.trim()).filter(Boolean);
-  const fragment = document.createDocumentFragment();
-
-  const brief = document.createElement("section");
-  brief.className = "lesson-brief";
-  brief.setAttribute("aria-label", "Key idea");
-  const briefLabel = document.createElement("span");
-  briefLabel.className = "lesson-brief-label";
-  briefLabel.textContent = "Key idea";
-  const lead = document.createElement("p");
-  lead.className = "lesson-lead";
-  lead.textContent = concept;
-  brief.append(briefLabel, lead);
-  fragment.append(brief);
-
-  const assignment = document.createElement("section");
-  assignment.className = "assignment";
-  const heading = document.createElement("h2");
-  heading.textContent = "Task";
-  assignment.append(heading);
-
-  blocks.forEach((block, index) => {
-    if (/^Expected output:?$/i.test(block)) {
-      const label = document.createElement("p");
-      label.className = "success-label";
-      label.textContent = "Success";
-      assignment.append(label);
-      return;
-    }
-    const exactOutput = blocks.length > 1 && index === blocks.length - 1 && !/[.!?]$/.test(block);
-    const element = document.createElement(exactOutput ? "pre" : "p");
-    if (exactOutput) element.className = "expected-output";
-    element.textContent = block;
-    assignment.append(element);
-  });
-
-  fragment.append(assignment);
-  elements.instruction.replaceChildren(fragment);
+function renderInstruction(text) {
+  const body = document.createElement("div");
+  body.className = "lesson-copy";
+  body.textContent = text;
+  elements.instruction.replaceChildren(body);
 }
 
 function configureWorkspace() {
@@ -119,7 +85,7 @@ function configureWorkspace() {
     elements.lintStatus.className = "lint-status";
     elements.lintStatus.textContent = "CHECKING";
   }
-  elements.run.textContent = { go: "Run", sql: "Run SQL", promql: "Run Query", file: "Apply File", lab: "Check" }[mode] || "Run";
+  elements.run.textContent = { go: "Run", sql: "Run SQL", text: "Check Text", promql: "Run Query", file: "Apply File", lab: "Check" }[mode] || "Run";
   elements.submit.textContent = mode === "lab" ? "Submit Check" : "Submit";
 }
 
@@ -257,13 +223,13 @@ function renderLab() {
   elements.labPanel.dataset.state = state.lab.state;
   elements.labState.textContent = labels[state.lab.state] || state.lab.state;
   elements.labMessage.textContent = state.lab.message;
-  elements.labSteps.replaceChildren(...state.lab.steps.map((step) => {
+  elements.labSteps.replaceChildren(...(state.lab.steps || []).map((step) => {
     const item = document.createElement("li");
     item.className = step.ready ? "ready" : "waiting";
     item.textContent = `${step.ready ? "✓" : "·"} ${step.name}`;
     return item;
   }));
-  elements.labLinks.replaceChildren(...state.lab.links.map((link) => {
+  elements.labLinks.replaceChildren(...(state.lab.links || []).map((link) => {
     const anchor = document.createElement("a");
     anchor.href = link.url;
     anchor.target = "_blank";
@@ -272,7 +238,7 @@ function renderLab() {
     return anchor;
   }));
   const credentials = state.lab.credentials;
-  elements.labCredentials.textContent = `Grafana login: ${credentials.username} / ${credentials.password}`;
+  elements.labCredentials.textContent = credentials?.username ? `Lab login: ${credentials.username} / ${credentials.password}` : "";
   elements.labRetry.hidden = state.lab.state !== "error" && state.lab.state !== "stopped";
   updateRunAvailability();
 }

@@ -1,0 +1,396 @@
+{
+  "id": "file-servers",
+  "title": "Learn File Servers and CDNs with S3 and CloudFront",
+  "description": "Build secure upload, object-storage, streaming, caching, CDN, and recovery flows in Go.",
+  "requiredLab": "object-storage",
+  "lessons": [
+    {
+      "id": "file-servers-01-01-welcome",
+      "chapter": "Chapter 1 · File Storage",
+      "title": "Welcome",
+      "instruction": "A file service manages bytes and metadata such as an object key, owner, media type, and size. Record the real byte size for the stored avatar.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype storedFile struct {\n\tkey  string\n\tsize int64\n}\n\nfunc main() {\n\tfile := storedFile{key: \"avatars/me.png\", size: 0}\n\tfmt.Println(file.key, file.size)\n}\n",
+      "expected": "avatars/me.png 2048\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype storedFile struct {\n\tkey  string\n\tsize int64\n}\n\nfunc main() {\n\tfile := storedFile{key: \"avatars/me.png\", size: 2048}\n\tfmt.Println(file.key, file.size)\n}\n"
+    },
+    {
+      "id": "file-servers-01-02-large-files",
+      "chapter": "Chapter 1 · File Storage",
+      "title": "Large Files",
+      "instruction": "Stream large files through io.Reader and io.Writer instead of holding the whole upload in memory. Copy the first five bytes from the simulated upload.",
+      "starter": "package main\n\nimport (\n\t\"bytes\"\n\t\"fmt\"\n\t\"io\"\n)\n\nfunc main() {\n\tupload := bytes.NewBufferString(\"large-file\")\n\tn, _ := io.Copy(io.Discard, io.LimitReader(upload, 4))\n\tfmt.Println(n)\n}\n",
+      "expected": "5\n",
+      "solution": "package main\n\nimport (\n\t\"bytes\"\n\t\"fmt\"\n\t\"io\"\n)\n\nfunc main() {\n\tupload := bytes.NewBufferString(\"large-file\")\n\tn, _ := io.Copy(io.Discard, io.LimitReader(upload, 5))\n\tfmt.Println(n)\n}\n"
+    },
+    {
+      "id": "file-servers-01-03-database",
+      "chapter": "Chapter 1 · File Storage",
+      "title": "Database",
+      "instruction": "Keep searchable metadata in the database while object storage holds the bytes. Correct the row so it points to the uploaded MP4 and records its media type.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype fileRow struct {\n\tid          int\n\tobjectKey   string\n\tcontentType string\n}\n\nfunc main() {\n\trow := fileRow{id: 42, objectKey: \"videos/draft.txt\", contentType: \"text/plain\"}\n\tfmt.Println(row.id, row.objectKey, row.contentType)\n}\n",
+      "expected": "42 videos/intro.mp4 video/mp4\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype fileRow struct {\n\tid          int\n\tobjectKey   string\n\tcontentType string\n}\n\nfunc main() {\n\trow := fileRow{id: 42, objectKey: \"videos/intro.mp4\", contentType: \"video/mp4\"}\n\tfmt.Println(row.id, row.objectKey, row.contentType)\n}\n"
+    },
+    {
+      "id": "file-servers-01-04-videos",
+      "chapter": "Chapter 1 · File Storage",
+      "title": "Videos",
+      "instruction": "MP4 is a media container, while codecs describe how its tracks are encoded. Return the standard media type for an .mp4 response.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"mime\"\n)\n\nfunc main() {\n\tfmt.Println(mime.TypeByExtension(\".txt\"))\n}\n",
+      "expected": "video/mp4\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"mime\"\n)\n\nfunc main() {\n\tfmt.Println(mime.TypeByExtension(\".mp4\"))\n}\n"
+    },
+    {
+      "id": "file-servers-01-05-multipart-uploads",
+      "chapter": "Chapter 1 · File Storage",
+      "title": "Multipart Uploads",
+      "instruction": "Multipart boundaries separate regular form values from uploaded files. Read the file from the upload field and print its client filename; real handlers must also cap the request size.",
+      "starter": "package main\n\nimport (\n\t\"bytes\"\n\t\"fmt\"\n\t\"mime/multipart\"\n\t\"net/http\"\n)\n\nfunc main() {\n\tvar body bytes.Buffer\n\twriter := multipart.NewWriter(&body)\n\tpart, _ := writer.CreateFormFile(\"upload\", \"avatar.png\")\n\tpart.Write([]byte(\"png\"))\n\twriter.Close()\n\n\trequest, _ := http.NewRequest(http.MethodPost, \"/upload\", &body)\n\trequest.Header.Set(\"Content-Type\", writer.FormDataContentType())\n\trequest.ParseMultipartForm(1024)\n\tfiles := request.MultipartForm.File[\"file\"]\n\tif len(files) == 0 {\n\t\tfmt.Println(\"missing\")\n\t\treturn\n\t}\n\tfmt.Println(files[0].Filename)\n}\n",
+      "expected": "avatar.png\n",
+      "solution": "package main\n\nimport (\n\t\"bytes\"\n\t\"fmt\"\n\t\"mime/multipart\"\n\t\"net/http\"\n)\n\nfunc main() {\n\tvar body bytes.Buffer\n\twriter := multipart.NewWriter(&body)\n\tpart, _ := writer.CreateFormFile(\"upload\", \"avatar.png\")\n\tpart.Write([]byte(\"png\"))\n\twriter.Close()\n\n\trequest, _ := http.NewRequest(http.MethodPost, \"/upload\", &body)\n\trequest.Header.Set(\"Content-Type\", writer.FormDataContentType())\n\trequest.ParseMultipartForm(1024)\n\tfiles := request.MultipartForm.File[\"upload\"]\n\tif len(files) == 0 {\n\t\tfmt.Println(\"missing\")\n\t\treturn\n\t}\n\tfmt.Println(files[0].Filename)\n}\n"
+    },
+    {
+      "id": "file-servers-01-06-encoding",
+      "chapter": "Chapter 1 · File Storage",
+      "title": "Encoding",
+      "instruction": "Transcoding changes codec, bitrate, or resolution and is usually an asynchronous CPU-heavy job. Build the command arguments that encode the video with H.264.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\targs := []string{\"-i\", \"input.mov\", \"-c:v\", \"copy\", \"output.mp4\"}\n\tfmt.Println(\"ffmpeg\", strings.Join(args, \" \"))\n}\n",
+      "expected": "ffmpeg -i input.mov -c:v libx264 output.mp4\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\targs := []string{\"-i\", \"input.mov\", \"-c:v\", \"libx264\", \"output.mp4\"}\n\tfmt.Println(\"ffmpeg\", strings.Join(args, \" \"))\n}\n"
+    },
+    {
+      "id": "file-servers-01-07-using-the-filesystem",
+      "chapter": "Chapter 1 · File Storage",
+      "title": "Using the Filesystem",
+      "instruction": "Local uploads must stay beneath a fixed root. Replace the traversal path with a safe relative path so cleaning and joining cannot escape /srv/uploads.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"path/filepath\"\n\t\"strings\"\n)\n\nfunc main() {\n\tinput := \"../secret.txt\"\n\tclean := filepath.Clean(input)\n\tif clean == \"..\" || strings.HasPrefix(clean, \"..\"+string(filepath.Separator)) {\n\t\tfmt.Println(\"rejected\")\n\t\treturn\n\t}\n\tfmt.Println(filepath.Join(\"/srv/uploads\", clean))\n}\n",
+      "expected": "/srv/uploads/images/avatar.png\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"path/filepath\"\n\t\"strings\"\n)\n\nfunc main() {\n\tinput := \"images/avatar.png\"\n\tclean := filepath.Clean(input)\n\tif clean == \"..\" || strings.HasPrefix(clean, \"..\"+string(filepath.Separator)) {\n\t\tfmt.Println(\"rejected\")\n\t\treturn\n\t}\n\tfmt.Println(filepath.Join(\"/srv/uploads\", clean))\n}\n"
+    },
+    {
+      "id": "file-servers-01-08-mime-types",
+      "chapter": "Chapter 1 · File Storage",
+      "title": "Mime Types",
+      "instruction": "Do not trust a client-supplied filename or Content-Type. Inspect the first bytes of the payload and make the detector identify a PNG image.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n)\n\nfunc main() {\n\tfmt.Println(http.DetectContentType([]byte(\"plain text\")))\n}\n",
+      "expected": "image/png\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n)\n\nfunc main() {\n\tfmt.Println(http.DetectContentType([]byte{0x89, 'P', 'N', 'G', 0x0d, 0x0a, 0x1a, 0x0a}))\n}\n"
+    },
+    {
+      "id": "file-servers-01-09-live-edits",
+      "chapter": "Chapter 1 · File Storage",
+      "title": "Live Edits",
+      "instruction": "Write edits to a temporary file and rename it atomically so readers never observe a partial file. Complete the replacement before reading the live path.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"os\"\n\t\"path/filepath\"\n)\n\nfunc main() {\n\tdir, _ := os.MkdirTemp(\"\", \"edit\")\n\tdefer os.RemoveAll(dir)\n\tlive := filepath.Join(dir, \"page.txt\")\n\ttemp := live + \".tmp\"\n\tos.WriteFile(live, []byte(\"old\"), 0600)\n\tos.WriteFile(temp, []byte(\"new\"), 0600)\n\tdata, _ := os.ReadFile(live)\n\tfmt.Println(string(data))\n}\n",
+      "expected": "new\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"os\"\n\t\"path/filepath\"\n)\n\nfunc main() {\n\tdir, _ := os.MkdirTemp(\"\", \"edit\")\n\tdefer os.RemoveAll(dir)\n\tlive := filepath.Join(dir, \"page.txt\")\n\ttemp := live + \".tmp\"\n\tos.WriteFile(live, []byte(\"old\"), 0600)\n\tos.WriteFile(temp, []byte(\"new\"), 0600)\n\tos.Rename(temp, live)\n\tdata, _ := os.ReadFile(live)\n\tfmt.Println(string(data))\n}\n"
+    },
+    {
+      "id": "file-servers-02-01-caching",
+      "chapter": "Chapter 2 · Caching",
+      "title": "Caching",
+      "instruction": "An ETag lets a client validate cached bytes without downloading them again. Match If-None-Match to the current ETag and return 304.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tcurrentETag := `\"v2\"`\n\tifNoneMatch := `\"v1\"`\n\tif ifNoneMatch == currentETag {\n\t\tfmt.Println(304)\n\t} else {\n\t\tfmt.Println(200)\n\t}\n}\n",
+      "expected": "304\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tcurrentETag := `\"v2\"`\n\tifNoneMatch := `\"v2\"`\n\tif ifNoneMatch == currentETag {\n\t\tfmt.Println(304)\n\t} else {\n\t\tfmt.Println(200)\n\t}\n}\n"
+    },
+    {
+      "id": "file-servers-02-02-cache-busting",
+      "chapter": "Chapter 2 · Caching",
+      "title": "Cache Busting",
+      "instruction": "A changed URL avoids stale shared caches more reliably than reusing the old asset path. Point the stylesheet at version v2.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tversion := \"v1\"\n\tfmt.Printf(\"app.%s.css\\n\", version)\n}\n",
+      "expected": "app.v2.css\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tversion := \"v2\"\n\tfmt.Printf(\"app.%s.css\\n\", version)\n}\n"
+    },
+    {
+      "id": "file-servers-02-03-cache-headers",
+      "chapter": "Chapter 2 · Caching",
+      "title": "Cache Headers",
+      "instruction": "Cache-Control distinguishes shared public reuse from private or forbidden storage. Allow public caches to keep this versioned asset for one hour.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http/httptest\"\n)\n\nfunc main() {\n\tresponse := httptest.NewRecorder()\n\tresponse.Header().Set(\"Cache-Control\", \"private, no-store\")\n\tfmt.Println(response.Header().Get(\"Cache-Control\"))\n}\n",
+      "expected": "public, max-age=3600\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http/httptest\"\n)\n\nfunc main() {\n\tresponse := httptest.NewRecorder()\n\tresponse.Header().Set(\"Cache-Control\", \"public, max-age=3600\")\n\tfmt.Println(response.Header().Get(\"Cache-Control\"))\n}\n"
+    },
+    {
+      "id": "file-servers-02-04-new-files",
+      "chapter": "Chapter 2 · Caching",
+      "title": "New Files",
+      "instruction": "Versioned files can be cached as immutable because new bytes receive a new name. Publish the new logo under its release-specific path.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tname := \"logo.png\"\n\tfmt.Println(name)\n}\n",
+      "expected": "logo.2026-08-27.png\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tname := \"logo.2026-08-27.png\"\n\tfmt.Println(name)\n}\n"
+    },
+    {
+      "id": "file-servers-03-01-single-machine",
+      "chapter": "Chapter 3 · AWS S3",
+      "title": "Single Machine",
+      "instruction": "Local disk ties bytes to one host, so replacement and horizontal scaling can lose access to uploads. Choose the shared backend for three application replicas.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\treplicas := 3\n\tbackend := \"local disk\"\n\tfmt.Println(replicas, backend)\n}\n",
+      "expected": "3 shared object storage\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\treplicas := 3\n\tbackend := \"shared object storage\"\n\tfmt.Println(replicas, backend)\n}\n"
+    },
+    {
+      "id": "file-servers-03-02-aws",
+      "chapter": "Chapter 3 · AWS S3",
+      "title": "AWS",
+      "instruction": "An S3 client needs a region and bucket, while credentials should come from the workload environment rather than source code. Correct the deployment configuration.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype config struct {\n\tregion string\n\tbucket string\n}\n\nfunc main() {\n\tcfg := config{region: \"local\", bucket: \"test\"}\n\tfmt.Println(cfg.region, cfg.bucket)\n}\n",
+      "expected": "us-east-1 media-prod\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype config struct {\n\tregion string\n\tbucket string\n}\n\nfunc main() {\n\tcfg := config{region: \"us-east-1\", bucket: \"media-prod\"}\n\tfmt.Println(cfg.region, cfg.bucket)\n}\n"
+    },
+    {
+      "id": "file-servers-03-03-serverless",
+      "chapter": "Chapter 3 · AWS S3",
+      "title": "Serverless",
+      "instruction": "Managed services remove server administration, not authorization or failure handling. Arrange a direct-upload flow so the API authorizes before signing and the browser uploads last.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tsteps := []string{\"upload\", \"sign\", \"authorize\"}\n\tfmt.Println(strings.Join(steps, \" -> \"))\n}\n",
+      "expected": "authorize -> sign -> upload\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tsteps := []string{\"authorize\", \"sign\", \"upload\"}\n\tfmt.Println(strings.Join(steps, \" -> \"))\n}\n"
+    },
+    {
+      "id": "file-servers-03-04-upload-object",
+      "chapter": "Chapter 3 · AWS S3",
+      "title": "Upload Object",
+      "instruction": "S3 and MinIO PUT operations identify a bucket, opaque key, body, and useful metadata such as Content-Type. Complete the local request model for the PNG upload.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype putObject struct {\n\tbucket      string\n\tkey         string\n\tcontentType string\n}\n\nfunc main() {\n\tinput := putObject{bucket: \"media\", key: \"uploads/cat.png\", contentType: \"application/octet-stream\"}\n\tfmt.Println(input.bucket, input.key, input.contentType)\n}\n",
+      "expected": "media uploads/cat.png image/png\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype putObject struct {\n\tbucket      string\n\tkey         string\n\tcontentType string\n}\n\nfunc main() {\n\tinput := putObject{bucket: \"media\", key: \"uploads/cat.png\", contentType: \"image/png\"}\n\tfmt.Println(input.bucket, input.key, input.contentType)\n}\n"
+    },
+    {
+      "id": "file-servers-03-05-architecture",
+      "chapter": "Chapter 3 · AWS S3",
+      "title": "Architecture",
+      "instruction": "A practical local stack mirrors production: the browser asks the API for authorization, MinIO stores S3-compatible objects, and a CDN serves cached responses. Put the components in request order.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tflow := []string{\"API\", \"browser\", \"CDN\", \"MinIO\"}\n\tfmt.Println(strings.Join(flow, \" -> \"))\n}\n",
+      "expected": "browser -> API -> MinIO -> CDN\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tflow := []string{\"browser\", \"API\", \"MinIO\", \"CDN\"}\n\tfmt.Println(strings.Join(flow, \" -> \"))\n}\n"
+    },
+    {
+      "id": "file-servers-03-06-sdks-and-s3",
+      "chapter": "Chapter 3 · AWS S3",
+      "title": "SDKs and S3",
+      "instruction": "An SDK handles request signing, transport, retries, and contexts; your code still owns safe keys and policy. Add a deadline to the simulated upload context.",
+      "starter": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tctx := context.Background()\n\t_, hasDeadline := ctx.Deadline()\n\tfmt.Println(hasDeadline)\n}\n",
+      "expected": "true\n",
+      "solution": "package main\n\nimport (\n\t\"context\"\n\t\"fmt\"\n\t\"time\"\n)\n\nfunc main() {\n\tctx, cancel := context.WithTimeout(context.Background(), time.Second)\n\tdefer cancel()\n\t_, hasDeadline := ctx.Deadline()\n\tfmt.Println(hasDeadline)\n}\n"
+    },
+    {
+      "id": "file-servers-04-01-object-storage",
+      "chapter": "Chapter 4 · Object Storage",
+      "title": "Object Storage",
+      "instruction": "MinIO provides an S3-compatible object store for local practice. Run Check to verify that its health endpoint is ready.",
+      "starter": "check\n",
+      "expected": "PASS · The live object-storage services are ready.",
+      "mode": "lab",
+      "validator": "service-ready"
+    },
+    {
+      "id": "file-servers-04-02-file-system-illusion",
+      "chapter": "Chapter 4 · Object Storage",
+      "title": "File System Illusion",
+      "instruction": "Slashes are characters in an object key; consoles imitate folders by listing prefixes. Count the keys beneath users/42/ without assuming directories exist.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tkeys := []string{\"users/42/a.png\", \"users/42/b.png\", \"users/7/c.png\"}\n\tprefix := \"videos/\"\n\tcount := 0\n\tfor _, key := range keys {\n\t\tif strings.HasPrefix(key, prefix) {\n\t\t\tcount++\n\t\t}\n\t}\n\tfmt.Println(count)\n}\n",
+      "expected": "2\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tkeys := []string{\"users/42/a.png\", \"users/42/b.png\", \"users/7/c.png\"}\n\tprefix := \"users/42/\"\n\tcount := 0\n\tfor _, key := range keys {\n\t\tif strings.HasPrefix(key, prefix) {\n\t\t\tcount++\n\t\t}\n\t}\n\tfmt.Println(count)\n}\n"
+    },
+    {
+      "id": "file-servers-04-03-dynamic-path",
+      "chapter": "Chapter 4 · Object Storage",
+      "title": "Dynamic Path",
+      "instruction": "Object keys use slash semantics on every operating system. Build the validated user's avatar key with path.Join rather than filepath.Join.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"path\"\n)\n\nfunc main() {\n\tuserID := \"7\"\n\tkey := path.Join(\"users\", userID, \"avatars\", \"me.png\")\n\tfmt.Println(key)\n}\n",
+      "expected": "users/42/avatars/me.png\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"path\"\n)\n\nfunc main() {\n\tuserID := \"42\"\n\tkey := path.Join(\"users\", userID, \"avatars\", \"me.png\")\n\tfmt.Println(key)\n}\n"
+    },
+    {
+      "id": "file-servers-05-01-streaming",
+      "chapter": "Chapter 5 · Video Streaming",
+      "title": "Streaming",
+      "instruction": "Byte-range delivery lets a player seek without downloading the whole file. Request bytes 2 through 5 and let http.ServeContent produce the partial response.",
+      "starter": "package main\n\nimport (\n\t\"bytes\"\n\t\"fmt\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n\t\"time\"\n)\n\nfunc main() {\n\trequest := httptest.NewRequest(http.MethodGet, \"/video\", nil)\n\trequest.Header.Set(\"Range\", \"bytes=0-1\")\n\tresponse := httptest.NewRecorder()\n\thttp.ServeContent(response, request, \"video.bin\", time.Unix(0, 0), bytes.NewReader([]byte(\"0123456789\")))\n\tfmt.Println(response.Code, response.Body.String(), response.Header().Get(\"Content-Range\"))\n}\n",
+      "expected": "206 2345 bytes 2-5/10\n",
+      "solution": "package main\n\nimport (\n\t\"bytes\"\n\t\"fmt\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n\t\"time\"\n)\n\nfunc main() {\n\trequest := httptest.NewRequest(http.MethodGet, \"/video\", nil)\n\trequest.Header.Set(\"Range\", \"bytes=2-5\")\n\tresponse := httptest.NewRecorder()\n\thttp.ServeContent(response, request, \"video.bin\", time.Unix(0, 0), bytes.NewReader([]byte(\"0123456789\")))\n\tfmt.Println(response.Code, response.Body.String(), response.Header().Get(\"Content-Range\"))\n}\n"
+    },
+    {
+      "id": "file-servers-05-02-mp4",
+      "chapter": "Chapter 5 · Video Streaming",
+      "title": "MP4",
+      "instruction": "Fast-start MP4 places metadata before the media payload so playback can begin during download. Put the simplified moov atom before mdat.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tatoms := []string{\"ftyp\", \"mdat\", \"moov\"}\n\tfmt.Println(strings.Join(atoms, \" \"))\n}\n",
+      "expected": "ftyp moov mdat\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tatoms := []string{\"ftyp\", \"moov\", \"mdat\"}\n\tfmt.Println(strings.Join(atoms, \" \"))\n}\n"
+    },
+    {
+      "id": "file-servers-05-03-more-requests",
+      "chapter": "Chapter 5 · Video Streaming",
+      "title": "More Requests",
+      "instruction": "A valid Range response uses 206, includes Content-Range, and returns only the requested bytes. Make the requested inclusive interval exactly 100 bytes long.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tstart, end := 100, 149\n\tfmt.Println(end - start + 1)\n}\n",
+      "expected": "100\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tstart, end := 100, 199\n\tfmt.Println(end - start + 1)\n}\n"
+    },
+    {
+      "id": "file-servers-05-04-other-approaches",
+      "chapter": "Chapter 5 · Video Streaming",
+      "title": "Other Approaches",
+      "instruction": "HLS and DASH split media into small segments and can adapt bitrate between requests. Replace the single-file delivery with an HLS playlist and segment.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tformat, manifest, media := \"MP4\", \"movie.mp4\", \"movie.mp4\"\n\tfmt.Println(format, manifest, media)\n}\n",
+      "expected": "HLS playlist.m3u8 segment-001.ts\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tformat, manifest, media := \"HLS\", \"playlist.m3u8\", \"segment-001.ts\"\n\tfmt.Println(format, manifest, media)\n}\n"
+    },
+    {
+      "id": "file-servers-06-01-security",
+      "chapter": "Chapter 6 · Security",
+      "title": "Security",
+      "instruction": "Treat upload names, sizes, declared types, and bytes as untrusted. Enforce the five-byte limit before an oversized body reaches storage.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tupload := []byte(\"123456\")\n\tmaxBytes := 10\n\tif len(upload) > maxBytes {\n\t\tfmt.Println(\"rejected\")\n\t} else {\n\t\tfmt.Println(\"accepted\")\n\t}\n}\n",
+      "expected": "rejected\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tupload := []byte(\"123456\")\n\tmaxBytes := 5\n\tif len(upload) > maxBytes {\n\t\tfmt.Println(\"rejected\")\n\t} else {\n\t\tfmt.Println(\"accepted\")\n\t}\n}\n"
+    },
+    {
+      "id": "file-servers-06-02-application-vs-developer",
+      "chapter": "Chapter 6 · Security",
+      "title": "Application vs. Developer",
+      "instruction": "Developers should use managed human login, while deployed applications use workload roles with temporary credentials. Select the production credential source.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tenvironment := \"production\"\n\tcredentialSource := \"developer-access-key\"\n\tfmt.Println(environment, credentialSource)\n}\n",
+      "expected": "production workload-role\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tenvironment := \"production\"\n\tcredentialSource := \"workload-role\"\n\tfmt.Println(environment, credentialSource)\n}\n"
+    },
+    {
+      "id": "file-servers-06-03-scoping-permission",
+      "chapter": "Chapter 6 · Security",
+      "title": "Scoping Permission",
+      "instruction": "Least privilege limits both operations and resources, often to one object-key prefix. Allow this PUT only beneath users/42/.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\taction := \"PutObject\"\n\tkey := \"users/42/avatar.png\"\n\tallowedPrefix := \"users/7/\"\n\tif action == \"PutObject\" && strings.HasPrefix(key, allowedPrefix) {\n\t\tfmt.Println(\"allowed\")\n\t} else {\n\t\tfmt.Println(\"denied\")\n\t}\n}\n",
+      "expected": "allowed\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\taction := \"PutObject\"\n\tkey := \"users/42/avatar.png\"\n\tallowedPrefix := \"users/42/\"\n\tif action == \"PutObject\" && strings.HasPrefix(key, allowedPrefix) {\n\t\tfmt.Println(\"allowed\")\n\t} else {\n\t\tfmt.Println(\"denied\")\n\t}\n}\n"
+    },
+    {
+      "id": "file-servers-06-04-roles",
+      "chapter": "Chapter 6 · Security",
+      "title": "Roles",
+      "instruction": "A role supplies short-lived credentials that the platform rotates. Make the simulated credential remain valid after the fixed current time.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"time\"\n)\n\nfunc main() {\n\tnow := time.Unix(200, 0)\n\texpires := time.Unix(100, 0)\n\tif expires.After(now) {\n\t\tfmt.Println(\"valid\")\n\t} else {\n\t\tfmt.Println(\"expired\")\n\t}\n}\n",
+      "expected": "valid\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"time\"\n)\n\nfunc main() {\n\tnow := time.Unix(200, 0)\n\texpires := time.Unix(300, 0)\n\tif expires.After(now) {\n\t\tfmt.Println(\"valid\")\n\t} else {\n\t\tfmt.Println(\"expired\")\n\t}\n}\n"
+    },
+    {
+      "id": "file-servers-06-05-private-bucket",
+      "chapter": "Chapter 6 · Security",
+      "title": "Private Bucket",
+      "instruction": "Keep public access blocked and grant only the application or CDN origin identity permission to read. Correct the simplified bucket posture.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tpublicAccess := true\n\toriginAccess := true\n\tif !publicAccess && originAccess {\n\t\tfmt.Println(\"private origin-only\")\n\t} else {\n\t\tfmt.Println(\"unsafe\")\n\t}\n}\n",
+      "expected": "private origin-only\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tpublicAccess := false\n\toriginAccess := true\n\tif !publicAccess && originAccess {\n\t\tfmt.Println(\"private origin-only\")\n\t} else {\n\t\tfmt.Println(\"unsafe\")\n\t}\n}\n"
+    },
+    {
+      "id": "file-servers-06-06-signed-urls",
+      "chapter": "Chapter 6 · Security",
+      "title": "Signed URLs",
+      "instruction": "A signed URL grants one method on one object until a short expiry; it is not general bucket access. Correct the permitted method for this unexpired download.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype grant struct {\n\tmethod  string\n\tkey     string\n\texpires int64\n}\n\nfunc main() {\n\trequestMethod, requestKey, now := \"GET\", \"private/report.pdf\", int64(1000)\n\tsigned := grant{method: \"POST\", key: \"private/report.pdf\", expires: 1100}\n\tif signed.method == requestMethod && signed.key == requestKey && now < signed.expires {\n\t\tfmt.Println(\"valid\")\n\t} else {\n\t\tfmt.Println(\"invalid\")\n\t}\n}\n",
+      "expected": "valid\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype grant struct {\n\tmethod  string\n\tkey     string\n\texpires int64\n}\n\nfunc main() {\n\trequestMethod, requestKey, now := \"GET\", \"private/report.pdf\", int64(1000)\n\tsigned := grant{method: \"GET\", key: \"private/report.pdf\", expires: 1100}\n\tif signed.method == requestMethod && signed.key == requestKey && now < signed.expires {\n\t\tfmt.Println(\"valid\")\n\t} else {\n\t\tfmt.Println(\"invalid\")\n\t}\n}\n"
+    },
+    {
+      "id": "file-servers-06-07-encryption",
+      "chapter": "Chapter 6 · Security",
+      "title": "Encryption",
+      "instruction": "TLS protects bytes in transit, while server-side encryption protects stored objects. Enable TLS and select the managed-key mode for data at rest; authorization is still required.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tinTransit := \"plain HTTP\"\n\tatRest := \"none\"\n\tfmt.Println(inTransit, atRest)\n}\n",
+      "expected": "TLS aws:kms\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tinTransit := \"TLS\"\n\tatRest := \"aws:kms\"\n\tfmt.Println(inTransit, atRest)\n}\n"
+    },
+    {
+      "id": "file-servers-07-01-regions",
+      "chapter": "Chapter 7 · CDNs",
+      "title": "Regions",
+      "instruction": "Region choice affects latency, residency, cost, and failure boundaries. Colocate this application's origin bucket with the application region.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tappRegion := \"us-east-1\"\n\tbucketRegion := \"eu-west-1\"\n\tif appRegion == bucketRegion {\n\t\tfmt.Println(\"same-region\")\n\t} else {\n\t\tfmt.Println(\"cross-region\")\n\t}\n}\n",
+      "expected": "same-region\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tappRegion := \"us-east-1\"\n\tbucketRegion := \"us-east-1\"\n\tif appRegion == bucketRegion {\n\t\tfmt.Println(\"same-region\")\n\t} else {\n\t\tfmt.Println(\"cross-region\")\n\t}\n}\n"
+    },
+    {
+      "id": "file-servers-07-02-cdns",
+      "chapter": "Chapter 7 · CDNs",
+      "title": "CDNs",
+      "instruction": "A CDN reuses an edge copy when the cache key matches and goes to the origin on a miss. Store each missed URL so repeated requests become hits.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\trequests := []string{\"/a.png\", \"/a.png\", \"/b.png\", \"/a.png\"}\n\tcache := map[string]bool{}\n\thits, origin := 0, 0\n\tfor _, url := range requests {\n\t\tif cache[url] {\n\t\t\thits++\n\t\t} else {\n\t\t\torigin++\n\t\t}\n\t}\n\tfmt.Println(\"hits\", hits, \"origin\", origin)\n}\n",
+      "expected": "hits 2 origin 2\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\trequests := []string{\"/a.png\", \"/a.png\", \"/b.png\", \"/a.png\"}\n\tcache := map[string]bool{}\n\thits, origin := 0, 0\n\tfor _, url := range requests {\n\t\tif cache[url] {\n\t\t\thits++\n\t\t} else {\n\t\t\torigin++\n\t\t\tcache[url] = true\n\t\t}\n\t}\n\tfmt.Println(\"hits\", hits, \"origin\", origin)\n}\n"
+    },
+    {
+      "id": "file-servers-07-03-use-cloudfront",
+      "chapter": "Chapter 7 · CDNs",
+      "title": "Use CloudFront",
+      "instruction": "A secure CloudFront distribution uses a private S3 origin, origin access control, and HTTPS-only viewer behavior. Correct the simplified distribution settings.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype distribution struct {\n\torigin string\n\toac    bool\n\tviewer string\n}\n\nfunc main() {\n\tcfg := distribution{origin: \"public-website\", oac: false, viewer: \"allow-http\"}\n\tif cfg.origin == \"private-s3\" && cfg.oac && cfg.viewer == \"https-only\" {\n\t\tfmt.Println(cfg.origin, \"OAC\", cfg.viewer)\n\t} else {\n\t\tfmt.Println(\"insecure\")\n\t}\n}\n",
+      "expected": "private-s3 OAC https-only\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype distribution struct {\n\torigin string\n\toac    bool\n\tviewer string\n}\n\nfunc main() {\n\tcfg := distribution{origin: \"private-s3\", oac: true, viewer: \"https-only\"}\n\tif cfg.origin == \"private-s3\" && cfg.oac && cfg.viewer == \"https-only\" {\n\t\tfmt.Println(cfg.origin, \"OAC\", cfg.viewer)\n\t} else {\n\t\tfmt.Println(\"insecure\")\n\t}\n}\n"
+    },
+    {
+      "id": "file-servers-07-04-invalidations",
+      "chapter": "Chapter 7 · CDNs",
+      "title": "Invalidations",
+      "instruction": "Invalidations propagate asynchronously and may cost money, so routine releases should use versioned URLs. Publish v3 without purging the old cached path.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tassetURL := \"app.css\"\n\tfmt.Println(assetURL)\n}\n",
+      "expected": "app.v3.css\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tassetURL := \"app.v3.css\"\n\tfmt.Println(assetURL)\n}\n"
+    },
+    {
+      "id": "file-servers-07-05-why-cdns",
+      "chapter": "Chapter 7 · CDNs",
+      "title": "Why CDNs?",
+      "instruction": "Cache hits reduce viewer latency, origin bandwidth, and origin work. Raise the hit ratio to 80 percent and calculate how many of 1,000 requests reach the origin.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\trequests := 1000\n\thitPercent := 50\n\torigin := requests * (100 - hitPercent) / 100\n\tfmt.Println(\"origin requests:\", origin)\n}\n",
+      "expected": "origin requests: 200\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\trequests := 1000\n\thitPercent := 80\n\torigin := requests * (100 - hitPercent) / 100\n\tfmt.Println(\"origin requests:\", origin)\n}\n"
+    },
+    {
+      "id": "file-servers-08-01-availability",
+      "chapter": "Chapter 8 · Resiliency",
+      "title": "Availability",
+      "instruction": "Availability measures whether the service can respond when requested. Use a 99.9 percent monthly target and calculate the whole minutes of allowed downtime in 30 days.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tmonthMinutes := 30 * 24 * 60\n\ttargetPerThousand := 990\n\tallowed := monthMinutes * (1000 - targetPerThousand) / 1000\n\tfmt.Println(allowed, \"minutes\")\n}\n",
+      "expected": "43 minutes\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tmonthMinutes := 30 * 24 * 60\n\ttargetPerThousand := 999\n\tallowed := monthMinutes * (1000 - targetPerThousand) / 1000\n\tfmt.Println(allowed, \"minutes\")\n}\n"
+    },
+    {
+      "id": "file-servers-08-02-reliability",
+      "chapter": "Chapter 8 · Resiliency",
+      "title": "Reliability",
+      "instruction": "Reliability means sustained correct behavior. Retry only safe operations, cap the attempts, and back off between them; produce the three bounded delays.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n\t\"time\"\n)\n\nfunc main() {\n\tattempts := 2\n\tdelays := make([]string, 0, attempts)\n\tfor attempt := 0; attempt < attempts; attempt++ {\n\t\tdelays = append(delays, (time.Second << attempt).String())\n\t}\n\tfmt.Println(strings.Join(delays, \",\"))\n}\n",
+      "expected": "1s,2s,4s\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n\t\"time\"\n)\n\nfunc main() {\n\tattempts := 3\n\tdelays := make([]string, 0, attempts)\n\tfor attempt := 0; attempt < attempts; attempt++ {\n\t\tdelays = append(delays, (time.Second << attempt).String())\n\t}\n\tfmt.Println(strings.Join(delays, \",\"))\n}\n"
+    },
+    {
+      "id": "file-servers-08-03-durability",
+      "chapter": "Chapter 8 · Resiliency",
+      "title": "Durability",
+      "instruction": "Durability measures whether stored data remains intact, which differs from whether it is reachable now. Retain the object after one of three copies fails.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tcopiesHealthy := []bool{false, false, false}\n\tretained := false\n\tfor _, healthy := range copiesHealthy {\n\t\tretained = retained || healthy\n\t}\n\tif retained {\n\t\tfmt.Println(\"data retained\")\n\t} else {\n\t\tfmt.Println(\"data lost\")\n\t}\n}\n",
+      "expected": "data retained\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tcopiesHealthy := []bool{true, false, true}\n\tretained := false\n\tfor _, healthy := range copiesHealthy {\n\t\tretained = retained || healthy\n\t}\n\tif retained {\n\t\tfmt.Println(\"data retained\")\n\t} else {\n\t\tfmt.Println(\"data lost\")\n\t}\n}\n"
+    },
+    {
+      "id": "file-servers-08-04-bucket-versioning",
+      "chapter": "Chapter 8 · Resiliency",
+      "title": "Bucket Versioning",
+      "instruction": "Versioning preserves earlier object versions, while an ordinary delete adds a delete marker. Restore the newest stored value beneath that marker.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype version struct {\n\tvalue   string\n\tdeleted bool\n}\n\nfunc main() {\n\tversions := []version{{value: \"v1\"}, {value: \"v2\"}, {deleted: true}}\n\tfmt.Println(versions[len(versions)-1].value)\n}\n",
+      "expected": "v2\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype version struct {\n\tvalue   string\n\tdeleted bool\n}\n\nfunc main() {\n\tversions := []version{{value: \"v1\"}, {value: \"v2\"}, {deleted: true}}\n\tfor i := len(versions) - 1; i >= 0; i-- {\n\t\tif !versions[i].deleted {\n\t\t\tfmt.Println(versions[i].value)\n\t\t\tbreak\n\t\t}\n\t}\n}\n"
+    },
+    {
+      "id": "file-servers-08-05-delete",
+      "chapter": "Chapter 8 · Resiliency",
+      "title": "Delete",
+      "instruction": "In a versioned bucket, deleting the current object adds a marker without erasing historical versions. Append the marker and report the resulting state.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype version struct {\n\tid     string\n\tmarker bool\n}\n\nfunc main() {\n\tversions := []version{{id: \"1\"}, {id: \"2\"}}\n\tversions = nil\n\tfmt.Printf(\"versions=%d current-hidden=%t\\n\", len(versions), false)\n}\n",
+      "expected": "versions=3 current-hidden=true\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype version struct {\n\tid     string\n\tmarker bool\n}\n\nfunc main() {\n\tversions := []version{{id: \"1\"}, {id: \"2\"}}\n\tversions = append(versions, version{id: \"delete-marker\", marker: true})\n\tfmt.Printf(\"versions=%d current-hidden=%t\\n\", len(versions), versions[len(versions)-1].marker)\n}\n"
+    }
+  ]
+}

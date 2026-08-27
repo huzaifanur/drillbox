@@ -267,68 +267,11 @@ h1 {
   color: #d7dee6;
 }
 
-.lesson-brief {
-  display: grid;
-  grid-template-columns: 72px 1fr;
-  gap: 14px;
-  align-items: baseline;
-  padding-bottom: 18px;
-  border-bottom: 1px solid #434a59;
-}
-
-.lesson-brief-label,
-.success-label {
-  color: var(--highlight);
-  font: 700 11px/1.4 ui-monospace, monospace;
-  letter-spacing: .09em;
-  text-transform: uppercase;
-}
-
-.lesson-lead {
-  margin: 0;
+.lesson-copy {
   color: #dbe2eb;
   font-size: 17px;
-  line-height: 1.55;
-}
-
-.assignment {
-  margin-top: 18px;
-  padding: 20px 22px;
-  border: 1px solid #555d6e;
-  border-radius: 8px;
-  background: rgb(24 27 38 / 88%);
-}
-
-.assignment h2 {
-  margin: 0 0 10px;
-  color: var(--muted);
-  font: 700 12px/1.4 ui-monospace, monospace;
-  letter-spacing: .09em;
-  text-transform: uppercase;
-}
-
-.assignment p {
-  margin: 0;
-  color: #d7dee6;
-  line-height: 1.6;
-}
-
-.assignment p + p,
-.assignment p + .expected-output { margin-top: 16px; }
-
-.assignment .success-label {
-  margin-top: 16px;
-}
-
-.expected-output {
-  margin: 16px 0 0;
-  padding: 13px 15px;
-  overflow-x: auto;
-  border: 1px solid #424a5a;
-  border-radius: 6px;
-  background: var(--workspace-deep);
-  color: #f3f5f8;
-  font: 14px/1.55 "JetBrains Mono", "Cascadia Code", ui-monospace, monospace;
+  line-height: 1.65;
+  white-space: pre-wrap;
 }
 
 .lab-panel {

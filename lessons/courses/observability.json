@@ -1,0 +1,666 @@
+{
+  "id": "observability",
+  "title": "Learn Logging and Observability in Go",
+  "description": "Instrument a Go service with useful logs, secure context, metrics, alerts, profiles, and traces.",
+  "requiredLab": "observability",
+  "lessons": [
+    {
+      "id": "observability-01-01-welcome-to-logging-and-telemetry",
+      "chapter": "Chapter 1 · Observability",
+      "title": "Welcome to Logging and Telemetry",
+      "instruction": "Telemetry should help you detect a problem and then diagnose it. Complete the two operational goals printed by this first Linko check.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"detect\") }\n",
+      "expected": "detect diagnose",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"detect\", \"diagnose\") }\n"
+    },
+    {
+      "id": "observability-01-02-linko-overview",
+      "chapter": "Chapter 1 · Observability",
+      "title": "Linko Overview",
+      "instruction": "Linko is a URL shortener: a short path resolves to a stored destination and returns a redirect. Correct the destination without changing the request path.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"GET /go -> https://wrong.example\") }\n",
+      "expected": "GET /go -> https://go.dev",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"GET /go -> https://go.dev\") }\n"
+    },
+    {
+      "id": "observability-01-03-what-is-observability",
+      "chapter": "Chapter 1 · Observability",
+      "title": "What Is Observability?",
+      "instruction": "Observability infers a system's internal state from its outputs. Include the signal that reveals where runtime resources are being spent.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"logs metrics traces\") }\n",
+      "expected": "logs metrics traces profiles",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"logs metrics traces profiles\") }\n"
+    },
+    {
+      "id": "observability-02-01-logging-in-go",
+      "chapter": "Chapter 2 · Logging",
+      "title": "Logging in Go",
+      "instruction": "A log.Logger writes through an io.Writer and can own a stable prefix. Configure this logger for the Linko service.",
+      "starter": "package main\n\nimport (\"bytes\"; \"fmt\"; \"log\")\n\nfunc main() { var b bytes.Buffer; l := log.New(&b, \"app: \", 0); l.Print(\"ready\"); fmt.Print(b.String()) }\n",
+      "expected": "linko: ready",
+      "solution": "package main\n\nimport (\"bytes\"; \"fmt\"; \"log\")\n\nfunc main() { var b bytes.Buffer; l := log.New(&b, \"linko: \", 0); l.Print(\"ready\"); fmt.Print(b.String()) }\n"
+    },
+    {
+      "id": "observability-02-02-use-the-logger",
+      "chapter": "Chapter 2 · Logging",
+      "title": "Use the Logger",
+      "instruction": "Pass the logger to the code that owns the event. Record the short path selected by the redirect handler.",
+      "starter": "package main\n\nimport (\"bytes\"; \"fmt\"; \"log\")\n\nfunc redirect(l *log.Logger) { l.Print(\"redirect /old\") }\nfunc main() { var b bytes.Buffer; redirect(log.New(&b, \"\", 0)); fmt.Print(b.String()) }\n",
+      "expected": "redirect /go",
+      "solution": "package main\n\nimport (\"bytes\"; \"fmt\"; \"log\")\n\nfunc redirect(l *log.Logger) { l.Print(\"redirect /go\") }\nfunc main() { var b bytes.Buffer; redirect(log.New(&b, \"\", 0)); fmt.Print(b.String()) }\n"
+    },
+    {
+      "id": "observability-02-03-logging-requests",
+      "chapter": "Chapter 2 · Logging",
+      "title": "Logging Requests",
+      "instruction": "A useful request record includes the method, route, and final status after the handler completes. Fix the recorded redirect status.",
+      "starter": "package main\n\nimport (\"bytes\"; \"fmt\"; \"log\")\n\nfunc main() { var b bytes.Buffer; log.New(&b, \"\", 0).Printf(\"%s %s %d\", \"GET\", \"/go\", 200); fmt.Print(b.String()) }\n",
+      "expected": "GET /go 302",
+      "solution": "package main\n\nimport (\"bytes\"; \"fmt\"; \"log\")\n\nfunc main() { var b bytes.Buffer; log.New(&b, \"\", 0).Printf(\"%s %s %d\", \"GET\", \"/go\", 302); fmt.Print(b.String()) }\n"
+    },
+    {
+      "id": "observability-02-04-global-logger-vs-dependency-injection",
+      "chapter": "Chapter 2 · Logging",
+      "title": "Global Logger vs. Dependency Injection",
+      "instruction": "Injected loggers keep configuration isolated and make components easy to test. Give the API and worker their own prefixes.",
+      "starter": "package main\n\nimport (\"bytes\"; \"fmt\"; \"log\"; \"strings\")\n\nfunc main() { var a, w bytes.Buffer; log.New(&a, \"api: \", 0).Print(\"ready\"); log.New(&w, \"api: \", 0).Print(\"ready\"); fmt.Print(strings.TrimSpace(a.String()) + \"|\" + strings.TrimSpace(w.String())) }\n",
+      "expected": "api: ready|worker: ready",
+      "solution": "package main\n\nimport (\"bytes\"; \"fmt\"; \"log\"; \"strings\")\n\nfunc main() { var a, w bytes.Buffer; log.New(&a, \"api: \", 0).Print(\"ready\"); log.New(&w, \"worker: \", 0).Print(\"ready\"); fmt.Print(strings.TrimSpace(a.String()) + \"|\" + strings.TrimSpace(w.String())) }\n"
+    },
+    {
+      "id": "observability-02-05-logger-configuration",
+      "chapter": "Chapter 2 · Logging",
+      "title": "Logger Configuration",
+      "instruction": "Set destinations and flags at the composition root so records stay consistent. Use the required service prefix without timestamps.",
+      "starter": "package main\n\nimport (\"bytes\"; \"fmt\"; \"log\")\n\nfunc main() { var b bytes.Buffer; log.New(&b, \"[app] \", 0).Print(\"listening\"); fmt.Print(b.String()) }\n",
+      "expected": "[linko] listening",
+      "solution": "package main\n\nimport (\"bytes\"; \"fmt\"; \"log\")\n\nfunc main() { var b bytes.Buffer; log.New(&b, \"[linko] \", 0).Print(\"listening\"); fmt.Print(b.String()) }\n"
+    },
+    {
+      "id": "observability-02-06-logger-failure",
+      "chapter": "Chapter 2 · Logging",
+      "title": "Logger Failure",
+      "instruction": "A destination can fail. Logger.Output returns the writer error, so check it when losing the record matters.",
+      "starter": "package main\n\nimport (\"fmt\"; \"log\")\n\ntype broken struct{}\nfunc (broken) Write(p []byte) (int, error) { return len(p), nil }\nfunc main() { err := log.New(broken{}, \"\", 0).Output(1, \"event\"); fmt.Println(err) }\n",
+      "expected": "write failed",
+      "solution": "package main\n\nimport (\"errors\"; \"fmt\"; \"log\")\n\ntype broken struct{}\nfunc (broken) Write([]byte) (int, error) { return 0, errors.New(\"write failed\") }\nfunc main() { err := log.New(broken{}, \"\", 0).Output(1, \"event\"); fmt.Println(err) }\n"
+    },
+    {
+      "id": "observability-02-07-buffered-logging",
+      "chapter": "Chapter 2 · Logging",
+      "title": "Buffered Logging",
+      "instruction": "Buffering reduces writes but delays visibility. Flush before reporting the final byte count.",
+      "starter": "package main\n\nimport (\"bufio\"; \"bytes\"; \"fmt\")\n\nfunc main() { var dst bytes.Buffer; w := bufio.NewWriter(&dst); fmt.Fprint(w, \"ready\\n\"); fmt.Println(dst.Len(), dst.Len()) }\n",
+      "expected": "0 6",
+      "solution": "package main\n\nimport (\"bufio\"; \"bytes\"; \"fmt\")\n\nfunc main() { var dst bytes.Buffer; w := bufio.NewWriter(&dst); fmt.Fprint(w, \"ready\\n\"); before := dst.Len(); _ = w.Flush(); fmt.Println(before, dst.Len()) }\n"
+    },
+    {
+      "id": "observability-02-08-logger-cleanup",
+      "chapter": "Chapter 2 · Logging",
+      "title": "Logger Cleanup",
+      "instruction": "Shutdown must flush buffered records before closing their destination. Correct the cleanup order.",
+      "starter": "package main\n\nimport (\"fmt\"; \"strings\")\n\nfunc main() { steps := []string{\"close\", \"flush\"}; fmt.Println(strings.Join(steps, \" \")) }\n",
+      "expected": "flush close",
+      "solution": "package main\n\nimport (\"fmt\"; \"strings\")\n\nfunc main() { steps := []string{\"flush\", \"close\"}; fmt.Println(strings.Join(steps, \" \")) }\n"
+    },
+    {
+      "id": "observability-03-01-structured-logging",
+      "chapter": "Chapter 3 · Structured Logging",
+      "title": "Structured Logging",
+      "instruction": "Structured records keep a stable event name and searchable fields. Emit the link-created event with its slug.",
+      "starter": "package main\n\nimport (\"bytes\"; \"fmt\"; \"log/slog\")\n\nfunc main() { var b bytes.Buffer; h := slog.NewTextHandler(&b, &slog.HandlerOptions{ReplaceAttr: func(_ []string, a slog.Attr) slog.Attr { if a.Key == slog.TimeKey { return slog.Attr{} }; return a }}); slog.New(h).Info(\"created\", \"slug\", \"go\"); fmt.Print(b.String()) }\n",
+      "expected": "level=INFO msg=link_created slug=go",
+      "solution": "package main\n\nimport (\"bytes\"; \"fmt\"; \"log/slog\")\n\nfunc main() { var b bytes.Buffer; h := slog.NewTextHandler(&b, &slog.HandlerOptions{ReplaceAttr: func(_ []string, a slog.Attr) slog.Attr { if a.Key == slog.TimeKey { return slog.Attr{} }; return a }}); slog.New(h).Info(\"link_created\", \"slug\", \"go\"); fmt.Print(b.String()) }\n"
+    },
+    {
+      "id": "observability-03-02-slog-package",
+      "chapter": "Chapter 3 · Structured Logging",
+      "title": "Slog Package",
+      "instruction": "A slog.Logger sends records through a Handler. Build the expected INFO record with a text handler.",
+      "starter": "package main\n\nimport (\"bytes\"; \"fmt\"; \"log/slog\")\n\nfunc main() { var b bytes.Buffer; h := slog.NewTextHandler(&b, &slog.HandlerOptions{ReplaceAttr: func(_ []string, a slog.Attr) slog.Attr { if a.Key == slog.TimeKey { return slog.Attr{} }; return a }}); slog.New(h).Warn(\"ready\"); fmt.Print(b.String()) }\n",
+      "expected": "level=INFO msg=ready",
+      "solution": "package main\n\nimport (\"bytes\"; \"fmt\"; \"log/slog\")\n\nfunc main() { var b bytes.Buffer; h := slog.NewTextHandler(&b, &slog.HandlerOptions{ReplaceAttr: func(_ []string, a slog.Attr) slog.Attr { if a.Key == slog.TimeKey { return slog.Attr{} }; return a }}); slog.New(h).Info(\"ready\"); fmt.Print(b.String()) }\n"
+    },
+    {
+      "id": "observability-03-03-log-levels",
+      "chapter": "Chapter 3 · Structured Logging",
+      "title": "Log Levels",
+      "instruction": "A minimum level removes lower-priority records before they reach the sink. Raise this handler to WARN.",
+      "starter": "package main\n\nimport (\"bytes\"; \"fmt\"; \"log/slog\")\n\nfunc main() { var b bytes.Buffer; h := slog.NewTextHandler(&b, &slog.HandlerOptions{Level: slog.LevelInfo, ReplaceAttr: func(_ []string, a slog.Attr) slog.Attr { if a.Key == slog.TimeKey { return slog.Attr{} }; return a }}); l := slog.New(h); l.Info(\"ready\"); l.Warn(\"slow\"); fmt.Print(b.String()) }\n",
+      "expected": "level=WARN msg=slow",
+      "solution": "package main\n\nimport (\"bytes\"; \"fmt\"; \"log/slog\")\n\nfunc main() { var b bytes.Buffer; h := slog.NewTextHandler(&b, &slog.HandlerOptions{Level: slog.LevelWarn, ReplaceAttr: func(_ []string, a slog.Attr) slog.Attr { if a.Key == slog.TimeKey { return slog.Attr{} }; return a }}); l := slog.New(h); l.Info(\"ready\"); l.Warn(\"slow\"); fmt.Print(b.String()) }\n"
+    },
+    {
+      "id": "observability-03-04-more-log-levels",
+      "chapter": "Chapter 3 · Structured Logging",
+      "title": "More Log Levels",
+      "instruction": "A slog.LevelVar lets configuration change the threshold safely at runtime. Set it to ERROR before writing both records.",
+      "starter": "package main\n\nimport (\"bytes\"; \"fmt\"; \"log/slog\")\n\nfunc main() { var b bytes.Buffer; var level slog.LevelVar; level.Set(slog.LevelWarn); h := slog.NewTextHandler(&b, &slog.HandlerOptions{Level: &level, ReplaceAttr: func(_ []string, a slog.Attr) slog.Attr { if a.Key == slog.TimeKey { return slog.Attr{} }; return a }}); l := slog.New(h); l.Warn(\"slow\"); l.Error(\"failed\"); fmt.Print(b.String()) }\n",
+      "expected": "level=ERROR msg=failed",
+      "solution": "package main\n\nimport (\"bytes\"; \"fmt\"; \"log/slog\")\n\nfunc main() { var b bytes.Buffer; var level slog.LevelVar; level.Set(slog.LevelError); h := slog.NewTextHandler(&b, &slog.HandlerOptions{Level: &level, ReplaceAttr: func(_ []string, a slog.Attr) slog.Attr { if a.Key == slog.TimeKey { return slog.Attr{} }; return a }}); l := slog.New(h); l.Warn(\"slow\"); l.Error(\"failed\"); fmt.Print(b.String()) }\n"
+    },
+    {
+      "id": "observability-03-05-key-value-pairs",
+      "chapter": "Chapter 3 · Structured Logging",
+      "title": "Key-Value Pairs",
+      "instruction": "Typed slog attributes make field names and values explicit. Correct the redirect's status attribute.",
+      "starter": "package main\n\nimport (\"bytes\"; \"fmt\"; \"log/slog\")\n\nfunc main() { var b bytes.Buffer; h := slog.NewTextHandler(&b, &slog.HandlerOptions{ReplaceAttr: func(_ []string, a slog.Attr) slog.Attr { if a.Key == slog.TimeKey { return slog.Attr{} }; return a }}); slog.New(h).LogAttrs(nil, slog.LevelInfo, \"redirect\", slog.String(\"slug\", \"go\"), slog.Int(\"status\", 200)); fmt.Print(b.String()) }\n",
+      "expected": "level=INFO msg=redirect slug=go status=302",
+      "solution": "package main\n\nimport (\"bytes\"; \"fmt\"; \"log/slog\")\n\nfunc main() { var b bytes.Buffer; h := slog.NewTextHandler(&b, &slog.HandlerOptions{ReplaceAttr: func(_ []string, a slog.Attr) slog.Attr { if a.Key == slog.TimeKey { return slog.Attr{} }; return a }}); slog.New(h).LogAttrs(nil, slog.LevelInfo, \"redirect\", slog.String(\"slug\", \"go\"), slog.Int(\"status\", 302)); fmt.Print(b.String()) }\n"
+    },
+    {
+      "id": "observability-03-06-output-formats",
+      "chapter": "Chapter 3 · Structured Logging",
+      "title": "Output Formats",
+      "instruction": "JSON preserves types and nesting for collectors. Replace the human-oriented text handler with the JSON handler.",
+      "starter": "package main\n\nimport (\"bytes\"; \"fmt\"; \"log/slog\")\n\nfunc main() { var b bytes.Buffer; opts := &slog.HandlerOptions{ReplaceAttr: func(_ []string, a slog.Attr) slog.Attr { if a.Key == slog.TimeKey { return slog.Attr{} }; return a }}; slog.New(slog.NewTextHandler(&b, opts)).Info(\"ready\", \"service\", \"linko\"); fmt.Print(b.String()) }\n",
+      "expected": "{\"level\":\"INFO\",\"msg\":\"ready\",\"service\":\"linko\"}",
+      "solution": "package main\n\nimport (\"bytes\"; \"fmt\"; \"log/slog\")\n\nfunc main() { var b bytes.Buffer; opts := &slog.HandlerOptions{ReplaceAttr: func(_ []string, a slog.Attr) slog.Attr { if a.Key == slog.TimeKey { return slog.Attr{} }; return a }}; slog.New(slog.NewJSONHandler(&b, opts)).Info(\"ready\", \"service\", \"linko\"); fmt.Print(b.String()) }\n"
+    },
+    {
+      "id": "observability-04-01-best-practices",
+      "chapter": "Chapter 4 · Log Strategies",
+      "title": "Best Practices",
+      "instruction": "Prefer a stable event name plus the field an operator will search. Replace the vague narration with the completed Linko event.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"something happened\") }\n",
+      "expected": "link_created slug=go",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"link_created slug=go\") }\n"
+    },
+    {
+      "id": "observability-04-02-timestamps",
+      "chapter": "Chapter 4 · Log Strategies",
+      "title": "Timestamps",
+      "instruction": "Use one machine-readable UTC timestamp from the logging pipeline. Convert the fixed event time to UTC RFC3339.",
+      "starter": "package main\n\nimport (\"fmt\"; \"time\")\n\nfunc main() { t := time.Date(2026, 8, 27, 12, 30, 0, 0, time.FixedZone(\"PKT\", 5*60*60)); fmt.Println(t.Format(time.RFC3339)) }\n",
+      "expected": "2026-08-27T07:30:00Z",
+      "solution": "package main\n\nimport (\"fmt\"; \"time\")\n\nfunc main() { t := time.Date(2026, 8, 27, 12, 30, 0, 0, time.FixedZone(\"PKT\", 5*60*60)); fmt.Println(t.UTC().Format(time.RFC3339)) }\n"
+    },
+    {
+      "id": "observability-04-03-minimal-logging",
+      "chapter": "Chapter 4 · Log Strategies",
+      "title": "Minimal Logging",
+      "instruction": "Keep only fields that help investigate the failed request. Remove the request body from the operational record.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"request_id=r1 status=500 body=secret\") }\n",
+      "expected": "request_id=r1 status=500",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"request_id=r1 status=500\") }\n"
+    },
+    {
+      "id": "observability-04-04-redundant-logs",
+      "chapter": "Chapter 4 · Log Strategies",
+      "title": "Redundant Logs",
+      "instruction": "Repeated records inflate volume and confuse incident counts. Let only the boundary that handles the failure log it.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { innerLogs, boundaryLogs := 1, 1; fmt.Println(innerLogs + boundaryLogs) }\n",
+      "expected": "1",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { innerLogs, boundaryLogs := 0, 1; fmt.Println(innerLogs + boundaryLogs) }\n"
+    },
+    {
+      "id": "observability-04-05-one-log-per-event",
+      "chapter": "Chapter 4 · Log Strategies",
+      "title": "One Log Per Event",
+      "instruction": "Keep an event's fields together so a collector cannot split their meaning. Print one complete redirect record.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"redirect\"); fmt.Println(\"slug=go\") }\n",
+      "expected": "redirect slug=go status=302",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"redirect slug=go status=302\") }\n"
+    },
+    {
+      "id": "observability-05-01-logging-errors",
+      "chapter": "Chapter 5 · Logging Errors",
+      "title": "Logging Errors",
+      "instruction": "Log an error where it is handled and include the failed operation. Add the lookup operation to the record.",
+      "starter": "package main\n\nimport (\"errors\"; \"fmt\")\n\nfunc main() { err := errors.New(\"not found\"); fmt.Println(err) }\n",
+      "expected": "lookup: not found",
+      "solution": "package main\n\nimport (\"errors\"; \"fmt\")\n\nfunc main() { err := errors.New(\"not found\"); fmt.Println(\"lookup:\", err) }\n"
+    },
+    {
+      "id": "observability-05-02-stack-traces",
+      "chapter": "Chapter 5 · Logging Errors",
+      "title": "Stack Traces",
+      "instruction": "Stack traces are useful for unexpected failures but expensive and noisy everywhere. Capture callers only at the selected error boundary.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { capturedFrames := 0; fmt.Println(capturedFrames > 0) }\n",
+      "expected": "true",
+      "solution": "package main\n\nimport (\"fmt\"; \"runtime\")\n\nfunc main() { pcs := make([]uintptr, 8); fmt.Println(runtime.Callers(0, pcs) > 0) }\n"
+    },
+    {
+      "id": "observability-05-03-slog-groups",
+      "chapter": "Chapter 5 · Logging Errors",
+      "title": "Slog Groups",
+      "instruction": "Groups namespace related attributes and prevent key collisions. Put the error code and kind under the error object.",
+      "starter": "package main\n\nimport (\"bytes\"; \"fmt\"; \"log/slog\")\n\nfunc main() { var b bytes.Buffer; o := &slog.HandlerOptions{ReplaceAttr: func(_ []string, a slog.Attr) slog.Attr { if a.Key == slog.TimeKey { return slog.Attr{} }; return a }}; slog.New(slog.NewJSONHandler(&b, o)).Error(\"redirect\", \"code\", 404, \"kind\", \"lookup\"); fmt.Print(b.String()) }\n",
+      "expected": "{\"level\":\"ERROR\",\"msg\":\"redirect\",\"error\":{\"code\":404,\"kind\":\"lookup\"}}",
+      "solution": "package main\n\nimport (\"bytes\"; \"fmt\"; \"log/slog\")\n\nfunc main() { var b bytes.Buffer; o := &slog.HandlerOptions{ReplaceAttr: func(_ []string, a slog.Attr) slog.Attr { if a.Key == slog.TimeKey { return slog.Attr{} }; return a }}; slog.New(slog.NewJSONHandler(&b, o)).Error(\"redirect\", slog.Group(\"error\", \"code\", 404, \"kind\", \"lookup\")); fmt.Print(b.String()) }\n"
+    },
+    {
+      "id": "observability-05-04-handle-errors-once",
+      "chapter": "Chapter 5 · Logging Errors",
+      "title": "Handle Errors Once",
+      "instruction": "A layer should either add context and return an error or handle and log it. Remove the inner log so one failure creates one record.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { inner, boundary := 1, 1; fmt.Println(inner + boundary) }\n",
+      "expected": "1",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { inner, boundary := 0, 1; fmt.Println(inner + boundary) }\n"
+    },
+    {
+      "id": "observability-05-05-adding-attributes",
+      "chapter": "Chapter 5 · Logging Errors",
+      "title": "Adding Attributes",
+      "instruction": "Logger.With adds context shared by later records. Derive a request logger that carries the service and request ID.",
+      "starter": "package main\n\nimport (\"bytes\"; \"fmt\"; \"log/slog\")\n\nfunc main() { var b bytes.Buffer; o := &slog.HandlerOptions{ReplaceAttr: func(_ []string, a slog.Attr) slog.Attr { if a.Key == slog.TimeKey { return slog.Attr{} }; return a }}; slog.New(slog.NewJSONHandler(&b, o)).With(\"service\", \"linko\").Error(\"lookup_failed\"); fmt.Print(b.String()) }\n",
+      "expected": "{\"level\":\"ERROR\",\"msg\":\"lookup_failed\",\"service\":\"linko\",\"request_id\":\"r7\"}",
+      "solution": "package main\n\nimport (\"bytes\"; \"fmt\"; \"log/slog\")\n\nfunc main() { var b bytes.Buffer; o := &slog.HandlerOptions{ReplaceAttr: func(_ []string, a slog.Attr) slog.Attr { if a.Key == slog.TimeKey { return slog.Attr{} }; return a }}; slog.New(slog.NewJSONHandler(&b, o)).With(\"service\", \"linko\", \"request_id\", \"r7\").Error(\"lookup_failed\"); fmt.Print(b.String()) }\n"
+    },
+    {
+      "id": "observability-05-06-multiple-errors",
+      "chapter": "Chapter 5 · Logging Errors",
+      "title": "Multiple Errors",
+      "instruction": "errors.Join preserves independent failures from one operation. Join both cleanup errors so errors.Is can find each cause.",
+      "starter": "package main\n\nimport (\"errors\"; \"fmt\")\n\nfunc main() { flush := errors.New(\"flush\"); closeErr := errors.New(\"close\"); err := errors.Join(flush); fmt.Println(errors.Is(err, flush), errors.Is(err, closeErr)) }\n",
+      "expected": "true true",
+      "solution": "package main\n\nimport (\"errors\"; \"fmt\")\n\nfunc main() { flush := errors.New(\"flush\"); closeErr := errors.New(\"close\"); err := errors.Join(flush, closeErr); fmt.Println(errors.Is(err, flush), errors.Is(err, closeErr)) }\n"
+    },
+    {
+      "id": "observability-06-01-logging-context",
+      "chapter": "Chapter 6 · Logging Context",
+      "title": "Logging Context",
+      "instruction": "Context carries request-scoped values and cancellation, but logs should extract only approved fields. Read the request ID from the context.",
+      "starter": "package main\n\nimport (\"context\"; \"fmt\")\n\ntype key string\nfunc main() { ctx := context.WithValue(context.Background(), key(\"request_id\"), \"r1\"); fmt.Println(\"request=unknown\", ctx != nil) }\n",
+      "expected": "request=r1",
+      "solution": "package main\n\nimport (\"context\"; \"fmt\")\n\ntype key string\nfunc main() { ctx := context.WithValue(context.Background(), key(\"request_id\"), \"r1\"); fmt.Printf(\"request=%s\\n\", ctx.Value(key(\"request_id\"))) }\n"
+    },
+    {
+      "id": "observability-06-02-build-information",
+      "chapter": "Chapter 6 · Logging Context",
+      "title": "Build Information",
+      "instruction": "Version and commit fields identify the code serving an event. Correct the deployed commit while keeping the version stable.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"version=1.4.0 commit=unknown\") }\n",
+      "expected": "version=1.4.0 commit=a1b2c3",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"version=1.4.0 commit=a1b2c3\") }\n"
+    },
+    {
+      "id": "observability-06-03-instance-context",
+      "chapter": "Chapter 6 · Logging Context",
+      "title": "Instance Context",
+      "instruction": "Instance and region fields distinguish replicas during a partial failure. Select the affected Linko instance.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"instance=linko-1 region=eu-west\") }\n",
+      "expected": "instance=linko-2 region=eu-west",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"instance=linko-2 region=eu-west\") }\n"
+    },
+    {
+      "id": "observability-06-04-request-context",
+      "chapter": "Chapter 6 · Logging Context",
+      "title": "Request Context",
+      "instruction": "A request record needs a correlation ID and stable route data. Correct the request ID without logging query parameters.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"request_id=missing method=GET path=/go\") }\n",
+      "expected": "request_id=r7 method=GET path=/go",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"request_id=r7 method=GET path=/go\") }\n"
+    },
+    {
+      "id": "observability-06-05-user-context",
+      "chapter": "Chapter 6 · Logging Context",
+      "title": "User Context",
+      "instruction": "Use a stable internal user ID for correlation; avoid email addresses and other personal data. Emit only the approved identifier.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"email=ada@example.com\") }\n",
+      "expected": "user_id=42",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"user_id=42\") }\n"
+    },
+    {
+      "id": "observability-06-06-http-error-responses",
+      "chapter": "Chapter 6 · Logging Context",
+      "title": "HTTP Error Responses",
+      "instruction": "Clients need a safe message and a request ID, while internal details stay in logs. Replace the leaked database error.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"sql: no rows in /srv/linko/store.go\") }\n",
+      "expected": "internal error; request_id=r7",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"internal error; request_id=r7\") }\n"
+    },
+    {
+      "id": "observability-06-07-inter-process-context",
+      "chapter": "Chapter 6 · Logging Context",
+      "title": "Inter-Process Context",
+      "instruction": "Correlation survives a service boundary only when it is propagated. Set the request ID header before the downstream call.",
+      "starter": "package main\n\nimport (\"fmt\"; \"net/http/httptest\")\n\nfunc main() { r := httptest.NewRequest(\"GET\", \"http://linko/lookup\", nil); fmt.Println(r.Header.Get(\"X-Request-ID\")) }\n",
+      "expected": "r7",
+      "solution": "package main\n\nimport (\"fmt\"; \"net/http/httptest\")\n\nfunc main() { r := httptest.NewRequest(\"GET\", \"http://linko/lookup\", nil); r.Header.Set(\"X-Request-ID\", \"r7\"); fmt.Println(r.Header.Get(\"X-Request-ID\")) }\n"
+    },
+    {
+      "id": "observability-07-01-log-storage",
+      "chapter": "Chapter 7 · Log Storage",
+      "title": "Log Storage",
+      "instruction": "Containerized services normally write events to stdout and let the platform collect them. Select the sink used by Linko's container.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { runtime := \"container\"; sink := \"file\"; fmt.Println(runtime, sink) }\n",
+      "expected": "container stdout",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { runtime := \"container\"; sink := \"stdout\"; fmt.Println(runtime, sink) }\n"
+    },
+    {
+      "id": "observability-07-02-logging-to-the-console",
+      "chapter": "Chapter 7 · Log Storage",
+      "title": "Logging to the Console",
+      "instruction": "Keep normal events on stdout and process diagnostics on stderr. Route each fixed message to its intended buffer.",
+      "starter": "package main\n\nimport (\"bytes\"; \"fmt\")\n\nfunc main() { var out, errOut bytes.Buffer; fmt.Fprint(&out, \"event\"); fmt.Fprint(&out, \"fatal\"); fmt.Printf(\"%s|%s\", out.String(), errOut.String()) }\n",
+      "expected": "event|fatal",
+      "solution": "package main\n\nimport (\"bytes\"; \"fmt\")\n\nfunc main() { var out, errOut bytes.Buffer; fmt.Fprint(&out, \"event\"); fmt.Fprint(&errOut, \"fatal\"); fmt.Printf(\"%s|%s\", out.String(), errOut.String()) }\n"
+    },
+    {
+      "id": "observability-07-03-filesystem-logging",
+      "chapter": "Chapter 7 · Log Storage",
+      "title": "Filesystem Logging",
+      "instruction": "File logging must handle creation, writes, and close errors. Write the expected record and read it back from a temporary file.",
+      "starter": "package main\n\nimport (\"fmt\"; \"os\")\n\nfunc main() { f, _ := os.CreateTemp(\"\", \"linko-log\"); defer os.Remove(f.Name()); _, _ = f.WriteString(\"wrong\\n\"); _ = f.Close(); b, _ := os.ReadFile(f.Name()); fmt.Print(string(b)) }\n",
+      "expected": "redirect",
+      "solution": "package main\n\nimport (\"fmt\"; \"os\")\n\nfunc main() { f, _ := os.CreateTemp(\"\", \"linko-log\"); defer os.Remove(f.Name()); _, _ = f.WriteString(\"redirect\\n\"); _ = f.Close(); b, _ := os.ReadFile(f.Name()); fmt.Print(string(b)) }\n"
+    },
+    {
+      "id": "observability-07-04-log-rotation",
+      "chapter": "Chapter 7 · Log Storage",
+      "title": "Log Rotation",
+      "instruction": "Rotate before the next record would exceed the configured file limit. Fix the decision for an 80-byte file and 25-byte record.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { size, next, limit := 80, 25, 100; fmt.Println(size > limit && next > 0) }\n",
+      "expected": "true",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { size, next, limit := 80, 25, 100; fmt.Println(size+next > limit) }\n"
+    },
+    {
+      "id": "observability-07-05-syslog",
+      "chapter": "Chapter 7 · Log Storage",
+      "title": "Syslog",
+      "instruction": "Syslog's PRI combines facility times eight plus severity. Encode local0 facility 16 with error severity 3.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { facility, severity := 16, 3; fmt.Printf(\"<%d>linko failed\\n\", facility+severity) }\n",
+      "expected": "<131>linko failed",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { facility, severity := 16, 3; fmt.Printf(\"<%d>linko failed\\n\", facility*8+severity) }\n"
+    },
+    {
+      "id": "observability-08-01-can-you-keep-a-secret",
+      "chapter": "Chapter 8 · Log Security",
+      "title": "Can You Keep a Secret?",
+      "instruction": "Passwords, tokens, and private keys must never reach a log sink. Replace the token value before rendering the record.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"user=42 token=sk_live_123\") }\n",
+      "expected": "user=42 token=[REDACTED]",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"user=42 token=[REDACTED]\") }\n"
+    },
+    {
+      "id": "observability-08-02-error-responses",
+      "chapter": "Chapter 8 · Log Security",
+      "title": "Error Responses",
+      "instruction": "Public errors should reveal neither stack paths nor database details. Return a generic message with the correlation ID.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"panic at /srv/linko/main.go:42\") }\n",
+      "expected": "request failed; reference=r7",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"request failed; reference=r7\") }\n"
+    },
+    {
+      "id": "observability-08-03-minimal-logging",
+      "chapter": "Chapter 8 · Log Security",
+      "title": "Minimal Logging",
+      "instruction": "Data minimization limits breach impact. Keep the operational status and request ID, not the submitted URL.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"request_id=r7 status=201 url=https://private.example\") }\n",
+      "expected": "request_id=r7 status=201",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"request_id=r7 status=201\") }\n"
+    },
+    {
+      "id": "observability-08-04-obfuscation",
+      "chapter": "Chapter 8 · Log Security",
+      "title": "Obfuscation",
+      "instruction": "Masking reduces casual exposure but is not encryption. Preserve only the final four digits needed for support.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { card := \"4111111111111234\"; fmt.Println(card) }\n",
+      "expected": "************1234",
+      "solution": "package main\n\nimport (\"fmt\"; \"strings\")\n\nfunc main() { card := \"4111111111111234\"; fmt.Println(strings.Repeat(\"*\", len(card)-4) + card[len(card)-4:]) }\n"
+    },
+    {
+      "id": "observability-08-05-filtering-logs",
+      "chapter": "Chapter 8 · Log Security",
+      "title": "Filtering Logs",
+      "instruction": "Redact centrally before every handler writes. Use ReplaceAttr to filter the token attribute while preserving other fields.",
+      "starter": "package main\n\nimport (\"bytes\"; \"fmt\"; \"log/slog\")\n\nfunc main() { var b bytes.Buffer; o := &slog.HandlerOptions{ReplaceAttr: func(_ []string, a slog.Attr) slog.Attr { if a.Key == slog.TimeKey { return slog.Attr{} }; return a }}; slog.New(slog.NewJSONHandler(&b, o)).Info(\"login\", \"token\", \"secret\"); fmt.Print(b.String()) }\n",
+      "expected": "{\"level\":\"INFO\",\"msg\":\"login\",\"token\":\"[REDACTED]\"}",
+      "solution": "package main\n\nimport (\"bytes\"; \"fmt\"; \"log/slog\")\n\nfunc main() { var b bytes.Buffer; o := &slog.HandlerOptions{ReplaceAttr: func(_ []string, a slog.Attr) slog.Attr { if a.Key == slog.TimeKey { return slog.Attr{} }; if a.Key == \"token\" { return slog.String(\"token\", \"[REDACTED]\") }; return a }}; slog.New(slog.NewJSONHandler(&b, o)).Info(\"login\", \"token\", \"secret\"); fmt.Print(b.String()) }\n"
+    },
+    {
+      "id": "observability-08-06-encrypted-logs",
+      "chapter": "Chapter 8 · Log Security",
+      "title": "Encrypted Logs",
+      "instruction": "Encryption protects stored bytes but does not replace filtering or access control. Complete the AES-GCM round trip; production must use a unique nonce for every message.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"wrong plaintext\") }\n",
+      "expected": "redirect created",
+      "solution": "package main\n\nimport (\"crypto/aes\"; \"crypto/cipher\"; \"fmt\")\n\nfunc main() { key := []byte(\"0123456789abcdef0123456789abcdef\"); block, _ := aes.NewCipher(key); gcm, _ := cipher.NewGCM(block); nonce := make([]byte, gcm.NonceSize()); sealed := gcm.Seal(nil, nonce, []byte(\"redirect created\"), nil); plain, _ := gcm.Open(nil, nonce, sealed, nil); fmt.Println(string(plain)) }\n"
+    },
+    {
+      "id": "observability-09-01-metrics",
+      "chapter": "Chapter 9 · Metrics",
+      "title": "Metrics",
+      "instruction": "Counters grow, gauges move both ways, and histograms group observations. Correct the type chosen for request duration.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"requests=counter inflight=gauge latency=counter\") }\n",
+      "expected": "requests=counter inflight=gauge latency=histogram",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"requests=counter inflight=gauge latency=histogram\") }\n"
+    },
+    {
+      "id": "observability-09-02-prometheus",
+      "chapter": "Chapter 9 · Metrics",
+      "title": "Prometheus",
+      "instruction": "Prometheus scrapes a text exposition endpoint. Emit the HELP, TYPE, and sample lines for Linko's redirect counter.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Print(\"linko_redirects_total 7\\n\") }\n",
+      "expected": "# HELP linko_redirects_total Completed redirects.\n# TYPE linko_redirects_total counter\nlinko_redirects_total 7",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Print(\"# HELP linko_redirects_total Completed redirects.\\n# TYPE linko_redirects_total counter\\nlinko_redirects_total 7\\n\") }\n"
+    },
+    {
+      "id": "observability-09-03-system-metrics",
+      "chapter": "Chapter 9 · Metrics",
+      "title": "System Metrics",
+      "instruction": "System metrics reveal utilization and saturation around the service. Report the fixed CPU, memory, and goroutine snapshot.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { cpu, memory, goroutines := 72, 640, 18; fmt.Printf(\"cpu=%d%% memory=%dMiB goroutines=%d\\n\", cpu, memory, goroutines-1) }\n",
+      "expected": "cpu=72% memory=640MiB goroutines=18",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { cpu, memory, goroutines := 72, 640, 18; fmt.Printf(\"cpu=%d%% memory=%dMiB goroutines=%d\\n\", cpu, memory, goroutines) }\n"
+    },
+    {
+      "id": "observability-09-04-metrics-exporters",
+      "chapter": "Chapter 9 · Metrics",
+      "title": "Metrics Exporters",
+      "instruction": "An exporter translates another system's statistics into Prometheus samples. Convert the fixture's open-connection count.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { stats := map[string]int{\"open_connections\": 12}; fmt.Printf(\"db_connections %d\\n\", stats[\"open_connections\"]-1) }\n",
+      "expected": "db_open_connections 12",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { stats := map[string]int{\"open_connections\": 12}; fmt.Printf(\"db_open_connections %d\\n\", stats[\"open_connections\"]) }\n"
+    },
+    {
+      "id": "observability-09-05-what-to-measure",
+      "chapter": "Chapter 9 · Metrics",
+      "title": "What to Measure",
+      "instruction": "For request-driven services, rate, errors, and duration expose user impact. Calculate the error ratio from two failures in one hundred requests.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { requests, failures := 100.0, 2.0; fmt.Printf(\"rate=100 errors=%.2f p95=240ms\\n\", failures) ; _ = requests }\n",
+      "expected": "rate=100 errors=0.02 p95=240ms",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { requests, failures := 100.0, 2.0; fmt.Printf(\"rate=100 errors=%.2f p95=240ms\\n\", failures/requests) }\n"
+    },
+    {
+      "id": "observability-09-06-visualizing-metrics",
+      "chapter": "Chapter 9 · Metrics",
+      "title": "Visualizing Metrics",
+      "instruction": "Match the view to the question: trends use time series, one current value uses a stat, and distributions use histograms.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"rate=stat current=time-series latency=table\") }\n",
+      "expected": "rate=time-series current=stat latency=histogram",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"rate=time-series current=stat latency=histogram\") }\n"
+    },
+    {
+      "id": "observability-09-07-service-metrics",
+      "chapter": "Chapter 9 · Metrics",
+      "title": "Service Metrics",
+      "instruction": "Track traffic, failures, latency, and work in progress together. Apply the completed redirect to this fixed service snapshot.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { requests, failures, inflight := 40, 2, 3; fmt.Println(requests, failures, inflight) }\n",
+      "expected": "41 2 2",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { requests, failures, inflight := 40, 2, 3; requests++; inflight--; fmt.Println(requests, failures, inflight) }\n"
+    },
+    {
+      "id": "observability-09-08-custom-metrics",
+      "chapter": "Chapter 9 · Metrics",
+      "title": "Custom Metrics",
+      "instruction": "Custom metrics should answer a product question with bounded labels. Count created links by plan, never by user ID.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(`linko_links_created_total{user_id=\"42\"} 9`) }\n",
+      "expected": "linko_links_created_total{plan=\"free\"} 9",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(`linko_links_created_total{plan=\"free\"} 9`) }\n"
+    },
+    {
+      "id": "observability-09-09-custom-visualizations",
+      "chapter": "Chapter 9 · Metrics",
+      "title": "Custom Visualizations",
+      "instruction": "A useful visualization applies the right aggregation and unit. Average the fixed redirect-latency samples in milliseconds.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { samples := []int{80, 100, 120}; fmt.Printf(\"avg=%dms\\n\", samples[0]) }\n",
+      "expected": "avg=100ms",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { samples := []int{80, 100, 120}; total := 0; for _, n := range samples { total += n }; fmt.Printf(\"avg=%dms\\n\", total/len(samples)) }\n"
+    },
+    {
+      "id": "observability-09-10-status-code-bars",
+      "chapter": "Chapter 9 · Metrics",
+      "title": "Status Code Bars",
+      "instruction": "Group status codes into bounded families for a readable bar chart. Count the fixed responses as 2xx, 4xx, and 5xx.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { codes := []int{200, 201, 302, 404, 500}; groups := map[int]int{}; for _, c := range codes { groups[c/100]++ }; fmt.Println(groups[2], groups[6], groups[5]) }\n",
+      "expected": "2 1 1",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { codes := []int{200, 201, 302, 404, 500}; groups := map[int]int{}; for _, c := range codes { groups[c/100]++ }; fmt.Println(groups[2], groups[4], groups[5]) }\n"
+    },
+    {
+      "id": "observability-10-01-alerting",
+      "chapter": "Chapter 10 · Alerting",
+      "title": "Alerting",
+      "instruction": "Alert on a sustained user-impacting condition rather than one noisy sample. Require all three error-ratio samples to exceed five percent.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { samples := []float64{0.07, 0.08, 0.09}; firing := samples[0] > 0.05; fmt.Println(firing && len(samples) == 1) }\n",
+      "expected": "true",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { samples := []float64{0.07, 0.08, 0.09}; firing := true; for _, n := range samples { firing = firing && n > 0.05 }; fmt.Println(firing) }\n"
+    },
+    {
+      "id": "observability-10-02-actionable-alerts",
+      "chapter": "Chapter 10 · Alerting",
+      "title": "Actionable Alerts",
+      "instruction": "An actionable alert states impact, ownership, and where to investigate. Add the missing runbook to the Linko alert.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"impact=redirects-failing owner=api runbook=missing\") }\n",
+      "expected": "impact=redirects-failing owner=api runbook=/runbooks/linko-errors",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"impact=redirects-failing owner=api runbook=/runbooks/linko-errors\") }\n"
+    },
+    {
+      "id": "observability-10-03-alert-thresholds",
+      "chapter": "Chapter 10 · Alerting",
+      "title": "Alert Thresholds",
+      "instruction": "A window prevents a single spike from flapping the alert. Fire only after three consecutive values exceed 80.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { values := []int{82, 85, 88}; fmt.Println(values[0] > 90) }\n",
+      "expected": "firing after 3 samples",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { values := []int{82, 85, 88}; consecutive := 0; for _, n := range values { if n > 80 { consecutive++ } else { consecutive = 0 } }; if consecutive >= 3 { fmt.Printf(\"firing after %d samples\\n\", consecutive) } }\n"
+    },
+    {
+      "id": "observability-11-01-profiling",
+      "chapter": "Chapter 11 · Profiling",
+      "title": "Profiling",
+      "instruction": "Profile before optimizing: CPU finds hot execution, heap finds retained memory, and goroutine profiles find blocked concurrency. Correct the symptom mapping.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"high_cpu=heap leak=cpu blocked=goroutine\") }\n",
+      "expected": "high_cpu=cpu leak=heap blocked=goroutine",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"high_cpu=cpu leak=heap blocked=goroutine\") }\n"
+    },
+    {
+      "id": "observability-11-02-integrating-pprof",
+      "chapter": "Chapter 11 · Profiling",
+      "title": "Integrating pprof",
+      "instruction": "Importing net/http/pprof registers method-aware diagnostic routes on the default mux. Verify the GET index route; expose it only on a protected admin listener.",
+      "starter": "package main\n\nimport (\"fmt\"; \"net/http\"; _ \"net/http/pprof\"; \"net/url\")\n\nfunc main() { _, pattern := http.DefaultServeMux.Handler(&http.Request{Method: \"GET\", URL: mustURL(\"/wrong\")}); fmt.Println(pattern) }\nfunc mustURL(path string) *url.URL { u, _ := url.Parse(path); return u }\n",
+      "expected": "GET /debug/pprof/",
+      "solution": "package main\n\nimport (\"fmt\"; \"net/http\"; _ \"net/http/pprof\"; \"net/url\")\n\nfunc main() { _, pattern := http.DefaultServeMux.Handler(&http.Request{Method: \"GET\", URL: mustURL(\"/debug/pprof/\")}); fmt.Println(pattern) }\nfunc mustURL(path string) *url.URL { u, _ := url.Parse(path); return u }\n"
+    },
+    {
+      "id": "observability-11-03-cpu-profiling",
+      "chapter": "Chapter 11 · Profiling",
+      "title": "CPU Profiling",
+      "instruction": "CPU profiles sample executing code during a bounded interval. Capture a short profile and confirm that pprof wrote profile bytes.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { profileBytes := 0; fmt.Println(profileBytes > 0) }\n",
+      "expected": "true",
+      "solution": "package main\n\nimport (\"bytes\"; \"fmt\"; \"runtime/pprof\"; \"time\")\n\nfunc main() { var b bytes.Buffer; err := pprof.StartCPUProfile(&b); time.Sleep(25 * time.Millisecond); pprof.StopCPUProfile(); fmt.Println(err == nil && b.Len() > 0) }\n"
+    },
+    {
+      "id": "observability-11-04-cpu-profiling-quiz",
+      "chapter": "Chapter 11 · Profiling",
+      "title": "CPU Profiling Quiz",
+      "instruction": "Choose a CPU profile when latency rises with saturated CPU and you need the hottest functions. Correct the selected artifact.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { symptom := \"cpu=95%\"; fmt.Println(symptom, \"profile=heap\") }\n",
+      "expected": "cpu=95% profile=cpu",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { symptom := \"cpu=95%\"; fmt.Println(symptom, \"profile=cpu\") }\n"
+    },
+    {
+      "id": "observability-11-05-memory-profiling",
+      "chapter": "Chapter 11 · Profiling",
+      "title": "Memory Profiling",
+      "instruction": "The heap profile reports live allocations after garbage collection context is considered. Look up the runtime's heap profile.",
+      "starter": "package main\n\nimport (\"fmt\"; \"runtime/pprof\")\n\nfunc main() { fmt.Println(pprof.Lookup(\"missing\") != nil) }\n",
+      "expected": "true",
+      "solution": "package main\n\nimport (\"fmt\"; \"runtime/pprof\")\n\nfunc main() { fmt.Println(pprof.Lookup(\"heap\") != nil) }\n"
+    },
+    {
+      "id": "observability-11-06-memory-profiling-quiz",
+      "chapter": "Chapter 11 · Profiling",
+      "title": "Memory Profiling Quiz",
+      "instruction": "Use inuse_space for retained-memory growth and alloc_space for allocation churn. Fix the two diagnostic choices.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"leak=alloc_space churn=inuse_space\") }\n",
+      "expected": "leak=inuse_space churn=alloc_space",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { fmt.Println(\"leak=inuse_space churn=alloc_space\") }\n"
+    },
+    {
+      "id": "observability-11-07-goroutine-profiling",
+      "chapter": "Chapter 11 · Profiling",
+      "title": "Goroutine Profiling",
+      "instruction": "A goroutine profile reveals blocked stacks and leaks. Start one controlled blocked goroutine and confirm the runtime count increases.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { before, after := 1, 1; fmt.Println(after > before) }\n",
+      "expected": "true",
+      "solution": "package main\n\nimport (\"fmt\"; \"runtime\")\n\nfunc main() { base := runtime.NumGoroutine(); ready, stop := make(chan struct{}), make(chan struct{}); go func() { close(ready); <-stop }(); <-ready; fmt.Println(runtime.NumGoroutine() > base); close(stop) }\n"
+    },
+    {
+      "id": "observability-12-01-tracing",
+      "chapter": "Chapter 12 · Tracing",
+      "title": "Tracing",
+      "instruction": "A trace is a tree of timed spans for one request. Connect the database lookup span to its HTTP parent.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype span struct { name, parent string }\nfunc main() { root := span{name: \"HTTP GET /go\", parent: \"-\"}; child := span{name: \"db.lookup\", parent: \"missing\"}; fmt.Printf(\"%s -> %s\\n\", root.name, child.parent) }\n",
+      "expected": "HTTP GET /go -> db.lookup",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype span struct { name, parent string }\nfunc main() { root := span{name: \"HTTP GET /go\", parent: \"-\"}; child := span{name: \"db.lookup\", parent: root.name}; fmt.Printf(\"%s -> %s\\n\", child.parent, child.name) }\n"
+    },
+    {
+      "id": "observability-12-02-installing-jaeger",
+      "chapter": "Chapter 12 · Tracing",
+      "title": "Installing Jaeger",
+      "instruction": "Jaeger receives and displays traces for this course. Run Check to verify the metrics, dashboard, and tracing services are all responding.",
+      "starter": "check\n",
+      "expected": "PASS · The live observability services are ready.",
+      "mode": "lab",
+      "validator": "service-ready"
+    },
+    {
+      "id": "observability-12-03-request-tracing",
+      "chapter": "Chapter 12 · Tracing",
+      "title": "Request Tracing",
+      "instruction": "W3C traceparent carries version, trace ID, parent span ID, and flags. Extract the trace ID from the incoming header.",
+      "starter": "package main\n\nimport (\"fmt\"; \"strings\")\n\nfunc main() { h := \"00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01\"; fmt.Println(strings.Split(h, \"-\")[2]) }\n",
+      "expected": "4bf92f3577b34da6a3ce929d0e0e4736",
+      "solution": "package main\n\nimport (\"fmt\"; \"strings\")\n\nfunc main() { h := \"00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01\"; fmt.Println(strings.Split(h, \"-\")[1]) }\n"
+    },
+    {
+      "id": "observability-12-04-instrumenting-traces",
+      "chapter": "Chapter 12 · Tracing",
+      "title": "Instrumenting Traces",
+      "instruction": "Tracing setup needs an exporter, service resource, and shutdown path. Complete the local provider configuration lifecycle.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype provider struct { exporter, service string; stopped bool }\nfunc main() { p := provider{exporter: \"none\", service: \"linko\"}; fmt.Println(p.exporter, p.service, p.stopped) }\n",
+      "expected": "otlp linko true",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype provider struct { exporter, service string; stopped bool }\nfunc (p *provider) shutdown() { p.stopped = true }\nfunc main() { p := provider{exporter: \"otlp\", service: \"linko\"}; p.shutdown(); fmt.Println(p.exporter, p.service, p.stopped) }\n"
+    },
+    {
+      "id": "observability-12-05-adding-spans",
+      "chapter": "Chapter 12 · Tracing",
+      "title": "Adding Spans",
+      "instruction": "Create spans around meaningful operations, not every function. Make the Linko lookup a child of the request span.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype span struct { id, parent string }\nfunc main() { request := span{id: \"s1\"}; lookup := span{id: \"s2\", parent: \"root\"}; fmt.Printf(\"%s parent=%s\\n\", lookup.id, lookup.parent); _ = request }\n",
+      "expected": "s2 parent=s1",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype span struct { id, parent string }\nfunc main() { request := span{id: \"s1\"}; lookup := span{id: \"s2\", parent: request.id}; fmt.Printf(\"%s parent=%s\\n\", lookup.id, lookup.parent) }\n"
+    },
+    {
+      "id": "observability-12-06-reading-traces",
+      "chapter": "Chapter 12 · Tracing",
+      "title": "Reading Traces",
+      "instruction": "The longest child on the request's critical path is the first investigation target. Find it in the fixed span durations.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() { spans := map[string]int{\"cache\": 12, \"database\": 80, \"render\": 20}; fmt.Printf(\"cache %dms\\n\", spans[\"cache\"]) }\n",
+      "expected": "database 80ms",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() { spans := map[string]int{\"cache\": 12, \"database\": 80, \"render\": 20}; name, longest := \"\", 0; for n, d := range spans { if d > longest { name, longest = n, d } }; fmt.Printf(\"%s %dms\\n\", name, longest) }\n"
+    },
+    {
+      "id": "observability-12-07-distributed-tracing",
+      "chapter": "Chapter 12 · Tracing",
+      "title": "Distributed Tracing",
+      "instruction": "Distributed traces remain connected only when clients inject and servers extract the same trace context. Propagate the traceparent header.",
+      "starter": "package main\n\nimport (\"fmt\"; \"net/http/httptest\")\n\nfunc main() { client := httptest.NewRequest(\"GET\", \"http://linko/lookup\", nil); server := httptest.NewRequest(\"GET\", \"http://store/resolve\", nil); fmt.Println(client.Header.Get(\"traceparent\") == server.Header.Get(\"traceparent\") && client.Header.Get(\"traceparent\") != \"\") }\n",
+      "expected": "true",
+      "solution": "package main\n\nimport (\"fmt\"; \"net/http/httptest\")\n\nfunc main() { trace := \"00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01\"; client := httptest.NewRequest(\"GET\", \"http://linko/lookup\", nil); client.Header.Set(\"traceparent\", trace); server := httptest.NewRequest(\"GET\", \"http://store/resolve\", nil); server.Header.Set(\"traceparent\", client.Header.Get(\"traceparent\")); fmt.Println(client.Header.Get(\"traceparent\") == server.Header.Get(\"traceparent\")) }\n"
+    }
+  ]
+}
