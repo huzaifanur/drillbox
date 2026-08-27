@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Drillbox</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23e7ff6b'/%3E%3Cpath d='M18 16h14c10 0 16 6 16 16S42 48 32 48H18V16zm8 8v16h6c5 0 8-3 8-8s-3-8-8-8h-6z' fill='%230d0f12'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header>
+    <div class="brand-group">
+      <a class="brand" href="/courses/">DRILL<span>BOX</span></a>
+      <button id="map-toggle" class="map-toggle secondary" aria-controls="course-map" aria-expanded="false">Course map</button>
+    </div>
+    <div class="track-nav">
+      <label class="sr-only" for="chapter-picker">Chapter</label>
+      <select id="chapter-picker" aria-label="Chapter"></select>
+      <label class="sr-only" for="lesson-picker">Lesson</label>
+      <select id="lesson-picker" aria-label="Lesson"></select>
+      <div id="progress" aria-live="polite">Loading…</div>
+    </div>
+  </header>
+
+  <main>
+    <aside id="course-map" class="course-map" aria-label="Course outline">
+      <div class="course-map-header">
+        <div>
+          <p class="eyebrow">Course</p>
+          <h2 id="course-title">Course</h2>
+          <p id="course-summary">Loading progress…</p>
+        </div>
+        <button id="map-close" class="map-close secondary" aria-label="Close course map">×</button>
+      </div>
+      <div id="course-outline" class="course-outline"></div>
+    </aside>
+
+    <section class="lesson" aria-labelledby="lesson-title">
+      <p id="chapter" class="eyebrow"></p>
+      <h1 id="lesson-title">Loading lesson…</h1>
+      <section id="lab-panel" class="lab-panel" aria-live="polite" hidden>
+        <div class="lab-heading">
+          <div>
+            <p class="eyebrow">Required live lab</p>
+            <strong id="lab-state">Preparing Grafana…</strong>
+          </div>
+          <button id="lab-retry" class="secondary" hidden>Retry</button>
+        </div>
+        <p id="lab-message">Starting the local observability stack.</p>
+        <ol id="lab-steps" class="lab-steps"></ol>
+        <div id="lab-links" class="lab-links"></div>
+        <p id="lab-credentials" class="lab-credentials"></p>
+      </section>
+      <div id="instruction" class="instruction"></div>
+      <nav class="lesson-nav" aria-label="Lesson navigation">
+        <button id="previous" class="secondary">Previous</button>
+        <button id="next" class="secondary">Next</button>
+      </nav>
+    </section>
+
+    <section class="workspace" aria-label="Code workspace">
+      <div class="workspace-bar">
+        <span id="editor-label">main.go</span>
+        <div class="workspace-status">
+          <span id="lint-status" class="lint-status">CHECKING</span>
+          <span id="status" class="status idle">NOT RUN</span>
+        </div>
+      </div>
+      <div id="editor" aria-label="Go code editor"></div>
+      <textarea id="plain-editor" class="plain-editor" spellcheck="false" aria-label="Lesson editor" hidden></textarea>
+      <div class="run-bar">
+        <div class="run-actions">
+          <button id="run">Run</button>
+          <button id="format" class="secondary">Format</button>
+        </div>
+        <span>Ctrl + Enter</span>
+      </div>
+      <pre id="output" aria-live="polite">Output will appear here.</pre>
+    </section>
+  </main>
+
+  <button id="map-backdrop" class="map-backdrop" aria-label="Close course map" tabindex="-1"></button>
+
+  <script src="/editor.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>

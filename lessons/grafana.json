@@ -1,0 +1,369 @@
+{
+  "id": "grafana",
+  "title": "Learn Grafana for Go Services",
+  "description": "Build a working observability stack, write PromQL, create dashboards and alerts, instrument Go, and provision Grafana from files.",
+  "requiredLab": "grafana",
+  "lessons": [
+    {
+      "id": "grafana-01-01-what-is-grafana",
+      "chapter": "Chapter 1 · Grafana Foundations",
+      "title": "What Is Grafana?",
+      "instruction": "The launcher has started a real Grafana instance backed by Prometheus. Open Grafana from the lab panel, sign in with admin / admin, then return here. Run Check to verify the Grafana API and database are healthy.",
+      "starter": "check",
+      "mode": "lab",
+      "editorLabel": "Live Grafana check",
+      "validator": "grafana-health"
+    },
+    {
+      "id": "grafana-01-02-the-observability-stack",
+      "chapter": "Chapter 1 · Grafana Foundations",
+      "title": "The Observability Stack",
+      "instruction": "This lab has three layers: the Go service exposes metrics, Prometheus scrapes and stores them, and Grafana queries Prometheus. Open all three links in the lab panel, then run Check. Pass requires every service and the go-lab scrape target to be healthy.",
+      "starter": "check",
+      "mode": "lab",
+      "editorLabel": "Live stack check",
+      "validator": "stack-ready"
+    },
+    {
+      "id": "grafana-01-03-install-grafana",
+      "chapter": "Chapter 1 · Grafana Foundations",
+      "title": "Install Grafana",
+      "instruction": "The launcher installs the lab as disposable Docker services while preserving course data between sessions. In Grafana, open Administration → General → Stats and inspect the version. Run Check to verify Grafana 13.2.0 and its database.",
+      "starter": "check",
+      "mode": "lab",
+      "editorLabel": "Installation check",
+      "validator": "grafana-version"
+    },
+    {
+      "id": "grafana-01-04-the-grafana-ui",
+      "chapter": "Chapter 1 · Grafana Foundations",
+      "title": "The Grafana UI",
+      "instruction": "In Grafana choose Dashboards → New → New dashboard. Add any visualization, set its title to Read Run UI Tour, and save the dashboard. This gives you a real object to revisit throughout the course. Run Check when it is saved.",
+      "starter": "check",
+      "mode": "lab",
+      "editorLabel": "Dashboard check",
+      "validator": "dashboard-ui-tour"
+    },
+    {
+      "id": "grafana-01-05-organizations",
+      "chapter": "Chapter 1 · Grafana Foundations",
+      "title": "Organizations",
+      "instruction": "Organizations isolate dashboards and data sources. Open Administration → General → Organizations, create an organization named Read Run Lab, but keep working in the default organization so later lessons share the same resources. Run Check after creation.",
+      "starter": "check",
+      "mode": "lab",
+      "editorLabel": "Organization check",
+      "validator": "organization"
+    },
+
+    {
+      "id": "grafana-02-01-data-sources",
+      "chapter": "Chapter 2 · Data Sources",
+      "title": "Data Sources",
+      "instruction": "Open Connections → Data sources → Add new data source. Choose Prometheus, name it Read Run Prometheus, and save it once. The following lessons will configure and test it. Run Check after the data source exists.",
+      "starter": "check",
+      "mode": "lab",
+      "editorLabel": "Data source check",
+      "validator": "datasource-created"
+    },
+    {
+      "id": "grafana-02-02-add-prometheus",
+      "chapter": "Chapter 2 · Data Sources",
+      "title": "Add Prometheus",
+      "instruction": "Edit Read Run Prometheus. Set the server URL to http://prometheus:9090, keep Server access, enable Default, then save. The Docker service name works inside the lab network; localhost would point back at Grafana itself.",
+      "starter": "check",
+      "mode": "lab",
+      "editorLabel": "Configuration check",
+      "validator": "datasource-configured"
+    },
+    {
+      "id": "grafana-02-03-test-the-connection",
+      "chapter": "Chapter 2 · Data Sources",
+      "title": "Test the Connection",
+      "instruction": "Open Read Run Prometheus and click Save & test. Grafana should report that it can query the Prometheus API. Run Check here to make the same authenticated health request and pass the lesson.",
+      "starter": "check",
+      "mode": "lab",
+      "editorLabel": "Connection check",
+      "validator": "datasource-health"
+    },
+    {
+      "id": "grafana-02-04-scrape-targets",
+      "chapter": "Chapter 2 · Data Sources",
+      "title": "Scrape Targets",
+      "instruction": "Open Prometheus from the lab panel, then Status → Target health. Find the go-lab job and confirm its endpoint is UP. Run Check to query the Prometheus targets API directly.",
+      "starter": "check",
+      "mode": "lab",
+      "editorLabel": "Target check",
+      "validator": "scrape-target"
+    },
+    {
+      "id": "grafana-02-05-explore",
+      "chapter": "Chapter 2 · Data Sources",
+      "title": "Explore",
+      "instruction": "In Grafana open Explore, select Read Run Prometheus, run go_lab_requests_total, then choose Add to dashboard and add it to Read Run UI Tour. Save the dashboard. Run Check after the metric appears in that dashboard JSON.",
+      "starter": "check",
+      "mode": "lab",
+      "editorLabel": "Explore check",
+      "validator": "explore-query"
+    },
+
+    {
+      "id": "grafana-03-01-metric-selectors",
+      "chapter": "Chapter 3 · PromQL",
+      "title": "Metric Selectors",
+      "instruction": "A metric selector returns every live series with that metric name. Enter the counter exposed by the Go lab. Run Query; the platform sends your expression to the real Prometheus API and requires a non-empty result.",
+      "starter": "go_lab_requests_total",
+      "mode": "promql",
+      "editorLabel": "query.promql",
+      "validator": "promql-selector"
+    },
+    {
+      "id": "grafana-03-02-labels",
+      "chapter": "Chapter 3 · PromQL",
+      "title": "Labels",
+      "instruction": "Filter the request counter to only the series whose job label is go-lab. Use an exact label matcher in braces.",
+      "starter": "go_lab_requests_total{job=\"\"}",
+      "mode": "promql",
+      "editorLabel": "query.promql",
+      "validator": "promql-labels"
+    },
+    {
+      "id": "grafana-03-03-range-vectors",
+      "chapter": "Chapter 3 · PromQL",
+      "title": "Range Vectors",
+      "instruction": "Select the last five minutes of samples for go_lab_requests_total. A range selector goes immediately after the metric name.",
+      "starter": "go_lab_requests_total[1m]",
+      "mode": "promql",
+      "editorLabel": "query.promql",
+      "validator": "promql-range"
+    },
+    {
+      "id": "grafana-03-04-rate",
+      "chapter": "Chapter 3 · PromQL",
+      "title": "Rate",
+      "instruction": "Convert the counter into its per-second rate over a five-minute window. Wrap the range vector in rate().",
+      "starter": "rate(go_lab_requests_total[1m])",
+      "mode": "promql",
+      "editorLabel": "query.promql",
+      "validator": "promql-rate"
+    },
+    {
+      "id": "grafana-03-05-aggregations",
+      "chapter": "Chapter 3 · PromQL",
+      "title": "Aggregations",
+      "instruction": "Sum the request rate while keeping one result per job. Use sum by (job) around the five-minute rate expression.",
+      "starter": "sum(rate(go_lab_requests_total[5m]))",
+      "mode": "promql",
+      "editorLabel": "query.promql",
+      "validator": "promql-aggregation"
+    },
+
+    {
+      "id": "grafana-04-01-first-dashboard",
+      "chapter": "Chapter 4 · Dashboards",
+      "title": "First Dashboard",
+      "instruction": "Choose Dashboards → New → New dashboard and save it as Read Run Go Service. Do not worry about panels yet; this lesson verifies the saved dashboard exists.",
+      "starter": "check",
+      "mode": "lab",
+      "editorLabel": "Dashboard check",
+      "validator": "dashboard-first"
+    },
+    {
+      "id": "grafana-04-02-panels",
+      "chapter": "Chapter 4 · Dashboards",
+      "title": "Panels",
+      "instruction": "Edit Read Run Go Service and add a time-series panel backed by Read Run Prometheus. Use exactly rate(go_lab_requests_total[5m]) as the query, give the panel a useful title, apply, and save the dashboard.",
+      "starter": "check",
+      "mode": "lab",
+      "editorLabel": "Panel check",
+      "validator": "dashboard-panel"
+    },
+    {
+      "id": "grafana-04-03-time-ranges",
+      "chapter": "Chapter 4 · Dashboards",
+      "title": "Time Ranges",
+      "instruction": "Open Read Run Go Service, choose Last 6 hours in the time picker, then save the dashboard and include the current time range when Grafana asks. Run Check to inspect the saved dashboard model.",
+      "starter": "check",
+      "mode": "lab",
+      "editorLabel": "Time range check",
+      "validator": "dashboard-range"
+    },
+    {
+      "id": "grafana-04-04-dashboard-variables",
+      "chapter": "Chapter 4 · Dashboards",
+      "title": "Dashboard Variables",
+      "instruction": "In Read Run Go Service open Dashboard settings → Variables → Add variable. Name it job, choose Query, select Read Run Prometheus, and use label_values(go_lab_requests_total, job). Apply and save the dashboard.",
+      "starter": "check",
+      "mode": "lab",
+      "editorLabel": "Variable check",
+      "validator": "dashboard-variable"
+    },
+    {
+      "id": "grafana-04-05-dashboard-json",
+      "chapter": "Chapter 4 · Dashboards",
+      "title": "Dashboard JSON",
+      "instruction": "Open Read Run Go Service → Dashboard settings → JSON model. Copy the dashboard model and replace the editor contents below. It must contain the title, panels, and the job variable.",
+      "starter": "{\n  \"title\": \"Read Run Go Service\",\n  \"panels\": [],\n  \"templating\": {\"list\": []}\n}\n",
+      "mode": "file",
+      "editorLabel": "exports/dashboard.json",
+      "workspace": "exports/dashboard.json",
+      "validator": "dashboard-json"
+    },
+
+    {
+      "id": "grafana-05-01-alert-rules",
+      "chapter": "Chapter 5 · Alerting",
+      "title": "Alert Rules",
+      "instruction": "Open Alerting → Alert rules → New alert rule. Name it High Request Rate, query Read Run Prometheus with rate(go_lab_requests_total[5m]), add a threshold, select or create a folder and evaluation group, then save. Run Check after the rule appears.",
+      "starter": "check",
+      "mode": "lab",
+      "editorLabel": "Alert rule check",
+      "validator": "alert-rule"
+    },
+    {
+      "id": "grafana-05-02-expressions",
+      "chapter": "Chapter 5 · Alerting",
+      "title": "Expressions",
+      "instruction": "Edit High Request Rate. Add a Grafana expression stage—Reduce is the simplest choice—between the Prometheus query and threshold, then save. Run Check to verify the rule contains an expression data source or reduce model.",
+      "starter": "check",
+      "mode": "lab",
+      "editorLabel": "Expression check",
+      "validator": "alert-expression"
+    },
+    {
+      "id": "grafana-05-03-contact-points",
+      "chapter": "Chapter 5 · Alerting",
+      "title": "Contact Points",
+      "instruction": "Open Alerting → Contact points and add a Webhook contact point named Read Run Contact. Set the URL to http://metrics:8081/alerts, then save it. The lab service accepts notifications without sending them elsewhere.",
+      "starter": "check",
+      "mode": "lab",
+      "editorLabel": "Contact point check",
+      "validator": "contact-point"
+    },
+    {
+      "id": "grafana-05-04-notification-policies",
+      "chapter": "Chapter 5 · Alerting",
+      "title": "Notification Policies",
+      "instruction": "Open Alerting → Notification policies. Edit the default policy—or add a matching child policy—and route it to Read Run Contact. Save the policy before running Check.",
+      "starter": "check",
+      "mode": "lab",
+      "editorLabel": "Policy check",
+      "validator": "notification-policy"
+    },
+    {
+      "id": "grafana-05-05-silences",
+      "chapter": "Chapter 5 · Alerting",
+      "title": "Silences",
+      "instruction": "Open Alerting → Silences → Add silence. Add a matcher that selects the High Request Rate alert, use that name in the comment, choose a short duration, and submit. Run Check while the silence is active.",
+      "starter": "check",
+      "mode": "lab",
+      "editorLabel": "Silence check",
+      "validator": "silence"
+    },
+
+    {
+      "id": "grafana-06-01-prometheus-text-format",
+      "chapter": "Chapter 6 · Go Metrics",
+      "title": "Prometheus Text Format",
+      "instruction": "Prometheus scrapes a simple line-oriented format. Complete the two Println calls so the program emits a TYPE declaration followed by one counter sample exactly as shown by the expected output.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfmt.Println(\"# TYPE requests_total TODO\")\n\tfmt.Println(\"requests_total TODO\")\n}\n",
+      "expected": "# TYPE requests_total counter\nrequests_total 7",
+      "mode": "go",
+      "editorLabel": "main.go"
+    },
+    {
+      "id": "grafana-06-02-metrics-handler",
+      "chapter": "Chapter 6 · Go Metrics",
+      "title": "Metrics Handler",
+      "instruction": "Implement metrics so it writes a valid request counter sample to the ResponseWriter. The small httptest recorder lets you exercise an HTTP handler without opening a port.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n)\n\nfunc metrics(w http.ResponseWriter, _ *http.Request) {\n\t// Write requests_total with the value 3.\n}\n\nfunc main() {\n\tr := httptest.NewRecorder()\n\tmetrics(r, httptest.NewRequest(http.MethodGet, \"/metrics\", nil))\n\tfmt.Print(r.Body.String())\n}\n",
+      "expected": "requests_total 3",
+      "mode": "go",
+      "editorLabel": "main.go"
+    },
+    {
+      "id": "grafana-06-03-counters",
+      "chapter": "Chapter 6 · Go Metrics",
+      "title": "Counters",
+      "instruction": "Counters only increase. Update requests once for each handled request, then print its final value. The expected result is 3.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\trequests := 0\n\tfor range 3 {\n\t\t// Count this request.\n\t}\n\tfmt.Println(requests)\n}\n",
+      "expected": "3",
+      "mode": "go",
+      "editorLabel": "main.go"
+    },
+    {
+      "id": "grafana-06-04-gauges",
+      "chapter": "Chapter 6 · Go Metrics",
+      "title": "Gauges",
+      "instruction": "Gauges can rise and fall. Start with two active requests, print the gauge, add one and print it when a request begins, then subtract one and print it when that request completes.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tactive := 2\n\tfmt.Println(active)\n\t// One request begins. Update active before printing.\n\tfmt.Println(active)\n\t// One request completes. Update active before printing.\n\tfmt.Println(active)\n}\n",
+      "expected": "2\n3\n2",
+      "mode": "go",
+      "editorLabel": "main.go"
+    },
+    {
+      "id": "grafana-06-05-histograms",
+      "chapter": "Chapter 6 · Go Metrics",
+      "title": "Histograms",
+      "instruction": "A histogram exposes cumulative bucket counts. Count how many observations are less than or equal to 0.5 seconds, then print the bucket sample in Prometheus format.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tobservations := []float64{0.1, 0.4, 0.8}\n\tcount := 0\n\tfor _, value := range observations {\n\t\t// Count values in the le=0.5 bucket.\n\t\t_ = value\n\t}\n\tfmt.Printf(\"request_duration_seconds_bucket{le=\\\"0.5\\\"} %d\\n\", count)\n}\n",
+      "expected": "request_duration_seconds_bucket{le=\"0.5\"} 2",
+      "mode": "go",
+      "editorLabel": "main.go"
+    },
+
+    {
+      "id": "grafana-07-01-provisioning",
+      "chapter": "Chapter 7 · Operations",
+      "title": "Provisioning",
+      "instruction": "Complete the dashboard provider YAML. It must use apiVersion 1, define a provider, and point options.path at /var/lib/grafana/dashboards. Apply File restarts only Grafana and verifies that the seeded Provider Check dashboard was loaded.",
+      "starter": "apiVersion: 1\n\nproviders:\n  - name: Read Run Provider\n    orgId: 1\n    folder: Read Run Provisioned\n    type: file\n    disableDeletion: false\n    updateIntervalSeconds: 10\n    options:\n      path: TODO\n",
+      "mode": "file",
+      "editorLabel": "provisioning/dashboards/read-run.yml",
+      "workspace": "provisioning/dashboards/read-run.yml",
+      "validator": "provision-provider"
+    },
+    {
+      "id": "grafana-07-02-folders-and-permissions",
+      "chapter": "Chapter 7 · Operations",
+      "title": "Folders and Permissions",
+      "instruction": "In Grafana create a dashboard folder named Read Run Operations. Open the folder permissions and add at least one explicit user, team, or role permission. Run Check to verify both the folder and permission entry through Grafana's API.",
+      "starter": "check",
+      "mode": "lab",
+      "editorLabel": "Folder check",
+      "validator": "folder-permission"
+    },
+    {
+      "id": "grafana-07-03-data-source-provisioning",
+      "chapter": "Chapter 7 · Operations",
+      "title": "Data Source Provisioning",
+      "instruction": "Complete the provisioning file for a Prometheus data source named Provisioned Prometheus with UID provisioned-prometheus and URL http://prometheus:9090. Apply File restarts Grafana; pass requires the resulting data source to be read-only in the UI.",
+      "starter": "apiVersion: 1\n\ndatasources:\n  - name: Provisioned Prometheus\n    uid: provisioned-prometheus\n    type: prometheus\n    access: proxy\n    url: TODO\n    isDefault: false\n    editable: false\n",
+      "mode": "file",
+      "editorLabel": "provisioning/datasources/read-run.yml",
+      "workspace": "provisioning/datasources/read-run.yml",
+      "validator": "provision-datasource"
+    },
+    {
+      "id": "grafana-07-04-dashboard-provisioning",
+      "chapter": "Chapter 7 · Operations",
+      "title": "Dashboard Provisioning",
+      "instruction": "Create a provisioned dashboard model with UID read-run-provisioned and title Read Run Provisioned. Keep schemaVersion and panels valid. Apply File writes it into the mounted dashboard directory and verifies Grafana loads it.",
+      "starter": "{\n  \"uid\": \"TODO\",\n  \"title\": \"TODO\",\n  \"schemaVersion\": 39,\n  \"panels\": []\n}\n",
+      "mode": "file",
+      "editorLabel": "dashboards/read-run-provisioned.json",
+      "workspace": "dashboards/read-run-provisioned.json",
+      "validator": "provision-dashboard"
+    },
+    {
+      "id": "grafana-07-05-backups",
+      "chapter": "Chapter 7 · Operations",
+      "title": "Backups",
+      "instruction": "Export the complete Read Run Go Service dashboard JSON from Grafana and paste the dashboard model here. A useful backup must retain the dashboard identity and panels. Apply File preserves it in the launcher-managed state directory for your next session.",
+      "starter": "{\n  \"uid\": \"read-run-go\",\n  \"title\": \"Read Run Go Service\",\n  \"panels\": []\n}\n",
+      "mode": "file",
+      "editorLabel": "exports/read-run-dashboard-backup.json",
+      "workspace": "exports/read-run-dashboard-backup.json",
+      "validator": "backup-dashboard"
+    }
+  ]
+}

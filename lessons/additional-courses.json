@@ -1,0 +1,151 @@
+[
+  {
+    "id": "http-servers",
+    "title": "Learn HTTP Servers in Go",
+    "description": "Build server-side Go skills with routes, middleware, auth, webhooks, and APIs.",
+    "chapters": [
+      {"number": 1, "title": "Servers", "lessons": ["Welcome to Learn HTTP Servers", "Goroutines in Servers", "Project Setup", "Server", "Fileservers", "Fileserver Quiz", "Serving Images", "Workflow Tips", "Custom Handlers", "Handler Review"]},
+      {"number": 2, "title": "Routing", "lessons": ["Middleware", "Stateful Handlers", "Routing", "Patterns"]},
+      {"number": 3, "title": "Architecture", "lessons": ["Monoliths and Decoupling", "Which Is Better?", "Admin Namespace", "Deployment Options"]},
+      {"number": 4, "title": "JSON", "lessons": ["HTTP Clients", "JSON", "JSON Review", "The Profane"]},
+      {"number": 5, "title": "Storage", "lessons": ["Storage", "Goose Migrations", "SQLC", "Database Review", "Context", "Create User", "Create Chirp", "Collections and Singletons", "Get All Chirps", "Get Chirp"]},
+      {"number": 6, "title": "Authentication", "lessons": ["Authentication With Passwords", "Password Review", "Types of Authentication", "JWTs", "Authentication With JWTs", "JWT Review", "Revoking JWTs", "Refresh Tokens", "Cookies"]},
+      {"number": 7, "title": "Authorization", "lessons": ["Authorization", "Authentication vs. Authorization", "Delete Chirp"]},
+      {"number": 8, "title": "Webhooks", "lessons": ["Webhooks", "Webhooks Review", "API Keys"]},
+      {"number": 9, "title": "Documentation", "lessons": ["Documentation", "Documentation", "Sorting Chirps", "Adding a README"]}
+    ]
+  },
+  {
+    "id": "pokedex",
+    "title": "Build a Pokedex in Go",
+    "description": "Build a command-line Pokedex while practicing APIs, caching, and Go application structure.",
+    "chapters": [
+      {"number": 1, "title": "REPL", "lessons": ["Welcome to Build a Pokedex", "Build", "Tests", "REPL", "Help and Exit"]},
+      {"number": 2, "title": "Cache", "lessons": ["State", "PokeAPI", "Caching", "Explore", "Catch", "Inspect"]},
+      {"number": 3, "title": "Pokedex", "lessons": ["Pokedex", "Submit Your Repo"]}
+    ]
+  },
+  {
+    "id": "pubsub",
+    "title": "Learn Pub/Sub in RabbitMQ and Go",
+    "description": "Build event-driven Go services with queues, exchanges, routing, and delivery guarantees.",
+    "chapters": [
+      {"number": 1, "title": "Pub/Sub Architecture", "lessons": ["Learn Pub/Sub Architecture", "Publisher", "Subscriber", "Event-Driven Design"]},
+      {"number": 2, "title": "Message Brokers", "lessons": ["RabbitMQ", "Alternative Brokers", "Connect", "AMQP Protocol", "MQTT and STOMP"]},
+      {"number": 3, "title": "Publishers & Queues", "lessons": ["Exchanges and Queues", "Types of Exchanges", "Create a Queue", "Transient Queues", "Decoupling", "Client REPL", "Sync vs. Async", "Topic Exchange", "Durable"]},
+      {"number": 4, "title": "Subscribers & Routing", "lessons": ["Consumers", "Multi Consumers", "Routing Patterns", "Naming"]},
+      {"number": 5, "title": "Delivery", "lessons": ["Dead Letter", "Ack and Nack", "Dead Letter Queue", "Exact Delivery", "Nack Requeue", "Nack Requeue Fix"]},
+      {"number": 6, "title": "Serialization", "lessons": ["Data Serialization", "Game Logs", "Consume Logs", "Schema"]},
+      {"number": 7, "title": "Scalability", "lessons": ["Nodes and Clusters", "Backpressure", "Healthy Queues Are Empty", "Prefetch", "Quorum Queues"]}
+    ]
+  },
+  {
+    "id": "ci-cd",
+    "title": "Learn CI/CD with GitHub Actions, Docker and Go",
+    "description": "Test, containerize, and ship Go applications with automated delivery pipelines.",
+    "chapters": [
+      {"number": 1, "title": "Continuous Integration", "lessons": ["Welcome to 'Learn CI/CD'", "Run Notely", "Branches", "Pull Requests", "Continuous Integration", "Breakdown of GitHub Actions", "GitHub Actions"]},
+      {"number": 2, "title": "Tests", "lessons": ["Running Tests", "Tests on CI", "Code Coverage", "README Badge for Tests"]},
+      {"number": 3, "title": "Formatting", "lessons": ["Formatting", "Check Formatting", "Formatting CI"]},
+      {"number": 4, "title": "Linting", "lessons": ["Linting", "CI Linting", "Linting Review"]},
+      {"number": 5, "title": "Security", "lessons": ["Security Checks", "CI Security", "Fix Security Issues", "Security Review"]},
+      {"number": 6, "title": "Build", "lessons": ["Docker", "Continuous Deployment", "Google Cloud Platform", "Google Cloud SDK", "Google Artifact Registry", "Automate Builds"]},
+      {"number": 7, "title": "Deploy", "lessons": ["Google Cloud Run", "Cloud Run Review", "Delete the Test", "Cloud Run Custom", "Cloud Run Updates"]},
+      {"number": 8, "title": "Database", "lessons": ["Turso", "Migrations", "Migrate Automatically", "Using the DB", "CI/CD Review"]}
+    ]
+  },
+  {
+    "id": "http-protocol",
+    "title": "Learn the HTTP Protocol in Go",
+    "description": "Implement HTTP from raw TCP connections to requests, responses, and chunked bodies.",
+    "chapters": [
+      {"number": 1, "title": "HTTP Streams", "lessons": ["Welcome to 'Learn the HTTP Protocol'", "TheStartup™", "8 Bytes", "Newlines", "Channel Refactor"]},
+      {"number": 2, "title": "TCP", "lessons": ["TCP", "TCP vs. UDP", "UDP Sender", "Files vs. Network"]},
+      {"number": 3, "title": "Requests", "lessons": ["TCP to HTTP", "The RFCs", "HTTP Post", "cURL"]},
+      {"number": 4, "title": "Request Lines", "lessons": ["Testing With Testify", "Parsing the Request Line", "Parsing a Stream", "Request Line Review", "State Machine", "Connect the Parsing"]},
+      {"number": 5, "title": "HTTP Headers", "lessons": ["Headers", "Constraints", "Multiple Values", "Add to Parse", "Live Headers"]},
+      {"number": 6, "title": "HTTP Body", "lessons": ["Parsing the Body", "Live Body", "Body Review"]},
+      {"number": 7, "title": "HTTP Responses", "lessons": ["Server", "Content Length", "Response", "Other Common Headers", "Handler", "Code Review", "Refactor"]},
+      {"number": 8, "title": "Chunked Encoding", "lessons": ["Chunked Encoding", "Chunked Quiz 1", "Chunked Quiz 2", "Chunked Quiz 3", "Trailers"]},
+      {"number": 9, "title": "Binary Data", "lessons": ["Binary Data", "HTTP 2 and 3"]}
+    ]
+  },
+  {
+    "id": "blog-aggregator",
+    "title": "Build a Blog Aggregator in Go",
+    "description": "Build a database-backed Go CLI that collects and manages RSS feeds.",
+    "chapters": [
+      {"number": 1, "title": "Config", "lessons": ["Welcome to the Blog Aggregator", "Config", "Commands"]},
+      {"number": 2, "title": "Database", "lessons": ["Postgres", "Goose Migrations", "SQLC", "Reset", "List Users"]},
+      {"number": 3, "title": "RSS", "lessons": ["RSS", "Feeds", "List Feeds"]},
+      {"number": 4, "title": "Following", "lessons": ["Follow", "Middleware", "Unfollow"]},
+      {"number": 5, "title": "Aggregate", "lessons": ["Aggregate", "Posts", "Docs", "Submit Your Repo!"]}
+    ]
+  },
+  {
+    "id": "cryptography",
+    "title": "Learn Cryptography in Go",
+    "description": "Practice hashing, symmetric and asymmetric encryption, signatures, and secure protocols.",
+    "chapters": [
+      {"number": 1, "title": "Symmetric Encryption", "lessons": ["Cryptography Is About Encryption", "What Is Cryptography?", "Symmetric vs. Asymmetric", "Symmetric vs. Asymmetric", "Better Keys", "Cryptology, Cryptography and Cryptanalysis", "Single-Use Keys", "Single-Use Keys Review"]},
+      {"number": 2, "title": "Encoding", "lessons": ["Encoding Bytes", "Encoding != Encryption", "Formatting", "Decoding"]},
+      {"number": 3, "title": "Brute Force", "lessons": ["Alphabet Formula", "Brute Force Attacks", "Crack an Insecure Key", "Entropy"]},
+      {"number": 4, "title": "Caesar Cipher", "lessons": ["What Is a Cipher?", "Caesar Cipher", "Caesar Cipher Security"]},
+      {"number": 5, "title": "XOR", "lessons": ["Exclusive or (XOR)", "XOR Quiz", "One Time Pad", "Perfect Security"]},
+      {"number": 6, "title": "Stream Ciphers", "lessons": ["Stream Ciphers", "Stream Ciphers", "State Ciphers", "State Ciphers"]},
+      {"number": 7, "title": "Block Ciphers", "lessons": ["Block Ciphers", "Block vs. Stream", "Block Sizes", "Chunks Review", "Key Schedules", "Key Schedule Review"]},
+      {"number": 8, "title": "DES", "lessons": ["Feistel Network", "Feistel Network", "Data Encryption Standard", "DES Review", "Initialization Vectors", "DES Feistel Network", "Substitution Box", "Substitution Box"]},
+      {"number": 9, "title": "AES", "lessons": ["Advanced Encryption Standard", "Advanced Encryption Standard", "Nonces", "Nonce Review"]},
+      {"number": 10, "title": "Asymmetric Encryption", "lessons": ["Asymmetric Encryption", "Public/Private Keys"]},
+      {"number": 11, "title": "RSA", "lessons": ["RSA", "RSA vs. ECC", "RSA Key Generation", "Totient and E", "Modular Arithmetic", "Modular Arithmetic", "Encryption", "Multiplicative Inverse", "Private Key", "Decryption", "Encryption and Decryption Explained"]},
+      {"number": 12, "title": "Hash Functions", "lessons": ["Hash Functions", "Hash Collisions", "Hashmaps", "Deterministic", "One Way", "Toy Hash Function", "Toy Hash Review"]},
+      {"number": 13, "title": "Digital Signatures", "lessons": ["What Is a Message Integrity?", "Message Authentication Code (MAC)", "Message Authentication Code (MAC)", "Hash-Based Message Authentication Code", "Toy HMAC", "MACs and JWTs", "Asymmetric JWTs", "Asymmetric JWT Review"]},
+      {"number": 14, "title": "KDFs", "lessons": ["Key Derivation Functions", "Argon2 – Storing Passwords", "Argon2 Phc Review", "Salts", "Why Are KDFs Slow?"]}
+    ]
+  },
+  {
+    "id": "file-servers",
+    "title": "Learn File Servers and CDNs with S3 and CloudFront",
+    "description": "Build file upload and delivery flows with Go, S3, and CloudFront.",
+    "chapters": [
+      {"number": 1, "title": "File Storage", "lessons": ["Welcome", "Large Files", "Database", "Videos", "Multipart Uploads", "Encoding", "Using the Filesystem", "Mime Types", "Live Edits"]},
+      {"number": 2, "title": "Caching", "lessons": ["Caching", "Cache Busting", "Cache Headers", "New Files"]},
+      {"number": 3, "title": "AWS S3", "lessons": ["Single Machine", "AWS", "Serverless", "Upload Object", "Architecture", "SDKs and S3"]},
+      {"number": 4, "title": "Object Storage", "lessons": ["Object Storage", "File System Illusion", "Dynamic Path"]},
+      {"number": 5, "title": "Video Streaming", "lessons": ["Streaming", "MP4", "More Requests", "Other Approaches"]},
+      {"number": 6, "title": "Security", "lessons": ["Security", "Application vs. Developer", "Scoping Permission", "Roles", "Private Bucket", "Signed URLs", "Encryption"]},
+      {"number": 7, "title": "CDNs", "lessons": ["Regions", "CDNs", "Use CloudFront", "Invalidations", "Why CDNs?"]},
+      {"number": 8, "title": "Resiliency", "lessons": ["Availability", "Reliability", "Durability", "Bucket Versioning", "Delete"]}
+    ]
+  },
+  {
+    "id": "observability",
+    "title": "Learn Logging and Observability in Go",
+    "description": "Instrument Go services with structured logs, metrics, traces, and alerts.",
+    "chapters": [
+      {"number": 1, "title": "Observability", "lessons": ["Welcome to Logging and Telemetry", "Linko Overview", "What Is Observability?"]},
+      {"number": 2, "title": "Logging", "lessons": ["Logging in Go", "Use the Logger", "Logging Requests", "Global Logger vs. Dependency Injection", "Logger Configuration", "Logger Failure", "Buffered Logging", "Logger Cleanup"]},
+      {"number": 3, "title": "Structured Logging", "lessons": ["Structured Logging", "Slog Package", "Log Levels", "More Log Levels", "Key-Value Pairs", "Output Formats"]},
+      {"number": 4, "title": "Log Strategies", "lessons": ["Best Practices", "Timestamps", "Minimal Logging", "Redundant Logs", "One Log Per Event"]},
+      {"number": 5, "title": "Logging Errors", "lessons": ["Logging Errors", "Stack Traces", "Slog Groups", "Handle Errors Once", "Adding Attributes", "Multiple Errors"]},
+      {"number": 6, "title": "Logging Context", "lessons": ["Logging Context", "Build Information", "Instance Context", "Request Context", "User Context", "HTTP Error Responses", "Inter-Process Context"]},
+      {"number": 7, "title": "Log Storage", "lessons": ["Log Storage", "Logging to the Console", "Filesystem Logging", "Log Rotation", "Syslog"]},
+      {"number": 8, "title": "Log Security", "lessons": ["Can You Keep a Secret?", "Error Responses", "Minimal Logging", "Obfuscation", "Filtering Logs", "Encrypted Logs"]},
+      {"number": 9, "title": "Metrics", "lessons": ["Metrics", "Prometheus", "System Metrics", "Metrics Exporters", "What to Measure", "Visualizing Metrics", "Service Metrics", "Custom Metrics", "Custom Visualizations", "Status Code Bars"]},
+      {"number": 10, "title": "Alerting", "lessons": ["Alerting", "Actionable Alerts", "Alert Thresholds"]},
+      {"number": 11, "title": "Profiling", "lessons": ["Profiling", "Integrating pprof", "CPU Profiling", "CPU Profiling Quiz", "Memory Profiling", "Memory Profiling Quiz", "Goroutine Profiling"]},
+      {"number": 12, "title": "Tracing", "lessons": ["Tracing", "Installing Jaeger", "Request Tracing", "Instrumenting Traces", "Adding Spans", "Reading Traces", "Distributed Tracing"]}
+    ]
+  },
+  {
+    "id": "web-scraper",
+    "title": "Build a Web Scraper in Go",
+    "description": "Build a concurrent web crawler with URLs, HTML parsing, and reporting.",
+    "chapters": [
+      {"number": 1, "title": "Setup", "lessons": ["Welcome", "Golang Setup", "Normalize URLs", "Extract Page Content", "Extract Links and Images", "Structure Page Data"]},
+      {"number": 2, "title": "Crawling", "lessons": ["Main", "Get HTML", "Adding Recursion"]},
+      {"number": 3, "title": "Concurrency", "lessons": ["Concurrency", "Max Pages"]},
+      {"number": 4, "title": "Reporting", "lessons": ["JSON Report", "Submit the Link to Your Repository!"]}
+    ]
+  }
+]

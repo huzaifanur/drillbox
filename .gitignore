@@ -1,0 +1,7 @@
+node_modules/
+.gstack/
+.read-run-state/
+read-run
+drillbox
+*.log
+

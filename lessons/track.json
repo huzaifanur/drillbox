@@ -1,0 +1,229 @@
+[
+  {
+    "number": 2,
+    "title": "Constants and Formatting",
+    "lessons": [
+      "Constants",
+      "Computed Constants",
+      "Comparing Go's Speed",
+      "Formatting Strings in Go",
+      "Runes and String Encoding",
+      "Fix Bugs",
+      "Fix Types",
+      "Type Inference",
+      "Format Practice"
+    ]
+  },
+  {
+    "number": 3,
+    "title": "Conditionals",
+    "lessons": [
+      "Conditionals",
+      "The Initial Statement of an If Block",
+      "Switch",
+      "Calculate Balance"
+    ]
+  },
+  {
+    "number": 4,
+    "title": "Functions",
+    "lessons": [
+      "Functions",
+      "Multiple Parameters",
+      "Unit Test Lessons",
+      "Declaration Syntax",
+      "Passing Variables by Value",
+      "Ignoring Return Values",
+      "Named Return Values",
+      "The Benefits of Named Returns",
+      "Explicit Returns",
+      "Early Returns",
+      "Functions As Values",
+      "Anonymous Functions",
+      "Defer",
+      "Block Scope",
+      "Processing Orders",
+      "Closures",
+      "Currying"
+    ]
+  },
+  {
+    "number": 5,
+    "title": "Structs",
+    "lessons": [
+      "Structs in Go",
+      "Nested Structs in Go",
+      "Anonymous Structs in Go",
+      "Embedded Structs",
+      "Struct Methods in Go",
+      "Memory Layout",
+      "Empty Struct",
+      "Empty Struct Memory",
+      "Update Users",
+      "Send Message"
+    ]
+  },
+  {
+    "number": 6,
+    "title": "Interfaces",
+    "lessons": [
+      "Interfaces in Go",
+      "Interface Implementation",
+      "Interfaces Are Implemented Implicitly",
+      "Interfaces Quiz",
+      "Multiple Interfaces",
+      "Name Your Interface Parameters",
+      "Type Assertions in Go",
+      "Type Switches",
+      "Clean Interfaces",
+      "Message Formatter",
+      "Process Notifications"
+    ]
+  },
+  {
+    "number": 7,
+    "title": "Errors",
+    "lessons": [
+      "The Error Interface",
+      "Formatting Strings Review",
+      "The Error Interface",
+      "Errors Quiz",
+      "The Errors Package",
+      "Panic",
+      "User Input"
+    ]
+  },
+  {
+    "number": 8,
+    "title": "Loops",
+    "lessons": [
+      "Loops in Go",
+      "Omitting Conditions from a for Loop in Go",
+      "There Is No While Loop in Go",
+      "Fizzbuzz",
+      "Continue & Break",
+      "Connections"
+    ]
+  },
+  {
+    "number": 9,
+    "title": "Slices",
+    "lessons": [
+      "Arrays in Go",
+      "Slices in Go",
+      "Slices Review",
+      "Make",
+      "Len and Cap Review",
+      "Variadic",
+      "Append",
+      "Range",
+      "Slice of Slices",
+      "Tricky Slices",
+      "Message Filter",
+      "Password Strength",
+      "Message Tagger"
+    ]
+  },
+  {
+    "number": 10,
+    "title": "Maps",
+    "lessons": [
+      "Maps",
+      "Mutations",
+      "Key Types",
+      "Count Instances",
+      "Effective Go",
+      "Nested",
+      "Distinct Words"
+    ]
+  },
+  {
+    "number": 11,
+    "title": "Pointers",
+    "lessons": [
+      "Introduction to Pointers",
+      "References",
+      "Pass by Reference",
+      "Pointers Quiz",
+      "Nil Pointers",
+      "Pointer Receivers",
+      "Pointer Receiver Code",
+      "Pointer Performance",
+      "Update Balance"
+    ]
+  },
+  {
+    "number": 12,
+    "title": "Packages and Modules",
+    "lessons": [
+      "Packages",
+      "Package Naming",
+      "Install",
+      "Modules",
+      "Go Environment",
+      "First Local Program",
+      "Go Run",
+      "Go Build",
+      "Go Install",
+      "Custom Package",
+      "Custom Package Continued",
+      "Remote Packages",
+      "Clean Packages"
+    ]
+  },
+  {
+    "number": 13,
+    "title": "Channels",
+    "lessons": [
+      "Concurrency",
+      "Channels",
+      "Channels",
+      "Buffered Channels",
+      "Closing Channels in Go",
+      "Range",
+      "Select",
+      "Select Default Case",
+      "Channels Review",
+      "Ping Pong"
+    ]
+  },
+  {
+    "number": 14,
+    "title": "Mutexes",
+    "lessons": [
+      "Mutexes in Go",
+      "Why Is It Called a 'mutex'?",
+      "Mutex Review",
+      "RW Mutex",
+      "Read/Write Mutex Review"
+    ]
+  },
+  {
+    "number": 15,
+    "title": "Generics",
+    "lessons": [
+      "Generics in Go",
+      "Why Generics?",
+      "Constraints",
+      "Interface Type Lists",
+      "Parametric Constraints",
+      "Naming Generic Types"
+    ]
+  },
+  {
+    "number": 16,
+    "title": "Enums",
+    "lessons": [
+      "Lack of Enums",
+      "Type Definitions",
+      "Iota"
+    ]
+  },
+  {
+    "number": 17,
+    "title": "Quiz",
+    "lessons": [
+      "Go Proverbs"
+    ]
+  }
+]

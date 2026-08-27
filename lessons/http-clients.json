@@ -1,0 +1,117 @@
+[
+  {
+    "number": 1,
+    "title": "Why HTTP?",
+    "lessons": [
+      "Communicating on the Web",
+      "HTTP Requests and Responses",
+      "HTTP Powers Websites",
+      "HTTP URLs",
+      "Using URLs in HTTP",
+      "Requests and Responses Quiz",
+      "net/http",
+      "Web Clients",
+      "Web Servers"
+    ]
+  },
+  {
+    "number": 2,
+    "title": "JSON",
+    "lessons": [
+      "JSON Syntax",
+      "Decoding JSON",
+      "JSON Review",
+      "Unmarshal JSON",
+      "Marshal JSON",
+      "XML",
+      "Why Use XML?",
+      "map[string]interface{}"
+    ]
+  },
+  {
+    "number": 3,
+    "title": "DNS",
+    "lessons": [
+      "Web Addresses",
+      "Web Addresses Quiz",
+      "DNS",
+      "What Is the Domain Name System?",
+      "Subdomains"
+    ]
+  },
+  {
+    "number": 4,
+    "title": "URIs",
+    "lessons": [
+      "Uniform Resource Identifiers",
+      "Sections of a URL",
+      "Further Dissecting a URL",
+      "The Protocol",
+      "URL Ports",
+      "URL Paths",
+      "Query Parameters"
+    ]
+  },
+  {
+    "number": 5,
+    "title": "Headers",
+    "lessons": [
+      "What Are HTTP Headers?",
+      "Using the Browser's Developer Tools",
+      "Why Are Headers Useful?",
+      "Network Tab Practice"
+    ]
+  },
+  {
+    "number": 6,
+    "title": "Methods",
+    "lessons": [
+      "HTTP Methods - GET",
+      "Why Use HTTP Methods?",
+      "POST Requests",
+      "Status Codes",
+      "Status Code Property",
+      "HTTP PUT",
+      "Patch vs. PUT",
+      "Delete"
+    ]
+  },
+  {
+    "number": 7,
+    "title": "Paths",
+    "lessons": [
+      "URL Paths",
+      "RESTful APIs",
+      "URL Query Parameters",
+      "The Documentation of an HTTP Server",
+      "Multiple Query Parameters"
+    ]
+  },
+  {
+    "number": 8,
+    "title": "HTTPS",
+    "lessons": [
+      "HTTPS",
+      "Security and Encryption"
+    ]
+  },
+  {
+    "number": 9,
+    "title": "Errors",
+    "lessons": [
+      "Handling Errors",
+      "Bugs vs. Errors"
+    ]
+  },
+  {
+    "number": 10,
+    "title": "cURL",
+    "lessons": [
+      "Install cURL",
+      "cURL Basics",
+      "cURL POST Request",
+      "Install jq",
+      "jq Basics"
+    ]
+  }
+]
