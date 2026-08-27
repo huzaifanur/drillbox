@@ -17,7 +17,7 @@ const elements = {
   chapterPicker: document.querySelector("#chapter-picker"), lessonPicker: document.querySelector("#lesson-picker"),
   courseOutline: document.querySelector("#course-outline"), courseSummary: document.querySelector("#course-summary"),
   courseTitle: document.querySelector("#course-title"), mapToggle: document.querySelector("#map-toggle"),
-  mapClose: document.querySelector("#map-close"), run: document.querySelector("#run"),
+  mapClose: document.querySelector("#map-close"), run: document.querySelector("#run"), submit: document.querySelector("#submit"),
   previous: document.querySelector("#previous"), next: document.querySelector("#next"),
   format: document.querySelector("#format"), lintStatus: document.querySelector("#lint-status"),
   mapBackdrop: document.querySelector("#map-backdrop"), labPanel: document.querySelector("#lab-panel"),
@@ -29,7 +29,7 @@ const elements = {
 async function start() {
   editor = window.createGoEditor({
     parent: elements.editor,
-    onRun: run,
+    onRun: formatAndRun,
     onDiagnostics: (diagnostics) => {
       if ((state.lesson?.mode || "go") === "go") updateLintStatus(diagnostics);
     },
@@ -108,6 +108,7 @@ function configureWorkspace() {
     elements.lintStatus.textContent = "CHECKING";
   }
   elements.run.textContent = { go: "Run", sql: "Run SQL", promql: "Run Query", file: "Apply File", lab: "Check" }[mode] || "Run";
+  elements.submit.textContent = mode === "lab" ? "Submit Check" : "Submit";
 }
 
 function getEditorValue() {
@@ -274,14 +275,17 @@ function renderLabError(message) {
 }
 
 function updateRunAvailability() {
-  elements.run.disabled = Boolean(state.course?.requiredLab && state.lab?.state !== "ready");
+  const disabled = Boolean(state.course?.requiredLab && state.lab?.state !== "ready");
+  elements.run.disabled = disabled;
+  elements.submit.disabled = disabled;
 }
 
-async function run() {
+async function execute(submitting) {
   if (state.course.requiredLab && state.lab?.state !== "ready") return;
   elements.run.disabled = true;
-  elements.output.textContent = state.lesson.mode === "lab" ? "Checking the live lab…" : "Running…";
-  setStatus("running");
+  elements.submit.disabled = true;
+  elements.output.textContent = state.lesson.mode === "lab" ? "Checking the live lab…" : submitting ? "Submitting…" : "Running…";
+  setStatus(submitting ? "submitting" : "running");
   const input = getEditorValue();
   if (state.lesson.mode !== "lab") localStorage.setItem(`${storageKey}:draft:${state.lesson.id}`, input);
   try {
@@ -289,7 +293,9 @@ async function run() {
       method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ input }),
     });
     elements.output.textContent = result.output || "(no output)";
-    if (result.passed) {
+    if (!submitting) {
+      setStatus("ran");
+    } else if (result.passed) {
       state.passed.add(state.lesson.id);
       localStorage.setItem(`${storageKey}:passed`, JSON.stringify([...state.passed]));
       setStatus("passed");
@@ -298,14 +304,22 @@ async function run() {
     updateNavigation();
   } catch (error) {
     elements.output.textContent = error.message;
-    setStatus("failed");
+    setStatus(submitting ? "failed" : "run-error");
   } finally {
     updateRunAvailability();
   }
 }
 
+const run = () => execute(false);
+const submit = () => execute(true);
+
+async function formatAndRun() {
+  if ((state.lesson.mode || "go") === "go" && !await formatEditor()) return;
+  await run();
+}
+
 async function formatEditor() {
-  if ((state.lesson.mode || "go") !== "go") return;
+  if ((state.lesson.mode || "go") !== "go") return false;
   elements.format.disabled = true;
   try {
     const result = await getJSON("/api/format", {
@@ -314,8 +328,10 @@ async function formatEditor() {
     editor.setValue(result.code);
     localStorage.setItem(`${storageKey}:draft:${state.lesson.id}`, result.code);
     editor.focus();
+    return true;
   } catch (error) {
     elements.output.textContent = error.message;
+    return false;
   } finally {
     elements.format.disabled = false;
   }
@@ -358,7 +374,10 @@ function scheduleSQLLint() {
 }
 
 function setStatus(value) {
-  const labels = { idle: "NOT RUN", running: "RUNNING", passed: "PASS", failed: "FAIL" };
+  const labels = {
+    idle: "NOT RUN", running: "RUNNING", ran: "RAN", "run-error": "RUN ERROR",
+    submitting: "SUBMITTING", passed: "SUBMITTED ✓", failed: "SUBMIT FAIL",
+  };
   elements.status.className = `status ${value}`;
   elements.status.textContent = labels[value];
 }
@@ -381,10 +400,11 @@ async function getJSON(url, options) {
 }
 
 elements.run.addEventListener("click", run);
+elements.submit.addEventListener("click", submit);
 elements.format.addEventListener("click", formatEditor);
 elements.labRetry.addEventListener("click", startLab);
 elements.plainEditor.addEventListener("keydown", (event) => {
-  if (event.ctrlKey && event.key === "Enter") { event.preventDefault(); run(); }
+  if (event.ctrlKey && event.key === "Enter") { event.preventDefault(); formatAndRun(); }
 });
 elements.plainEditor.addEventListener("input", scheduleSQLLint);
 elements.previous.addEventListener("click", () => move(-1));

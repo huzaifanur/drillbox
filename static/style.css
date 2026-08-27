@@ -449,6 +449,15 @@ button:focus-visible, select:focus-visible, a:focus-visible {
 .status.passed { color: var(--pass); background: #15382a; }
 .status.failed { color: var(--fail); background: #3b1c20; }
 .status.running { color: var(--accent); background: #353b19; }
+.status.submitting { color: var(--highlight); background: #3b3018; }
+.status.ran { color: #b9d5ff; background: #26364d; }
+.status.run-error { color: var(--fail); background: #3b1c20; }
+
+#submit {
+  border-color: #ffd037;
+  background: linear-gradient(#ffd037, #d9a900);
+  color: #181b26;
+}
 
 .sr-only {
   position: absolute;

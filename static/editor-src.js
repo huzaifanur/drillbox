@@ -44,12 +44,6 @@ window.createGoEditor = ({ parent, onRun, onDiagnostics }) => {
     state: EditorState.create({
       doc: "",
       extensions: [
-        basicSetup,
-        go(),
-        oneDark,
-        lintGutter(),
-        goLinter,
-        EditorView.contentAttributes.of({ "aria-label": "Go code" }),
         keymap.of([{
           key: "Ctrl-Enter",
           run: () => {
@@ -57,6 +51,12 @@ window.createGoEditor = ({ parent, onRun, onDiagnostics }) => {
             return true;
           },
         }]),
+        basicSetup,
+        go(),
+        oneDark,
+        lintGutter(),
+        goLinter,
+        EditorView.contentAttributes.of({ "aria-label": "Go code" }),
       ],
     }),
   });
