@@ -1,0 +1,376 @@
+{
+  "id": "http-protocol",
+  "title": "Learn the HTTP Protocol in Go",
+  "description": "Implement HTTP from raw TCP streams through requests, responses, chunked bodies, trailers, and binary data.",
+  "lessons": [
+    {
+      "id": "http-protocol-01-01-welcome-to-learn-the-http-protocol",
+      "chapter": "Chapter 1 · HTTP Streams",
+      "title": "Welcome to 'Learn the HTTP Protocol'",
+      "instruction": "HTTP/1.1 is structured bytes carried by a reliable stream. Build the smallest valid request by correcting its request target; the CRLF boundaries are already visible in the program.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\trequest := \"GET /wrong HTTP/1.1\\r\\nHost: example.com\\r\\n\\r\\n\"\n\tfmt.Printf(\"%q\\n\", request)\n}\n",
+      "expected": "\"GET /health HTTP/1.1\\r\\nHost: example.com\\r\\n\\r\\n\"\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\trequest := \"GET /health HTTP/1.1\\r\\nHost: example.com\\r\\n\\r\\n\"\n\tfmt.Printf(\"%q\\n\", request)\n}\n"
+    },
+    {
+      "id": "http-protocol-01-02-thestartup",
+      "chapter": "Chapter 1 · HTTP Streams",
+      "title": "TheStartup™",
+      "instruction": "The project boundary is simple: connection bytes enter a parser, and a handler eventually produces response bytes. Mark the parser component ready for the first checkpoint.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tcomponent := \"parser\"\n\tstate := \"TODO\"\n\tfmt.Println(component, state)\n}\n",
+      "expected": "parser ready\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tcomponent := \"parser\"\n\tstate := \"ready\"\n\tfmt.Println(component, state)\n}\n"
+    },
+    {
+      "id": "http-protocol-01-03-8-bytes",
+      "chapter": "Chapter 1 · HTTP Streams",
+      "title": "8 Bytes",
+      "instruction": "A read buffer is not a message boundary. Read may fill only part of an eight-byte buffer, so append buf[:n], never the unused or stale bytes after n.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tr := strings.NewReader(\"streamed over chunks\")\n\tbuf := make([]byte, 8)\n\tvar out []byte\n\tfor {\n\t\tn, err := r.Read(buf)\n\t\tif n > 0 {\n\t\t\tout = append(out, buf...)\n\t\t}\n\t\tif err != nil {\n\t\t\tbreak\n\t\t}\n\t}\n\tfmt.Println(string(out))\n}\n",
+      "expected": "streamed over chunks\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tr := strings.NewReader(\"streamed over chunks\")\n\tbuf := make([]byte, 8)\n\tvar out []byte\n\tfor {\n\t\tn, err := r.Read(buf)\n\t\tif n > 0 {\n\t\t\tout = append(out, buf[:n]...)\n\t\t}\n\t\tif err != nil {\n\t\t\tbreak\n\t\t}\n\t}\n\tfmt.Println(string(out))\n}\n"
+    },
+    {
+      "id": "http-protocol-01-04-newlines",
+      "chapter": "Chapter 1 · HTTP Streams",
+      "title": "Newlines",
+      "instruction": "HTTP/1.1 lines end with CRLF, not a lone newline. Two consecutive CRLF sequences form the empty line that separates headers from the body.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\traw := \"GET / HTTP/1.1\\r\\nHost: example.com\\r\\n\\r\\nbody\"\n\tfmt.Println(strings.Contains(raw, \"\\n\\n\"))\n}\n",
+      "expected": "true\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\traw := \"GET / HTTP/1.1\\r\\nHost: example.com\\r\\n\\r\\nbody\"\n\tfmt.Println(strings.Contains(raw, \"\\r\\n\\r\\n\"))\n}\n"
+    },
+    {
+      "id": "http-protocol-01-05-channel-refactor",
+      "chapter": "Chapter 1 · HTTP Streams",
+      "title": "Channel Refactor",
+      "instruction": "A channel can carry ordered read chunks between a producer and parser. The consumer must range until the producer closes the channel or it will silently discard later chunks.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tchunks := make(chan string, 3)\n\tchunks <- \"GET \"\n\tchunks <- \"/items \"\n\tchunks <- \"HTTP/1.1\"\n\tclose(chunks)\n\tfmt.Println(<-chunks)\n}\n",
+      "expected": "GET /items HTTP/1.1\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tchunks := make(chan string, 3)\n\tchunks <- \"GET \"\n\tchunks <- \"/items \"\n\tchunks <- \"HTTP/1.1\"\n\tclose(chunks)\n\tvar message string\n\tfor chunk := range chunks {\n\t\tmessage += chunk\n\t}\n\tfmt.Println(message)\n}\n"
+    },
+    {
+      "id": "http-protocol-02-01-tcp",
+      "chapter": "Chapter 2 · TCP",
+      "title": "TCP",
+      "instruction": "TCP is an ordered, reliable byte stream without application message boundaries. Use net.Pipe to observe that one write may require multiple reads by the receiver.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net\"\n)\n\nfunc main() {\n\tserver, client := net.Pipe()\n\tgo func() {\n\t\tdefer server.Close()\n\t\t_, _ = server.Write([]byte(\"hello\"))\n\t}()\n\tdefer client.Close()\n\tbuf := make([]byte, 3)\n\tn, _ := client.Read(buf)\n\tfmt.Println(string(buf[:n]))\n}\n",
+      "expected": "hello\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"io\"\n\t\"net\"\n)\n\nfunc main() {\n\tserver, client := net.Pipe()\n\tgo func() {\n\t\tdefer server.Close()\n\t\t_, _ = server.Write([]byte(\"hello\"))\n\t}()\n\tdefer client.Close()\n\tdata, _ := io.ReadAll(client)\n\tfmt.Println(string(data))\n}\n"
+    },
+    {
+      "id": "http-protocol-02-02-tcp-vs-udp",
+      "chapter": "Chapter 2 · TCP",
+      "title": "TCP vs. UDP",
+      "instruction": "TCP exposes a connection-oriented stream. UDP preserves individual datagrams but does not guarantee their arrival or order. Correct the transport descriptions.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\ttcp, udp := \"datagram\", \"stream\"\n\tfmt.Printf(\"TCP=%s UDP=%s\\n\", tcp, udp)\n}\n",
+      "expected": "TCP=stream UDP=datagram\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\ttcp, udp := \"stream\", \"datagram\"\n\tfmt.Printf(\"TCP=%s UDP=%s\\n\", tcp, udp)\n}\n"
+    },
+    {
+      "id": "http-protocol-02-03-udp-sender",
+      "chapter": "Chapter 2 · TCP",
+      "title": "UDP Sender",
+      "instruction": "A UDP write sends one datagram to one address. Prepare the destination and payload without contacting an external service; the address and bytes are enough for this checkpoint.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net\"\n)\n\nfunc main() {\n\taddress, _ := net.ResolveUDPAddr(\"udp4\", \"127.0.0.1:8000\")\n\tpayload := []byte(\"TODO\")\n\tfmt.Println(address, string(payload))\n}\n",
+      "expected": "127.0.0.1:9000 ping\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net\"\n)\n\nfunc main() {\n\taddress, _ := net.ResolveUDPAddr(\"udp4\", \"127.0.0.1:9000\")\n\tpayload := []byte(\"ping\")\n\tfmt.Println(address, string(payload))\n}\n"
+    },
+    {
+      "id": "http-protocol-02-04-files-vs-network",
+      "chapter": "Chapter 2 · TCP",
+      "title": "Files vs. Network",
+      "instruction": "Network reads can be short even when more bytes will arrive. Treat every io.Reader as incremental and loop until framing or EOF instead of trusting one Read call.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tr := strings.NewReader(\"abcdefgh\")\n\tbuf := make([]byte, 4)\n\tn, _ := r.Read(buf)\n\tfmt.Println(string(buf[:n]))\n}\n",
+      "expected": "abcdefgh\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"io\"\n\t\"strings\"\n)\n\nfunc main() {\n\tr := strings.NewReader(\"abcdefgh\")\n\tdata, _ := io.ReadAll(r)\n\tfmt.Println(string(data))\n}\n"
+    },
+    {
+      "id": "http-protocol-03-01-tcp-to-http",
+      "chapter": "Chapter 3 · Requests",
+      "title": "TCP to HTTP",
+      "instruction": "HTTP turns TCP bytes into messages by defining delimiters and lengths. Remove the complete CRLF delimiter from the first line, not just its final newline byte.",
+      "starter": "package main\n\nimport (\n\t\"bufio\"\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tr := bufio.NewReader(strings.NewReader(\"GET /items HTTP/1.1\\r\\nHost: example.com\\r\\n\"))\n\tline, _ := r.ReadString('\\n')\n\tline = strings.TrimSuffix(line, \"\\n\")\n\tfmt.Printf(\"%q\\n\", line)\n}\n",
+      "expected": "\"GET /items HTTP/1.1\"\n",
+      "solution": "package main\n\nimport (\n\t\"bufio\"\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tr := bufio.NewReader(strings.NewReader(\"GET /items HTTP/1.1\\r\\nHost: example.com\\r\\n\"))\n\tline, _ := r.ReadString('\\n')\n\tline = strings.TrimSuffix(line, \"\\r\\n\")\n\tfmt.Printf(\"%q\\n\", line)\n}\n"
+    },
+    {
+      "id": "http-protocol-03-02-the-rfcs",
+      "chapter": "Chapter 3 · Requests",
+      "title": "The RFCs",
+      "instruction": "RFC 9110 defines HTTP semantics. RFC 9112 defines HTTP/1.1 message syntax and connection handling. Keep those roles straight when an edge case is unclear.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tsemantics, syntax := 9112, 9110\n\tfmt.Printf(\"semantics=%d syntax=%d\\n\", semantics, syntax)\n}\n",
+      "expected": "semantics=9110 syntax=9112\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tsemantics, syntax := 9110, 9112\n\tfmt.Printf(\"semantics=%d syntax=%d\\n\", semantics, syntax)\n}\n"
+    },
+    {
+      "id": "http-protocol-03-03-http-post",
+      "chapter": "Chapter 3 · Requests",
+      "title": "HTTP Post",
+      "instruction": "A POST body begins after the empty header line. Content-Length is the body length in bytes, so derive it from the actual payload before building the raw request.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tbody := \"hello\"\n\traw := fmt.Sprintf(\"POST /notes HTTP/1.1\\r\\nContent-Length: %d\\r\\n\\r\\n%s\", 4, body)\n\tfmt.Printf(\"%q\\n\", raw)\n}\n",
+      "expected": "\"POST /notes HTTP/1.1\\r\\nContent-Length: 5\\r\\n\\r\\nhello\"\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tbody := \"hello\"\n\traw := fmt.Sprintf(\"POST /notes HTTP/1.1\\r\\nContent-Length: %d\\r\\n\\r\\n%s\", len([]byte(body)), body)\n\tfmt.Printf(\"%q\\n\", raw)\n}\n"
+    },
+    {
+      "id": "http-protocol-03-04-curl",
+      "chapter": "Chapter 3 · Requests",
+      "title": "cURL",
+      "instruction": "A curl command makes a request reproducible. Use -X for the method, -H for the media type, and --data for the body in the required order.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfmt.Println(\"curl TODO\")\n}\n",
+      "expected": "curl -X POST -H Content-Type:application/json --data {\"ok\":true} https://api.example.com/items\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfmt.Println(`curl -X POST -H Content-Type:application/json --data {\"ok\":true} https://api.example.com/items`)\n}\n"
+    },
+    {
+      "id": "http-protocol-04-01-testing-with-testify",
+      "chapter": "Chapter 4 · Request Lines",
+      "title": "Testing With Testify",
+      "instruction": "Assertion helpers improve failure messages, but the important part is a table containing valid and malformed request lines. Tighten valid so all three cases pass.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc valid(line string) bool {\n\treturn len(strings.Fields(line)) == 3\n}\n\nfunc main() {\n\tcases := []struct {\n\t\tline string\n\t\twant bool\n\t}{\n\t\t{\"GET /items HTTP/1.1\", true},\n\t\t{\"GET  /items HTTP/1.1\", false},\n\t\t{\"GET /items FTP/1.0\", false},\n\t}\n\tpassed := 0\n\tfor _, test := range cases {\n\t\tif valid(test.line) == test.want {\n\t\t\tpassed++\n\t\t}\n\t}\n\tfmt.Println(passed)\n}\n",
+      "expected": "3\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc valid(line string) bool {\n\tparts := strings.Split(line, \" \")\n\treturn len(parts) == 3 && parts[0] != \"\" && parts[1] != \"\" && parts[2] == \"HTTP/1.1\"\n}\n\nfunc main() {\n\tcases := []struct {\n\t\tline string\n\t\twant bool\n\t}{\n\t\t{\"GET /items HTTP/1.1\", true},\n\t\t{\"GET  /items HTTP/1.1\", false},\n\t\t{\"GET /items FTP/1.0\", false},\n\t}\n\tpassed := 0\n\tfor _, test := range cases {\n\t\tif valid(test.line) == test.want {\n\t\t\tpassed++\n\t\t}\n\t}\n\tfmt.Println(passed)\n}\n"
+    },
+    {
+      "id": "http-protocol-04-02-parsing-the-request-line",
+      "chapter": "Chapter 4 · Request Lines",
+      "title": "Parsing the Request Line",
+      "instruction": "An HTTP/1.1 request line is method, request-target, and version separated by single spaces. Assign each parsed field to its correct role.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tparts := strings.Split(\"GET /items HTTP/1.1\", \" \")\n\tmethod, target, version := parts[1], parts[0], parts[2]\n\tfmt.Printf(\"method=%s target=%s version=%s\\n\", method, target, version)\n}\n",
+      "expected": "method=GET target=/items version=HTTP/1.1\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tparts := strings.Split(\"GET /items HTTP/1.1\", \" \")\n\tmethod, target, version := parts[0], parts[1], parts[2]\n\tfmt.Printf(\"method=%s target=%s version=%s\\n\", method, target, version)\n}\n"
+    },
+    {
+      "id": "http-protocol-04-03-parsing-a-stream",
+      "chapter": "Chapter 4 · Request Lines",
+      "title": "Parsing a Stream",
+      "instruction": "A parser must return both the completed line and every byte already read after its CRLF. Preserve that remainder for the header parser.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc parseLine(buffer string) (string, string) {\n\ti := strings.Index(buffer, \"\\r\\n\")\n\tif i < 0 {\n\t\treturn \"\", buffer\n\t}\n\treturn buffer[:i], \"\"\n}\n\nfunc main() {\n\tline, rest := parseLine(\"GET /one HTTP/1.1\\r\\nHost: example.com\\r\\n\")\n\tfmt.Printf(\"%s | %q\\n\", line, rest)\n}\n",
+      "expected": "GET /one HTTP/1.1 | \"Host: example.com\\r\\n\"\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc parseLine(buffer string) (string, string) {\n\ti := strings.Index(buffer, \"\\r\\n\")\n\tif i < 0 {\n\t\treturn \"\", buffer\n\t}\n\treturn buffer[:i], buffer[i+2:]\n}\n\nfunc main() {\n\tline, rest := parseLine(\"GET /one HTTP/1.1\\r\\nHost: example.com\\r\\n\")\n\tfmt.Printf(\"%s | %q\\n\", line, rest)\n}\n"
+    },
+    {
+      "id": "http-protocol-04-04-request-line-review",
+      "chapter": "Chapter 4 · Request Lines",
+      "title": "Request Line Review",
+      "instruction": "Reject missing fields, extra fields, and unsupported versions instead of accepting a convenient prefix. Repair the validator used by this compact review.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc label(line string) string {\n\tif len(strings.Fields(line)) >= 3 {\n\t\treturn \"valid\"\n\t}\n\treturn \"invalid\"\n}\n\nfunc main() {\n\tfmt.Println(label(\"GET / HTTP/1.1\"), label(\"GET / HTTP/1.1 EXTRA\"), label(\"GET / FTP/1.0\"))\n}\n",
+      "expected": "valid invalid invalid\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc label(line string) string {\n\tparts := strings.Split(line, \" \")\n\tif len(parts) == 3 && parts[0] != \"\" && parts[1] != \"\" && parts[2] == \"HTTP/1.1\" {\n\t\treturn \"valid\"\n\t}\n\treturn \"invalid\"\n}\n\nfunc main() {\n\tfmt.Println(label(\"GET / HTTP/1.1\"), label(\"GET / HTTP/1.1 EXTRA\"), label(\"GET / FTP/1.0\"))\n}\n"
+    },
+    {
+      "id": "http-protocol-04-05-state-machine",
+      "chapter": "Chapter 4 · Request Lines",
+      "title": "State Machine",
+      "instruction": "Incremental parsing is easier to reason about with explicit states. Transition at each space, then require CR followed by LF to finish the request line.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\ntype state int\n\nconst (\n\tmethod state = iota\n\ttarget\n\tversion\n\tcarriage\n\tdone\n)\n\nfunc next(current state, b byte) state {\n\tif current == method && b == ' ' {\n\t\treturn target\n\t}\n\treturn current\n}\n\nfunc main() {\n\tnames := []string{\"method\", \"target\", \"version\", \"carriage\", \"done\"}\n\tcurrent := method\n\tvar transitions []string\n\tfor i := 0; i < len(\"GET / HTTP/1.1\\r\\n\"); i++ {\n\t\tupdated := next(current, \"GET / HTTP/1.1\\r\\n\"[i])\n\t\tif updated != current {\n\t\t\ttransitions = append(transitions, names[updated])\n\t\t}\n\t\tcurrent = updated\n\t}\n\tfmt.Println(strings.Join(transitions, \" \"))\n}\n",
+      "expected": "target version carriage done\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\ntype state int\n\nconst (\n\tmethod state = iota\n\ttarget\n\tversion\n\tcarriage\n\tdone\n)\n\nfunc next(current state, b byte) state {\n\tswitch {\n\tcase current == method && b == ' ':\n\t\treturn target\n\tcase current == target && b == ' ':\n\t\treturn version\n\tcase current == version && b == '\\r':\n\t\treturn carriage\n\tcase current == carriage && b == '\\n':\n\t\treturn done\n\tdefault:\n\t\treturn current\n\t}\n}\n\nfunc main() {\n\tnames := []string{\"method\", \"target\", \"version\", \"carriage\", \"done\"}\n\tcurrent := method\n\tvar transitions []string\n\tfor i := 0; i < len(\"GET / HTTP/1.1\\r\\n\"); i++ {\n\t\tupdated := next(current, \"GET / HTTP/1.1\\r\\n\"[i])\n\t\tif updated != current {\n\t\t\ttransitions = append(transitions, names[updated])\n\t\t}\n\t\tcurrent = updated\n\t}\n\tfmt.Println(strings.Join(transitions, \" \"))\n}\n"
+    },
+    {
+      "id": "http-protocol-04-06-connect-the-parsing",
+      "chapter": "Chapter 4 · Request Lines",
+      "title": "Connect the Parsing",
+      "instruction": "The connection reader may split a request line anywhere. Accumulate fragments before searching for CRLF so the parser sees a continuous stream.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tfragments := []string{\"GET /it\", \"ems HTTP/1\", \".1\\r\\nHost: x\\r\\n\"}\n\tline := \"none\"\n\tfor _, fragment := range fragments {\n\t\tif i := strings.Index(fragment, \"\\r\\n\"); i >= 0 {\n\t\t\tline = fragment[:i]\n\t\t}\n\t}\n\tfmt.Println(line)\n}\n",
+      "expected": "GET /items HTTP/1.1\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tfragments := []string{\"GET /it\", \"ems HTTP/1\", \".1\\r\\nHost: x\\r\\n\"}\n\tbuffer := \"\"\n\tline := \"none\"\n\tfor _, fragment := range fragments {\n\t\tbuffer += fragment\n\t\tif i := strings.Index(buffer, \"\\r\\n\"); i >= 0 {\n\t\t\tline = buffer[:i]\n\t\t\tbreak\n\t\t}\n\t}\n\tfmt.Println(line)\n}\n"
+    },
+    {
+      "id": "http-protocol-05-01-headers",
+      "chapter": "Chapter 5 · HTTP Headers",
+      "title": "Headers",
+      "instruction": "Header names are case-insensitive. Use Go's http.Header instead of a plain case-sensitive map so Content-Type and content-type identify the same field.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\theaders := map[string]string{\"Content-Type\": \"application/json\"}\n\tfmt.Println(headers[\"content-type\"])\n}\n",
+      "expected": "application/json\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n)\n\nfunc main() {\n\theaders := http.Header{\"Content-Type\": []string{\"application/json\"}}\n\tfmt.Println(headers.Get(\"content-type\"))\n}\n"
+    },
+    {
+      "id": "http-protocol-05-02-constraints",
+      "chapter": "Chapter 5 · HTTP Headers",
+      "title": "Constraints",
+      "instruction": "A field name cannot contain spaces, and whitespace before the colon is invalid. Tighten the validator so only the correctly formed header is accepted.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc validHeader(line string) bool {\n\treturn strings.Contains(line, \":\")\n}\n\nfunc main() {\n\tlines := []string{\"Host: example.com\", \"Bad Name: x\", \"X-Test : x\"}\n\taccepted := 0\n\tfor _, line := range lines {\n\t\tif validHeader(line) {\n\t\t\taccepted++\n\t\t}\n\t}\n\tfmt.Println(accepted)\n}\n",
+      "expected": "1\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc validHeader(line string) bool {\n\tname, _, ok := strings.Cut(line, \":\")\n\treturn ok && name != \"\" && name == strings.TrimSpace(name) && !strings.ContainsAny(name, \" \\t\")\n}\n\nfunc main() {\n\tlines := []string{\"Host: example.com\", \"Bad Name: x\", \"X-Test : x\"}\n\taccepted := 0\n\tfor _, line := range lines {\n\t\tif validHeader(line) {\n\t\t\taccepted++\n\t\t}\n\t}\n\tfmt.Println(accepted)\n}\n"
+    },
+    {
+      "id": "http-protocol-05-03-multiple-values",
+      "chapter": "Chapter 5 · HTTP Headers",
+      "title": "Multiple Values",
+      "instruction": "Repeated fields must be preserved. Header.Set replaces existing values, while Header.Add appends another value under the canonicalized field name.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\t\"strings\"\n)\n\nfunc main() {\n\theaders := http.Header{}\n\theaders.Set(\"Accept-Encoding\", \"gzip\")\n\theaders.Set(\"Accept-Encoding\", \"br\")\n\tfmt.Println(strings.Join(headers.Values(\"Accept-Encoding\"), \", \"))\n}\n",
+      "expected": "gzip, br\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\t\"strings\"\n)\n\nfunc main() {\n\theaders := http.Header{}\n\theaders.Add(\"Accept-Encoding\", \"gzip\")\n\theaders.Add(\"Accept-Encoding\", \"br\")\n\tfmt.Println(strings.Join(headers.Values(\"Accept-Encoding\"), \", \"))\n}\n"
+    },
+    {
+      "id": "http-protocol-05-04-add-to-parse",
+      "chapter": "Chapter 5 · HTTP Headers",
+      "title": "Add to Parse",
+      "instruction": "After the request line, parse header lines until the first empty line. Do not treat the body or later bytes as more headers.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\traw := \"GET / HTTP/1.1\\r\\nHost: example.com\\r\\nX-ID: 42\\r\\n\\r\\n\"\n\tlines := strings.Split(raw, \"\\r\\n\")\n\tfmt.Printf(\"%s headers=%d\\n\", lines[0], 0)\n}\n",
+      "expected": "GET / HTTP/1.1 headers=2\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\traw := \"GET / HTTP/1.1\\r\\nHost: example.com\\r\\nX-ID: 42\\r\\n\\r\\n\"\n\tlines := strings.Split(raw, \"\\r\\n\")\n\tcount := 0\n\tfor _, line := range lines[1:] {\n\t\tif line == \"\" {\n\t\t\tbreak\n\t\t}\n\t\tcount++\n\t}\n\tfmt.Printf(\"%s headers=%d\\n\", lines[0], count)\n}\n"
+    },
+    {
+      "id": "http-protocol-05-05-live-headers",
+      "chapter": "Chapter 5 · HTTP Headers",
+      "title": "Live Headers",
+      "instruction": "A field line can be split between any two bytes, including CR and LF. Join the received fragments before parsing complete lines.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc value(raw, name string) string {\n\tfor _, line := range strings.Split(raw, \"\\r\\n\") {\n\t\tkey, value, ok := strings.Cut(line, \":\")\n\t\tif ok && key == name {\n\t\t\treturn strings.TrimSpace(value)\n\t\t}\n\t}\n\treturn \"\"\n}\n\nfunc main() {\n\tfragments := []string{\"Host: exam\", \"ple.com\\r\", \"\\nX-ID: 42\\r\\n\\r\\n\"}\n\traw := fragments[len(fragments)-1]\n\tfmt.Printf(\"Host=%s X-ID=%s\\n\", value(raw, \"Host\"), value(raw, \"X-ID\"))\n}\n",
+      "expected": "Host=example.com X-ID=42\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc value(raw, name string) string {\n\tfor _, line := range strings.Split(raw, \"\\r\\n\") {\n\t\tkey, value, ok := strings.Cut(line, \":\")\n\t\tif ok && key == name {\n\t\t\treturn strings.TrimSpace(value)\n\t\t}\n\t}\n\treturn \"\"\n}\n\nfunc main() {\n\tfragments := []string{\"Host: exam\", \"ple.com\\r\", \"\\nX-ID: 42\\r\\n\\r\\n\"}\n\traw := strings.Join(fragments, \"\")\n\tfmt.Printf(\"Host=%s X-ID=%s\\n\", value(raw, \"Host\"), value(raw, \"X-ID\"))\n}\n"
+    },
+    {
+      "id": "http-protocol-06-01-parsing-the-body",
+      "chapter": "Chapter 6 · HTTP Body",
+      "title": "Parsing the Body",
+      "instruction": "Content-Length is a decimal byte count. Read exactly that many bytes; trailing bytes can belong to another message on the same connection.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tlength := 5\n\tbuffer := []byte(\"helloextra\")\n\tbody := buffer\n\tfmt.Printf(\"%d %s\\n\", length, body)\n}\n",
+      "expected": "5 hello\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tlength := 5\n\tbuffer := []byte(\"helloextra\")\n\tbody := buffer[:length]\n\tfmt.Printf(\"%d %s\\n\", length, body)\n}\n"
+    },
+    {
+      "id": "http-protocol-06-02-live-body",
+      "chapter": "Chapter 6 · HTTP Body",
+      "title": "Live Body",
+      "instruction": "Body bytes may arrive over several reads. Stop at the declared length and retain any surplus bytes instead of consuming the start of the next message.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tchunks := []string{\"he\", \"ll\", \"oNEXT\"}\n\tbody := \"\"\n\tfor _, chunk := range chunks {\n\t\tbody += chunk\n\t}\n\tfmt.Printf(\"%s remainder=%s\\n\", body, \"\")\n}\n",
+      "expected": "hello remainder=NEXT\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tchunks := []string{\"he\", \"ll\", \"oNEXT\"}\n\tlength := 5\n\tbuffer := \"\"\n\tfor _, chunk := range chunks {\n\t\tbuffer += chunk\n\t}\n\tbody, remainder := buffer[:length], buffer[length:]\n\tfmt.Printf(\"%s remainder=%s\\n\", body, remainder)\n}\n"
+    },
+    {
+      "id": "http-protocol-06-03-body-review",
+      "chapter": "Chapter 6 · HTTP Body",
+      "title": "Body Review",
+      "instruction": "A body is complete only when available bytes equal its declared length. Fewer bytes are incomplete; more bytes leave a remainder for later parsing.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc state(declared, available int) string {\n\tif available >= declared {\n\t\treturn \"complete\"\n\t}\n\treturn \"short\"\n}\n\nfunc main() {\n\tfmt.Println(state(0, 0), state(5, 3), state(5, 7))\n}\n",
+      "expected": "complete short remainder\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc state(declared, available int) string {\n\tswitch {\n\tcase available < declared:\n\t\treturn \"short\"\n\tcase available > declared:\n\t\treturn \"remainder\"\n\tdefault:\n\t\treturn \"complete\"\n\t}\n}\n\nfunc main() {\n\tfmt.Println(state(0, 0), state(5, 3), state(5, 7))\n}\n"
+    },
+    {
+      "id": "http-protocol-07-01-server",
+      "chapter": "Chapter 7 · HTTP Responses",
+      "title": "Server",
+      "instruction": "A server owns each accepted connection until its response is written or an error ends the exchange. Use net.Pipe to return a successful status line locally.",
+      "starter": "package main\n\nimport (\n\t\"bufio\"\n\t\"fmt\"\n\t\"net\"\n\t\"strings\"\n)\n\nfunc main() {\n\tserver, client := net.Pipe()\n\tgo func() {\n\t\tdefer server.Close()\n\t\t_, _ = server.Write([]byte(\"HTTP/1.1 500 Internal Server Error\\r\\n\\r\\n\"))\n\t}()\n\tdefer client.Close()\n\tline, _ := bufio.NewReader(client).ReadString('\\n')\n\tfmt.Println(strings.TrimSpace(line))\n}\n",
+      "expected": "HTTP/1.1 200 OK\n",
+      "solution": "package main\n\nimport (\n\t\"bufio\"\n\t\"fmt\"\n\t\"net\"\n\t\"strings\"\n)\n\nfunc main() {\n\tserver, client := net.Pipe()\n\tgo func() {\n\t\tdefer server.Close()\n\t\t_, _ = server.Write([]byte(\"HTTP/1.1 200 OK\\r\\n\\r\\n\"))\n\t}()\n\tdefer client.Close()\n\tline, _ := bufio.NewReader(client).ReadString('\\n')\n\tfmt.Println(strings.TrimSpace(line))\n}\n"
+    },
+    {
+      "id": "http-protocol-07-02-content-length",
+      "chapter": "Chapter 7 · HTTP Responses",
+      "title": "Content Length",
+      "instruction": "Content-Length counts encoded bytes, not Unicode code points. Measure the UTF-8 body as bytes so a client reads the complete representation.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"unicode/utf8\"\n)\n\nfunc main() {\n\tbody := \"Go ✓\"\n\tfmt.Println(utf8.RuneCountInString(body))\n}\n",
+      "expected": "6\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tbody := \"Go ✓\"\n\tfmt.Println(len([]byte(body)))\n}\n"
+    },
+    {
+      "id": "http-protocol-07-03-response",
+      "chapter": "Chapter 7 · HTTP Responses",
+      "title": "Response",
+      "instruction": "An HTTP/1.1 response is a status line, header fields, an empty CRLF line, then the body. Insert the missing empty line before the payload.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\traw := \"HTTP/1.1 200 OK\\r\\nContent-Length: 2\\r\\nOK\"\n\tfmt.Printf(\"%q\\n\", raw)\n}\n",
+      "expected": "\"HTTP/1.1 200 OK\\r\\nContent-Length: 2\\r\\n\\r\\nOK\"\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\traw := \"HTTP/1.1 200 OK\\r\\nContent-Length: 2\\r\\n\\r\\nOK\"\n\tfmt.Printf(\"%q\\n\", raw)\n}\n"
+    },
+    {
+      "id": "http-protocol-07-04-other-common-headers",
+      "chapter": "Chapter 7 · HTTP Responses",
+      "title": "Other Common Headers",
+      "instruction": "Content-Type describes the representation and Connection can describe connection handling. Set values that match this JSON response and its deliberate close behavior.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tcontentType, connection := \"text/plain\", \"keep-alive\"\n\tfmt.Printf(\"Content-Type: %s | Connection: %s\\n\", contentType, connection)\n}\n",
+      "expected": "Content-Type: application/json | Connection: close\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tcontentType, connection := \"application/json\", \"close\"\n\tfmt.Printf(\"Content-Type: %s | Connection: %s\\n\", contentType, connection)\n}\n"
+    },
+    {
+      "id": "http-protocol-07-05-handler",
+      "chapter": "Chapter 7 · HTTP Responses",
+      "title": "Handler",
+      "instruction": "Keep application decisions separate from wire serialization. Implement the health route as a small handler that returns a status and body.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc handle(path string) (int, string) {\n\treturn 404, \"not found\"\n}\n\nfunc main() {\n\tstatus, body := handle(\"/health\")\n\tfmt.Println(status, body)\n}\n",
+      "expected": "200 ok\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc handle(path string) (int, string) {\n\tif path == \"/health\" {\n\t\treturn 200, \"ok\"\n\t}\n\treturn 404, \"not found\"\n}\n\nfunc main() {\n\tstatus, body := handle(\"/health\")\n\tfmt.Println(status, body)\n}\n"
+    },
+    {
+      "id": "http-protocol-07-06-code-review",
+      "chapter": "Chapter 7 · HTTP Responses",
+      "title": "Code Review",
+      "instruction": "io.Writer may accept fewer bytes than requested. Review the response write and loop until every byte is committed instead of silently truncating the status line.",
+      "starter": "package main\n\nimport (\n\t\"bytes\"\n\t\"fmt\"\n)\n\ntype limitedWriter struct {\n\tbytes.Buffer\n}\n\nfunc (w *limitedWriter) Write(p []byte) (int, error) {\n\tif len(p) > 3 {\n\t\tp = p[:3]\n\t}\n\treturn w.Buffer.Write(p)\n}\n\nfunc main() {\n\tw := &limitedWriter{}\n\t_, _ = w.Write([]byte(\"HTTP/1.1\"))\n\tfmt.Println(w.String())\n}\n",
+      "expected": "HTTP/1.1\n",
+      "solution": "package main\n\nimport (\n\t\"bytes\"\n\t\"fmt\"\n)\n\ntype limitedWriter struct {\n\tbytes.Buffer\n}\n\nfunc (w *limitedWriter) Write(p []byte) (int, error) {\n\tif len(p) > 3 {\n\t\tp = p[:3]\n\t}\n\treturn w.Buffer.Write(p)\n}\n\nfunc main() {\n\tw := &limitedWriter{}\n\tremaining := []byte(\"HTTP/1.1\")\n\tfor len(remaining) > 0 {\n\t\tn, _ := w.Write(remaining)\n\t\tremaining = remaining[n:]\n\t}\n\tfmt.Println(w.String())\n}\n"
+    },
+    {
+      "id": "http-protocol-07-07-refactor",
+      "chapter": "Chapter 7 · HTTP Responses",
+      "title": "Refactor",
+      "instruction": "Centralize response framing so every handler gets the same CRLF and byte-length rules. Replace the ad hoc output with one small response helper.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tbody := \"created\"\n\traw := \"HTTP/1.1 201 Created\\r\\n\" + body\n\tfmt.Printf(\"%q\\n\", raw)\n}\n",
+      "expected": "\"HTTP/1.1 201 Created\\r\\nContent-Length: 7\\r\\n\\r\\ncreated\"\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc response(status int, reason, body string) string {\n\treturn fmt.Sprintf(\"HTTP/1.1 %d %s\\r\\nContent-Length: %d\\r\\n\\r\\n%s\", status, reason, len([]byte(body)), body)\n}\n\nfunc main() {\n\tfmt.Printf(\"%q\\n\", response(201, \"Created\", \"created\"))\n}\n"
+    },
+    {
+      "id": "http-protocol-08-01-chunked-encoding",
+      "chapter": "Chapter 8 · Chunked Encoding",
+      "title": "Chunked Encoding",
+      "instruction": "Each chunk begins with a hexadecimal size, followed by CRLF, that many data bytes, and another CRLF. Parse the size in base sixteen until the zero chunk.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strconv\"\n\t\"strings\"\n)\n\nfunc main() {\n\tparts := strings.Split(\"A\\r\\n0123456789\\r\\n0\\r\\n\\r\\n\", \"\\r\\n\")\n\tsize, _ := strconv.Atoi(parts[0])\n\tfmt.Println(parts[1][:size])\n}\n",
+      "expected": "0123456789\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strconv\"\n\t\"strings\"\n)\n\nfunc main() {\n\tparts := strings.Split(\"A\\r\\n0123456789\\r\\n0\\r\\n\\r\\n\", \"\\r\\n\")\n\tsize, _ := strconv.ParseInt(parts[0], 16, 64)\n\tfmt.Println(parts[1][:int(size)])\n}\n"
+    },
+    {
+      "id": "http-protocol-08-02-chunked-quiz-1",
+      "chapter": "Chapter 8 · Chunked Encoding",
+      "title": "Chunked Quiz 1",
+      "instruction": "Chunk-size uses hexadecimal notation. Decode 1f with base sixteen rather than treating it as an ordinary decimal number.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strconv\"\n)\n\nfunc main() {\n\tsize, _ := strconv.Atoi(\"1f\")\n\tfmt.Println(size)\n}\n",
+      "expected": "31\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strconv\"\n)\n\nfunc main() {\n\tsize, _ := strconv.ParseInt(\"1f\", 16, 64)\n\tfmt.Println(size)\n}\n"
+    },
+    {
+      "id": "http-protocol-08-03-chunked-quiz-2",
+      "chapter": "Chapter 8 · Chunked Encoding",
+      "title": "Chunked Quiz 2",
+      "instruction": "Chunk metadata and data can both cross read boundaries. Reassemble the fragments before decoding the complete four-byte chunk.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc decode(raw string) string {\n\tparts := strings.Split(raw, \"\\r\\n\")\n\tif len(parts) < 2 {\n\t\treturn \"\"\n\t}\n\treturn parts[1]\n}\n\nfunc main() {\n\tfragments := []string{\"4\\r\", \"\\nWi\", \"ki\\r\\n0\\r\", \"\\n\\r\\n\"}\n\tfmt.Println(decode(fragments[0]))\n}\n",
+      "expected": "Wiki\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc decode(raw string) string {\n\tparts := strings.Split(raw, \"\\r\\n\")\n\tif len(parts) < 2 {\n\t\treturn \"\"\n\t}\n\treturn parts[1]\n}\n\nfunc main() {\n\tfragments := []string{\"4\\r\", \"\\nWi\", \"ki\\r\\n0\\r\", \"\\n\\r\\n\"}\n\tfmt.Println(decode(strings.Join(fragments, \"\")))\n}\n"
+    },
+    {
+      "id": "http-protocol-08-04-chunked-quiz-3",
+      "chapter": "Chapter 8 · Chunked Encoding",
+      "title": "Chunked Quiz 3",
+      "instruction": "Transfer-Encoding: chunked frames the body independently of Content-Length. Honor chunked framing first and stop only at its zero-size chunk.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc body(raw string, contentLength int, chunked bool) string {\n\tif contentLength > 0 {\n\t\treturn raw[:contentLength]\n\t}\n\treturn raw\n}\n\nfunc main() {\n\tfmt.Println(body(\"4\\r\\nWiki\\r\\n0\\r\\n\\r\\n\", 2, true))\n}\n",
+      "expected": "Wiki\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc body(raw string, contentLength int, chunked bool) string {\n\tif chunked {\n\t\treturn raw[3:7]\n\t}\n\treturn raw[:contentLength]\n}\n\nfunc main() {\n\tfmt.Println(body(\"4\\r\\nWiki\\r\\n0\\r\\n\\r\\n\", 2, true))\n}\n"
+    },
+    {
+      "id": "http-protocol-08-05-trailers",
+      "chapter": "Chapter 8 · Chunked Encoding",
+      "title": "Trailers",
+      "instruction": "Trailer fields follow the zero chunk and end at another empty line. Continue parsing after the zero-size line so allowed metadata is not discarded.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc trailers(raw string) map[string]string {\n\tif strings.HasPrefix(raw, \"0\\r\\n\") {\n\t\treturn map[string]string{}\n\t}\n\treturn nil\n}\n\nfunc main() {\n\tvalues := trailers(\"0\\r\\nDigest: abc\\r\\nX-Trace: 42\\r\\n\\r\\n\")\n\tfmt.Printf(\"Digest=%s X-Trace=%s\\n\", values[\"Digest\"], values[\"X-Trace\"])\n}\n",
+      "expected": "Digest=abc X-Trace=42\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc trailers(raw string) map[string]string {\n\tvalues := map[string]string{}\n\traw = strings.TrimPrefix(raw, \"0\\r\\n\")\n\tfor _, line := range strings.Split(raw, \"\\r\\n\") {\n\t\tif line == \"\" {\n\t\t\tbreak\n\t\t}\n\t\tname, value, ok := strings.Cut(line, \":\")\n\t\tif ok {\n\t\t\tvalues[name] = strings.TrimSpace(value)\n\t\t}\n\t}\n\treturn values\n}\n\nfunc main() {\n\tvalues := trailers(\"0\\r\\nDigest: abc\\r\\nX-Trace: 42\\r\\n\\r\\n\")\n\tfmt.Printf(\"Digest=%s X-Trace=%s\\n\", values[\"Digest\"], values[\"X-Trace\"])\n}\n"
+    },
+    {
+      "id": "http-protocol-09-01-binary-data",
+      "chapter": "Chapter 9 · Binary Data",
+      "title": "Binary Data",
+      "instruction": "An HTTP body is arbitrary bytes, not necessarily valid text. Preserve NUL and invalid UTF-8 bytes and inspect them without converting the payload to a human string.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tdata := []byte{0x00, 0xff, 0x41}\n\tfmt.Println(string(data))\n}\n",
+      "expected": "00 ff 41\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tdata := []byte{0x00, 0xff, 0x41}\n\tfmt.Printf(\"% x\\n\", data)\n}\n"
+    },
+    {
+      "id": "http-protocol-09-02-http-2-and-3",
+      "chapter": "Chapter 9 · Binary Data",
+      "title": "HTTP 2 and 3",
+      "instruction": "HTTP semantics remain familiar while framing changes: HTTP/1.1 is textual, HTTP/2 multiplexes binary frames over TCP, and HTTP/3 carries frames over QUIC.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\th1, h2, h3 := \"quic\", \"text\", \"tcp-frames\"\n\tfmt.Printf(\"h1=%s h2=%s h3=%s\\n\", h1, h2, h3)\n}\n",
+      "expected": "h1=text h2=tcp-frames h3=quic\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\th1, h2, h3 := \"text\", \"tcp-frames\", \"quic\"\n\tfmt.Printf(\"h1=%s h2=%s h3=%s\\n\", h1, h2, h3)\n}\n"
+    }
+  ]
+}

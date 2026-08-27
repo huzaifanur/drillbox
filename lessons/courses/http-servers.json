@@ -1,0 +1,468 @@
+{
+  "id": "http-servers",
+  "title": "Learn HTTP Servers in Go",
+  "description": "Build server-side Go skills with routes, middleware, auth, webhooks, and APIs.",
+  "requiredLab": "postgres",
+  "lessons": [
+    {
+      "id": "http-servers-01-01-welcome-to-learn-http-servers",
+      "chapter": "Chapter 1 · Servers",
+      "title": "Welcome to Learn HTTP Servers",
+      "instruction": "A health endpoint gives operators a cheap readiness signal. Make it answer with the service's ready state.",
+      "starter": "package main\nimport(\"fmt\";\"net/http\";\"net/http/httptest\")\nfunc main(){h:=http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){fmt.Fprint(w,\"starting\")});q:=httptest.NewRecorder();h.ServeHTTP(q,httptest.NewRequest(\"GET\",\"/healthz\",nil));fmt.Println(q.Body.String())}\n",
+      "expected": "ready\n",
+      "solution": "package main\nimport(\"fmt\";\"net/http\";\"net/http/httptest\")\nfunc main(){h:=http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){fmt.Fprint(w,\"ready\")});q:=httptest.NewRecorder();h.ServeHTTP(q,httptest.NewRequest(\"GET\",\"/healthz\",nil));fmt.Println(q.Body.String())}\n"
+    },
+    {
+      "id": "http-servers-01-02-goroutines-in-servers",
+      "chapter": "Chapter 1 · Servers",
+      "title": "Goroutines in Servers",
+      "instruction": "Go's HTTP server handles requests concurrently, so shared results need coordination. Collect both request results before printing the total.",
+      "starter": "package main\nimport \"fmt\"\nfunc main(){done:=make(chan int,2);go func(){done<-1}();go func(){done<-1}();fmt.Println(<-done)}\n",
+      "expected": "2\n",
+      "solution": "package main\nimport \"fmt\"\nfunc main(){done:=make(chan int,2);go func(){done<-1}();go func(){done<-1}();fmt.Println(<-done + <-done)}\n"
+    },
+    {
+      "id": "http-servers-01-03-project-setup",
+      "chapter": "Chapter 1 · Servers",
+      "title": "Project Setup",
+      "instruction": "An executable server starts in package main. Choose that package for the entry point.",
+      "starter": "package main\nimport \"fmt\"\nfunc main(){packageName:=\"utils\";fmt.Println(packageName)}\n",
+      "expected": "server\n",
+      "solution": "package main\nimport \"fmt\"\nfunc main(){packageName:=\"server\";fmt.Println(packageName)}\n"
+    },
+    {
+      "id": "http-servers-01-04-server",
+      "chapter": "Chapter 1 · Servers",
+      "title": "Server",
+      "instruction": "http.ServeMux dispatches requests by registered route patterns. Register the readiness route.",
+      "starter": "package main\nimport(\"fmt\";\"net/http\";\"net/http/httptest\")\nfunc main(){m:=http.NewServeMux();m.HandleFunc(\"/wrong\",func(w http.ResponseWriter,r *http.Request){fmt.Fprint(w,\"ok\")});q:=httptest.NewRecorder();m.ServeHTTP(q,httptest.NewRequest(\"GET\",\"/ready\",nil));fmt.Println(q.Code)}\n",
+      "expected": "200\n",
+      "solution": "package main\nimport(\"fmt\";\"net/http\";\"net/http/httptest\")\nfunc main(){m:=http.NewServeMux();m.HandleFunc(\"/ready\",func(w http.ResponseWriter,r *http.Request){fmt.Fprint(w,\"ok\")});q:=httptest.NewRecorder();m.ServeHTTP(q,httptest.NewRequest(\"GET\",\"/ready\",nil));fmt.Println(q.Code)}\n"
+    },
+    {
+      "id": "http-servers-01-05-fileservers",
+      "chapter": "Chapter 1 · Servers",
+      "title": "Fileservers",
+      "instruction": "http.FileServer maps request paths to files, so an external mount prefix often must be removed. Strip the public prefix before the file handler sees the path.",
+      "starter": "package main\nimport(\"fmt\";\"net/http\";\"net/http/httptest\")\nfunc main(){h:=http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){fmt.Fprint(w,r.URL.Path)});q:=httptest.NewRecorder();h.ServeHTTP(q,httptest.NewRequest(\"GET\",\"/app/logo.svg\",nil));fmt.Println(q.Body.String())}\n",
+      "expected": "/logo.svg\n",
+      "solution": "package main\nimport(\"fmt\";\"net/http\";\"net/http/httptest\")\nfunc main(){h:=http.StripPrefix(\"/app\",http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){fmt.Fprint(w,r.URL.Path)}));q:=httptest.NewRecorder();h.ServeHTTP(q,httptest.NewRequest(\"GET\",\"/app/logo.svg\",nil));fmt.Println(q.Body.String())}\n"
+    },
+    {
+      "id": "http-servers-01-06-fileserver-quiz",
+      "chapter": "Chapter 1 · Servers",
+      "title": "Fileserver Quiz",
+      "instruction": "A missing static file is a missing resource, not a server failure. Select the status it should return.",
+      "starter": "package main\nimport(\"fmt\";\"net/http\")\nfunc main(){missing:=http.StatusOK;fmt.Println(missing)}\n",
+      "expected": "404\n",
+      "solution": "package main\nimport(\"fmt\";\"net/http\")\nfunc main(){missing:=http.StatusNotFound;fmt.Println(missing)}\n"
+    },
+    {
+      "id": "http-servers-01-07-serving-images",
+      "chapter": "Chapter 1 · Servers",
+      "title": "Serving Images",
+      "instruction": "Content-Type tells clients how to interpret response bytes. Send the PNG media type for this image.",
+      "starter": "package main\nimport(\"fmt\";\"net/http\";\"net/http/httptest\")\nfunc main(){q:=httptest.NewRecorder();q.Header().Set(\"Content-Type\",\"text/plain\");q.WriteHeader(http.StatusOK);fmt.Println(q.Header().Get(\"Content-Type\"))}\n",
+      "expected": "image/png\n",
+      "solution": "package main\nimport(\"fmt\";\"net/http\";\"net/http/httptest\")\nfunc main(){q:=httptest.NewRecorder();q.Header().Set(\"Content-Type\",\"image/png\");q.WriteHeader(http.StatusOK);fmt.Println(q.Header().Get(\"Content-Type\"))}\n"
+    },
+    {
+      "id": "http-servers-01-08-workflow-tips",
+      "chapter": "Chapter 1 · Servers",
+      "title": "Workflow Tips",
+      "instruction": "A tight server workflow catches failures before a manual run. Arrange the feedback loop so tests run before the server starts.",
+      "starter": "package main\nimport(\"fmt\";\"strings\")\nfunc main(){steps:=[]string{\"format\",\"serve\",\"test\"};fmt.Println(strings.Join(steps,\" -> \"))}\n",
+      "expected": "format -> test -> serve\n",
+      "solution": "package main\nimport(\"fmt\";\"strings\")\nfunc main(){steps:=[]string{\"format\",\"test\",\"serve\"};fmt.Println(strings.Join(steps,\" -> \"))}\n"
+    },
+    {
+      "id": "http-servers-01-09-custom-handlers",
+      "chapter": "Chapter 1 · Servers",
+      "title": "Custom Handlers",
+      "instruction": "An http.Handler controls status, headers, and body through ResponseWriter. Return a created response from the custom handler.",
+      "starter": "package main\nimport(\"fmt\";\"net/http\";\"net/http/httptest\")\nfunc main(){h:=http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){w.WriteHeader(http.StatusOK)});q:=httptest.NewRecorder();h.ServeHTTP(q,httptest.NewRequest(\"POST\",\"/chirps\",nil));fmt.Println(q.Code)}\n",
+      "expected": "201\n",
+      "solution": "package main\nimport(\"fmt\";\"net/http\";\"net/http/httptest\")\nfunc main(){h:=http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){w.WriteHeader(http.StatusCreated)});q:=httptest.NewRecorder();h.ServeHTTP(q,httptest.NewRequest(\"POST\",\"/chirps\",nil));fmt.Println(q.Code)}\n"
+    },
+    {
+      "id": "http-servers-01-10-handler-review",
+      "chapter": "Chapter 1 · Servers",
+      "title": "Handler Review",
+      "instruction": "The first body write implicitly sends status 200 unless WriteHeader ran first. Preserve status 202 by writing it before the body.",
+      "starter": "package main\nimport(\"fmt\";\"net/http\";\"net/http/httptest\")\nfunc main(){q:=httptest.NewRecorder();fmt.Fprint(q,\"queued\");q.WriteHeader(http.StatusAccepted);fmt.Println(q.Code,q.Body.String())}\n",
+      "expected": "202 queued\n",
+      "solution": "package main\nimport(\"fmt\";\"net/http\";\"net/http/httptest\")\nfunc main(){q:=httptest.NewRecorder();q.WriteHeader(http.StatusAccepted);fmt.Fprint(q,\"queued\");fmt.Println(q.Code,q.Body.String())}\n"
+    },
+    {
+      "id": "http-servers-02-01-middleware",
+      "chapter": "Chapter 2 · Routing",
+      "title": "Middleware",
+      "instruction": "Middleware surrounds another handler to add cross-cutting behavior. Add the request marker, then call the wrapped handler.",
+      "starter": "package main\nimport(\"fmt\";\"net/http\";\"net/http/httptest\")\nfunc main(){next:=http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){fmt.Fprint(w,\"handled\")});h:=http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){w.Header().Set(\"X-Trace\",\"on\")});q:=httptest.NewRecorder();h.ServeHTTP(q,httptest.NewRequest(\"GET\",\"/\",nil));_ = next;fmt.Println(q.Header().Get(\"X-Trace\"),q.Body.String())}\n",
+      "expected": "on handled\n",
+      "solution": "package main\nimport(\"fmt\";\"net/http\";\"net/http/httptest\")\nfunc main(){next:=http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){fmt.Fprint(w,\"handled\")});h:=http.HandlerFunc(func(w http.ResponseWriter,r *http.Request){w.Header().Set(\"X-Trace\",\"on\");next.ServeHTTP(w,r)});q:=httptest.NewRecorder();h.ServeHTTP(q,httptest.NewRequest(\"GET\",\"/\",nil));fmt.Println(q.Header().Get(\"X-Trace\"),q.Body.String())}\n"
+    },
+    {
+      "id": "http-servers-02-02-stateful-handlers",
+      "chapter": "Chapter 2 · Routing",
+      "title": "Stateful Handlers",
+      "instruction": "A handler value can retain state between calls. Increment its counter once for each request.",
+      "starter": "package main\nimport \"fmt\"\ntype api struct{hits int}\nfunc(a *api)serve(){a.hits+=0}\nfunc main(){a:=&api{};a.serve();a.serve();fmt.Println(a.hits)}\n",
+      "expected": "2\n",
+      "solution": "package main\nimport \"fmt\"\ntype api struct{hits int}\nfunc(a *api)serve(){a.hits++}\nfunc main(){a:=&api{};a.serve();a.serve();fmt.Println(a.hits)}\n"
+    },
+    {
+      "id": "http-servers-02-03-routing",
+      "chapter": "Chapter 2 · Routing",
+      "title": "Routing",
+      "instruction": "Modern ServeMux patterns can match both an HTTP method and a path. Register a GET route for listing chirps.",
+      "starter": "package main\nimport(\"fmt\";\"net/http\";\"net/http/httptest\")\nfunc main(){m:=http.NewServeMux();m.HandleFunc(\"POST /api/chirps\",func(w http.ResponseWriter,r *http.Request){fmt.Fprint(w,\"list\")});q:=httptest.NewRecorder();m.ServeHTTP(q,httptest.NewRequest(\"GET\",\"/api/chirps\",nil));fmt.Println(q.Code)}\n",
+      "expected": "200\n",
+      "solution": "package main\nimport(\"fmt\";\"net/http\";\"net/http/httptest\")\nfunc main(){m:=http.NewServeMux();m.HandleFunc(\"GET /api/chirps\",func(w http.ResponseWriter,r *http.Request){fmt.Fprint(w,\"list\")});q:=httptest.NewRecorder();m.ServeHTTP(q,httptest.NewRequest(\"GET\",\"/api/chirps\",nil));fmt.Println(q.Code)}\n"
+    },
+    {
+      "id": "http-servers-02-04-patterns",
+      "chapter": "Chapter 2 · Routing",
+      "title": "Patterns",
+      "instruction": "A named ServeMux wildcard captures one path segment for the handler. Read the captured chirp identifier.",
+      "starter": "package main\nimport(\"fmt\";\"net/http\";\"net/http/httptest\")\nfunc main(){m:=http.NewServeMux();m.HandleFunc(\"GET /chirps/{id}\",func(w http.ResponseWriter,r *http.Request){fmt.Fprint(w,r.PathValue(\"name\"))});q:=httptest.NewRecorder();m.ServeHTTP(q,httptest.NewRequest(\"GET\",\"/chirps/42\",nil));fmt.Println(q.Body.String())}\n",
+      "expected": "42\n",
+      "solution": "package main\nimport(\"fmt\";\"net/http\";\"net/http/httptest\")\nfunc main(){m:=http.NewServeMux();m.HandleFunc(\"GET /chirps/{id}\",func(w http.ResponseWriter,r *http.Request){fmt.Fprint(w,r.PathValue(\"id\"))});q:=httptest.NewRecorder();m.ServeHTTP(q,httptest.NewRequest(\"GET\",\"/chirps/42\",nil));fmt.Println(q.Body.String())}\n"
+    },
+    {
+      "id": "http-servers-03-01-monoliths-and-decoupling",
+      "chapter": "Chapter 3 · Architecture",
+      "title": "Monoliths and Decoupling",
+      "instruction": "A narrow interface decouples request logic from a specific storage implementation. Depend on the message store behavior the handler actually uses.",
+      "starter": "package main\nimport \"fmt\"\ntype store interface{Save(string)}\ntype memory struct{}\nfunc(memory)Save(string){}\nfunc main(){var s any=memory{};_,ok:=s.(store);fmt.Println(false&&ok)}\n",
+      "expected": "true\n",
+      "solution": "package main\nimport \"fmt\"\ntype store interface{Save(string)}\ntype memory struct{}\nfunc(memory)Save(string){}\nfunc main(){var s any=memory{};_,ok:=s.(store);fmt.Println(ok)}\n"
+    },
+    {
+      "id": "http-servers-03-02-which-is-better",
+      "chapter": "Chapter 3 · Architecture",
+      "title": "Which Is Better?",
+      "instruction": "Service boundaries add operational cost as well as flexibility. Choose the simpler deployment while one team owns one database.",
+      "starter": "package main\nimport \"fmt\"\nfunc main(){teams,databases:=1,1;choice:=\"microservices\";if teams>3&&databases>2{choice=\"microservices\"};fmt.Println(choice)}\n",
+      "expected": "monolith\n",
+      "solution": "package main\nimport \"fmt\"\nfunc main(){teams,databases:=1,1;choice:=\"monolith\";if teams>3&&databases>2{choice=\"microservices\"};fmt.Println(choice)}\n"
+    },
+    {
+      "id": "http-servers-03-03-admin-namespace",
+      "chapter": "Chapter 3 · Architecture",
+      "title": "Admin Namespace",
+      "instruction": "Administrative endpoints are easier to secure and route under a distinct namespace. Place metrics beneath the admin prefix.",
+      "starter": "package main\nimport(\"fmt\";\"path\")\nfunc main(){fmt.Println(path.Join(\"/api\",\"metrics\"))}\n",
+      "expected": "/admin/metrics\n",
+      "solution": "package main\nimport(\"fmt\";\"path\")\nfunc main(){fmt.Println(path.Join(\"/admin\",\"metrics\"))}\n"
+    },
+    {
+      "id": "http-servers-03-04-deployment-options",
+      "chapter": "Chapter 3 · Architecture",
+      "title": "Deployment Options",
+      "instruction": "Deployments commonly inject environment configuration at runtime. Read the listening port from that configuration.",
+      "starter": "package main\nimport(\"fmt\";\"os\")\nfunc main(){os.Setenv(\"PORT\",\"8080\");fmt.Println(\"3000\")}\n",
+      "expected": "8080\n",
+      "solution": "package main\nimport(\"fmt\";\"os\")\nfunc main(){os.Setenv(\"PORT\",\"8080\");fmt.Println(os.Getenv(\"PORT\"))}\n"
+    },
+    {
+      "id": "http-servers-04-01-http-clients",
+      "chapter": "Chapter 4 · JSON",
+      "title": "HTTP Clients",
+      "instruction": "An HTTP client response body owns resources until it is closed. Close it after the server-to-server response is consumed.",
+      "starter": "package main\nimport \"fmt\"\ntype body struct{closed bool}\nfunc(b *body)Close(){b.closed=true}\nfunc main(){b:=&body{};fmt.Println(b.closed)}\n",
+      "expected": "true\n",
+      "solution": "package main\nimport \"fmt\"\ntype body struct{closed bool}\nfunc(b *body)Close(){b.closed=true}\nfunc main(){b:=&body{};b.Close();fmt.Println(b.closed)}\n"
+    },
+    {
+      "id": "http-servers-04-02-json",
+      "chapter": "Chapter 4 · JSON",
+      "title": "JSON",
+      "instruction": "JSON struct tags define the wire key independently of the Go field name. Expose Message with the expected key.",
+      "starter": "package main\nimport(\"encoding/json\";\"fmt\")\ntype reply struct{Message string `json:\"text\"`}\nfunc main(){b,_:=json.Marshal(reply{\"hello\"});fmt.Println(string(b))}\n",
+      "expected": "{\"message\":\"hello\"}\n",
+      "solution": "package main\nimport(\"encoding/json\";\"fmt\")\ntype reply struct{Message string `json:\"message\"`}\nfunc main(){b,_:=json.Marshal(reply{\"hello\"});fmt.Println(string(b))}\n"
+    },
+    {
+      "id": "http-servers-04-03-json-review",
+      "chapter": "Chapter 4 · JSON",
+      "title": "JSON Review",
+      "instruction": "Malformed JSON is a client input error. Reject a decode failure with bad request instead of continuing with zero values.",
+      "starter": "package main\nimport(\"encoding/json\";\"fmt\";\"net/http\";\"strings\")\nfunc main(){var v map[string]any;err:=json.NewDecoder(strings.NewReader(\"{\")).Decode(&v);status:=http.StatusOK;if err!=nil{status=http.StatusInternalServerError};fmt.Println(status)}\n",
+      "expected": "400\n",
+      "solution": "package main\nimport(\"encoding/json\";\"fmt\";\"net/http\";\"strings\")\nfunc main(){var v map[string]any;err:=json.NewDecoder(strings.NewReader(\"{\")).Decode(&v);status:=http.StatusOK;if err!=nil{status=http.StatusBadRequest};fmt.Println(status)}\n"
+    },
+    {
+      "id": "http-servers-04-04-the-profane",
+      "chapter": "Chapter 4 · JSON",
+      "title": "The Profane",
+      "instruction": "Content filtering should transform only matched tokens. Replace the blocked word while preserving the rest of the chirp.",
+      "starter": "package main\nimport(\"fmt\";\"strings\")\nfunc main(){chirp:=\"this kerfuffle is loud\";fmt.Println(chirp);_ = strings.ReplaceAll}\n",
+      "expected": "this **** is loud\n",
+      "solution": "package main\nimport(\"fmt\";\"strings\")\nfunc main(){chirp:=\"this kerfuffle is loud\";fmt.Println(strings.ReplaceAll(chirp,\"kerfuffle\",\"****\"))}\n"
+    },
+    {
+      "id": "http-servers-05-01-storage",
+      "chapter": "Chapter 5 · Storage",
+      "title": "Storage",
+      "instruction": "PostgreSQL is the local persistence service for this course. Run Check to verify that the database accepts a live TCP connection.",
+      "starter": "check\n",
+      "expected": "PASS · The live postgres services are ready.",
+      "mode": "lab",
+      "validator": "service-ready"
+    },
+    {
+      "id": "http-servers-05-02-goose-migrations",
+      "chapter": "Chapter 5 · Storage",
+      "title": "Goose Migrations",
+      "instruction": "A migration pairs a forward schema change with a rollback. Order the up and down directions so setup is reversible.",
+      "starter": "package main\nimport(\"fmt\";\"strings\")\nfunc main(){fmt.Println(strings.Join([]string{\"down\",\"up\"},\" then \"))}\n",
+      "expected": "up then down\n",
+      "solution": "package main\nimport(\"fmt\";\"strings\")\nfunc main(){fmt.Println(strings.Join([]string{\"up\",\"down\"},\" then \"))}\n"
+    },
+    {
+      "id": "http-servers-05-03-sqlc",
+      "chapter": "Chapter 5 · Storage",
+      "title": "SQLC",
+      "instruction": "sqlc turns checked SQL into typed Go methods. Call the generated query method instead of an untyped placeholder.",
+      "starter": "package main\nimport \"fmt\"\ntype queries struct{}\nfunc(queries)GetChirp(id int)string{return fmt.Sprint(\"chirp-\",id)}\nfunc main(){q:=queries{};fmt.Println(q.GetChirp(0))}\n",
+      "expected": "chirp-7\n",
+      "solution": "package main\nimport \"fmt\"\ntype queries struct{}\nfunc(queries)GetChirp(id int)string{return fmt.Sprint(\"chirp-\",id)}\nfunc main(){q:=queries{};fmt.Println(q.GetChirp(7))}\n"
+    },
+    {
+      "id": "http-servers-05-04-database-review",
+      "chapter": "Chapter 5 · Storage",
+      "title": "Database Review",
+      "instruction": "A transaction keeps writes provisional until commit. Commit this write so later reads can observe the record.",
+      "starter": "package main\nimport \"fmt\"\nfunc main(){pending:=1;committed:=0;_ = pending;fmt.Println(committed)}\n",
+      "expected": "1\n",
+      "solution": "package main\nimport \"fmt\"\nfunc main(){pending:=1;committed:=0;committed=pending;fmt.Println(committed)}\n"
+    },
+    {
+      "id": "http-servers-05-05-context",
+      "chapter": "Chapter 5 · Storage",
+      "title": "Context",
+      "instruction": "context carries cancellation, deadlines, and request-scoped values across call boundaries. Pass the request identifier through it to the query.",
+      "starter": "package main\nimport(\"context\";\"fmt\")\ntype key string\nfunc main(){ctx:=context.WithValue(context.Background(),key(\"request\"),\"req-9\");fmt.Println(ctx.Value(key(\"trace\")))}\n",
+      "expected": "req-9\n",
+      "solution": "package main\nimport(\"context\";\"fmt\")\ntype key string\nfunc main(){ctx:=context.WithValue(context.Background(),key(\"request\"),\"req-9\");fmt.Println(ctx.Value(key(\"request\")))}\n"
+    },
+    {
+      "id": "http-servers-05-06-create-user",
+      "chapter": "Chapter 5 · Storage",
+      "title": "Create User",
+      "instruction": "A create endpoint validates input, persists a new resource, then returns its representation. Store the submitted email and return the user.",
+      "starter": "package main\nimport \"fmt\"\ntype user struct{ID int;Email string}\nfunc main(){u:=user{ID:1};fmt.Println(u.ID,u.Email)}\n",
+      "expected": "1 ana@example.com\n",
+      "solution": "package main\nimport \"fmt\"\ntype user struct{ID int;Email string}\nfunc main(){u:=user{ID:1,Email:\"ana@example.com\"};fmt.Println(u.ID,u.Email)}\n"
+    },
+    {
+      "id": "http-servers-05-07-create-chirp",
+      "chapter": "Chapter 5 · Storage",
+      "title": "Create Chirp",
+      "instruction": "Ownership must come from authenticated identity rather than a client-supplied user id. Associate the new chirp with that author.",
+      "starter": "package main\nimport \"fmt\"\ntype chirp struct{ID,AuthorID int;Body string}\nfunc main(){c:=chirp{ID:4,Body:\"hi\"};fmt.Println(c.ID,c.AuthorID,c.Body)}\n",
+      "expected": "4 8 hi\n",
+      "solution": "package main\nimport \"fmt\"\ntype chirp struct{ID,AuthorID int;Body string}\nfunc main(){c:=chirp{ID:4,AuthorID:8,Body:\"hi\"};fmt.Println(c.ID,c.AuthorID,c.Body)}\n"
+    },
+    {
+      "id": "http-servers-05-08-collections-and-singletons",
+      "chapter": "Chapter 5 · Storage",
+      "title": "Collections and Singletons",
+      "instruction": "Resource-oriented URLs use a collection path for many records and an identifier for one. Complete both chirp paths.",
+      "starter": "package main\nimport \"fmt\"\nfunc main(){collection,single:=\"/chirps/1\",\"/chirps\";fmt.Println(collection,single)}\n",
+      "expected": "/chirps /chirps/1\n",
+      "solution": "package main\nimport \"fmt\"\nfunc main(){collection,single:=\"/chirps\",\"/chirps/1\";fmt.Println(collection,single)}\n"
+    },
+    {
+      "id": "http-servers-05-09-get-all-chirps",
+      "chapter": "Chapter 5 · Storage",
+      "title": "Get All Chirps",
+      "instruction": "Stable ordering makes collection responses predictable. Sort stored chirps by identifier before returning them.",
+      "starter": "package main\nimport(\"fmt\";\"sort\")\nfunc main(){ids:=[]int{3,1,2};_ = sort.Ints;fmt.Println(ids)}\n",
+      "expected": "[1 2 3]\n",
+      "solution": "package main\nimport(\"fmt\";\"sort\")\nfunc main(){ids:=[]int{3,1,2};sort.Ints(ids);fmt.Println(ids)}\n"
+    },
+    {
+      "id": "http-servers-05-10-get-chirp",
+      "chapter": "Chapter 5 · Storage",
+      "title": "Get Chirp",
+      "instruction": "A lookup that has no matching resource should return 404. Handle the absent chirp identifier.",
+      "starter": "package main\nimport(\"fmt\";\"net/http\")\nfunc main(){db:=map[int]string{1:\"hi\"};_,ok:=db[9];status:=http.StatusOK;if !ok{status=http.StatusNoContent};fmt.Println(status)}\n",
+      "expected": "404\n",
+      "solution": "package main\nimport(\"fmt\";\"net/http\")\nfunc main(){db:=map[int]string{1:\"hi\"};_,ok:=db[9];status:=http.StatusOK;if !ok{status=http.StatusNotFound};fmt.Println(status)}\n"
+    },
+    {
+      "id": "http-servers-06-01-authentication-with-passwords",
+      "chapter": "Chapter 6 · Authentication",
+      "title": "Authentication With Passwords",
+      "instruction": "Production password storage uses a salted, slow hash such as Argon2id; this small digest fixture only demonstrates not retaining plaintext. Store the derived value.",
+      "starter": "package main\nimport(\"crypto/sha256\";\"fmt\")\nfunc main(){password:=\"swordfish\";fmt.Println(password);_ = sha256.Sum256}\n",
+      "expected": "b9f195c5cc7ef6afadbfbc42892ad47d3b24c6bc94bb510c4564a90a14e8b799\n",
+      "solution": "package main\nimport(\"crypto/sha256\";\"fmt\")\nfunc main(){password:=\"swordfish\";digest:=sha256.Sum256([]byte(password));fmt.Printf(\"%x\\n\",digest)}\n"
+    },
+    {
+      "id": "http-servers-06-02-password-review",
+      "chapter": "Chapter 6 · Authentication",
+      "title": "Password Review",
+      "instruction": "Password verification compares a submitted secret with the stored derived value without exposing either one. Complete that comparison.",
+      "starter": "package main\nimport(\"crypto/subtle\";\"fmt\")\nfunc main(){stored:=[]byte(\"abc\");candidate:=[]byte(\"abd\");fmt.Println(subtle.ConstantTimeCompare(stored,candidate)==1)}\n",
+      "expected": "true\n",
+      "solution": "package main\nimport(\"crypto/subtle\";\"fmt\")\nfunc main(){stored:=[]byte(\"abc\");candidate:=[]byte(\"abc\");fmt.Println(subtle.ConstantTimeCompare(stored,candidate)==1)}\n"
+    },
+    {
+      "id": "http-servers-06-03-types-of-authentication",
+      "chapter": "Chapter 6 · Authentication",
+      "title": "Types of Authentication",
+      "instruction": "Authentication proves identity; common API mechanisms include sessions, keys, and bearer tokens. Use a bearer token for this stateless request.",
+      "starter": "package main\nimport \"fmt\"\nfunc main(){scheme:=\"Basic\";fmt.Println(scheme)}\n",
+      "expected": "Bearer\n",
+      "solution": "package main\nimport \"fmt\"\nfunc main(){scheme:=\"Bearer\";fmt.Println(scheme)}\n"
+    },
+    {
+      "id": "http-servers-06-04-jwts",
+      "chapter": "Chapter 6 · Authentication",
+      "title": "JWTs",
+      "instruction": "A JWT is three base64url segments: header, claims, and signature. Build the token in that order.",
+      "starter": "package main\nimport(\"fmt\";\"strings\")\nfunc main(){parts:=[]string{\"header\",\"claims\"};fmt.Println(strings.Join(parts,\".\"))}\n",
+      "expected": "header.claims.signature\n",
+      "solution": "package main\nimport(\"fmt\";\"strings\")\nfunc main(){parts:=[]string{\"header\",\"claims\",\"signature\"};fmt.Println(strings.Join(parts,\".\"))}\n"
+    },
+    {
+      "id": "http-servers-06-05-authentication-with-jwts",
+      "chapter": "Chapter 6 · Authentication",
+      "title": "Authentication With JWTs",
+      "instruction": "The Authorization header carries a scheme followed by credentials. Extract the bearer credential without retaining the scheme.",
+      "starter": "package main\nimport(\"fmt\";\"strings\")\nfunc main(){header:=\"Bearer token-7\";fmt.Println(header);_ = strings.TrimPrefix}\n",
+      "expected": "token-7\n",
+      "solution": "package main\nimport(\"fmt\";\"strings\")\nfunc main(){header:=\"Bearer token-7\";fmt.Println(strings.TrimPrefix(header,\"Bearer \"))}\n"
+    },
+    {
+      "id": "http-servers-06-06-jwt-review",
+      "chapter": "Chapter 6 · Authentication",
+      "title": "JWT Review",
+      "instruction": "The exp claim limits how long a token is accepted. Reject a token whose expiry precedes the current timestamp.",
+      "starter": "package main\nimport \"fmt\"\nfunc main(){now,expiry:=100,90;valid:=expiry<now;fmt.Println(valid)}\n",
+      "expected": "false\n",
+      "solution": "package main\nimport \"fmt\"\nfunc main(){now,expiry:=100,90;valid:=expiry>now;fmt.Println(valid)}\n"
+    },
+    {
+      "id": "http-servers-06-07-revoking-jwts",
+      "chapter": "Chapter 6 · Authentication",
+      "title": "Revoking JWTs",
+      "instruction": "A revocation set invalidates selected tokens before their normal expiry. Reject an identifier found in that set.",
+      "starter": "package main\nimport \"fmt\"\nfunc main(){revoked:=map[string]bool{\"jti-4\":true};valid:=revoked[\"jti-4\"];fmt.Println(valid)}\n",
+      "expected": "false\n",
+      "solution": "package main\nimport \"fmt\"\nfunc main(){revoked:=map[string]bool{\"jti-4\":true};valid:=!revoked[\"jti-4\"];fmt.Println(valid)}\n"
+    },
+    {
+      "id": "http-servers-06-08-refresh-tokens",
+      "chapter": "Chapter 6 · Authentication",
+      "title": "Refresh Tokens",
+      "instruction": "A short-lived access token can be renewed with a longer-lived refresh token. Rotate the refresh token when it is exchanged.",
+      "starter": "package main\nimport \"fmt\"\nfunc main(){old,newToken:=\"refresh-1\",\"refresh-2\";newToken=old;fmt.Println(newToken)}\n",
+      "expected": "refresh-2\n",
+      "solution": "package main\nimport \"fmt\"\nfunc main(){_,newToken:=\"refresh-1\",\"refresh-2\";fmt.Println(newToken)}\n"
+    },
+    {
+      "id": "http-servers-06-09-cookies",
+      "chapter": "Chapter 6 · Authentication",
+      "title": "Cookies",
+      "instruction": "The HttpOnly cookie flag prevents client-side scripts from reading a session credential. Enable it here.",
+      "starter": "package main\nimport(\"fmt\";\"net/http\")\nfunc main(){c:=http.Cookie{Name:\"session\",Value:\"abc\",HttpOnly:false};fmt.Println(c.HttpOnly)}\n",
+      "expected": "true\n",
+      "solution": "package main\nimport(\"fmt\";\"net/http\")\nfunc main(){c:=http.Cookie{Name:\"session\",Value:\"abc\",HttpOnly:true};fmt.Println(c.HttpOnly)}\n"
+    },
+    {
+      "id": "http-servers-07-01-authorization",
+      "chapter": "Chapter 7 · Authorization",
+      "title": "Authorization",
+      "instruction": "Authorization decides whether an authenticated identity may perform an action. Allow this mutation only for the chirp owner.",
+      "starter": "package main\nimport \"fmt\"\nfunc main(){requester,owner:=7,7;allowed:=requester!=owner;fmt.Println(allowed)}\n",
+      "expected": "true\n",
+      "solution": "package main\nimport \"fmt\"\nfunc main(){requester,owner:=7,7;allowed:=requester==owner;fmt.Println(allowed)}\n"
+    },
+    {
+      "id": "http-servers-07-02-authentication-vs-authorization",
+      "chapter": "Chapter 7 · Authorization",
+      "title": "Authentication vs. Authorization",
+      "instruction": "Authentication identifies the caller; authorization checks permission. Return forbidden when an authenticated caller lacks it.",
+      "starter": "package main\nimport(\"fmt\";\"net/http\")\nfunc main(){authenticated,allowed:=true,false;status:=http.StatusOK;if !authenticated{status=http.StatusUnauthorized}else if !allowed{status=http.StatusUnauthorized};fmt.Println(status)}\n",
+      "expected": "403\n",
+      "solution": "package main\nimport(\"fmt\";\"net/http\")\nfunc main(){authenticated,allowed:=true,false;status:=http.StatusOK;if !authenticated{status=http.StatusUnauthorized}else if !allowed{status=http.StatusForbidden};fmt.Println(status)}\n"
+    },
+    {
+      "id": "http-servers-07-03-delete-chirp",
+      "chapter": "Chapter 7 · Authorization",
+      "title": "Delete Chirp",
+      "instruction": "A successful deletion can return 204 when no response representation is needed. Delete the owned chirp and use that status.",
+      "starter": "package main\nimport(\"fmt\";\"net/http\")\nfunc main(){db:=map[int]string{3:\"mine\"};status:=http.StatusOK;_ = db;fmt.Println(status,len(db))}\n",
+      "expected": "204 0\n",
+      "solution": "package main\nimport(\"fmt\";\"net/http\")\nfunc main(){db:=map[int]string{3:\"mine\"};delete(db,3);status:=http.StatusNoContent;fmt.Println(status,len(db))}\n"
+    },
+    {
+      "id": "http-servers-08-01-webhooks",
+      "chapter": "Chapter 8 · Webhooks",
+      "title": "Webhooks",
+      "instruction": "Webhook providers retry deliveries, so processing must be idempotent. Prevent a repeated event from applying its side effect twice.",
+      "starter": "package main\nimport \"fmt\"\nfunc main(){seen:=map[string]bool{};count:=0;for range []string{\"evt-1\",\"evt-1\"}{count++};_ = seen;fmt.Println(count)}\n",
+      "expected": "1\n",
+      "solution": "package main\nimport \"fmt\"\nfunc main(){seen:=map[string]bool{};count:=0;for _,id:=range []string{\"evt-1\",\"evt-1\"}{if !seen[id]{seen[id]=true;count++}};fmt.Println(count)}\n"
+    },
+    {
+      "id": "http-servers-08-02-webhooks-review",
+      "chapter": "Chapter 8 · Webhooks",
+      "title": "Webhooks Review",
+      "instruction": "Webhook consumers should safely ignore event types they do not handle. Acknowledge this unknown event without applying a side effect.",
+      "starter": "package main\nimport(\"fmt\";\"net/http\")\nfunc main(){event:=\"unknown\";writes:=1;status:=http.StatusBadRequest;_ = event;fmt.Println(status,writes)}\n",
+      "expected": "200 0\n",
+      "solution": "package main\nimport(\"fmt\";\"net/http\")\nfunc main(){event:=\"unknown\";writes:=0;status:=http.StatusOK;_ = event;fmt.Println(status,writes)}\n"
+    },
+    {
+      "id": "http-servers-08-03-api-keys",
+      "chapter": "Chapter 8 · Webhooks",
+      "title": "API Keys",
+      "instruction": "Secret comparisons should avoid leaking matching-prefix timing. Compare the supplied API key in constant time.",
+      "starter": "package main\nimport(\"crypto/subtle\";\"fmt\")\nfunc main(){want,got:=[]byte(\"key-9\"),[]byte(\"key-8\");fmt.Println(subtle.ConstantTimeCompare(want,got)==1)}\n",
+      "expected": "true\n",
+      "solution": "package main\nimport(\"crypto/subtle\";\"fmt\")\nfunc main(){want,got:=[]byte(\"key-9\"),[]byte(\"key-9\");fmt.Println(subtle.ConstantTimeCompare(want,got)==1)}\n"
+    },
+    {
+      "id": "http-servers-09-01-documentation",
+      "chapter": "Chapter 9 · Documentation",
+      "title": "Documentation",
+      "instruction": "Useful API documentation starts with each endpoint's method, path, inputs, and outputs. Describe the chirp collection endpoint's method and path.",
+      "starter": "package main\nimport \"fmt\"\nfunc main(){method,path:=\"POST\",\"/api/chirps\";fmt.Println(method,path)}\n",
+      "expected": "GET /api/chirps\n",
+      "solution": "package main\nimport \"fmt\"\nfunc main(){method,path:=\"GET\",\"/api/chirps\";fmt.Println(method,path)}\n"
+    },
+    {
+      "id": "http-servers-09-02-documentation",
+      "chapter": "Chapter 9 · Documentation",
+      "title": "Documentation",
+      "instruction": "A response contract records both status and representation. Document the created response for the chirp endpoint.",
+      "starter": "package main\nimport(\"fmt\";\"net/http\")\nfunc main(){fmt.Println(\"POST /api/chirps ->\",http.StatusOK)}\n",
+      "expected": "POST /api/chirps -> 201\n",
+      "solution": "package main\nimport(\"fmt\";\"net/http\")\nfunc main(){fmt.Println(\"POST /api/chirps ->\",http.StatusCreated)}\n"
+    },
+    {
+      "id": "http-servers-09-03-sorting-chirps",
+      "chapter": "Chapter 9 · Documentation",
+      "title": "Sorting Chirps",
+      "instruction": "Sorting a response should not silently reorder persistent state. Produce descending identifiers without mutating storage.",
+      "starter": "package main\nimport(\"fmt\";\"sort\")\nfunc main(){ids:=[]int{1,3,2};sort.Ints(ids);fmt.Println(ids)}\n",
+      "expected": "[3 2 1]\n",
+      "solution": "package main\nimport(\"fmt\";\"sort\")\nfunc main(){ids:=[]int{1,3,2};sort.Sort(sort.Reverse(sort.IntSlice(ids)));fmt.Println(ids)}\n"
+    },
+    {
+      "id": "http-servers-09-04-adding-a-readme",
+      "chapter": "Chapter 9 · Documentation",
+      "title": "Adding a README",
+      "instruction": "A project README should make the development workflow reproducible. Include setup, migration, test, and run commands.",
+      "starter": "package main\nimport(\"fmt\";\"strings\")\nfunc main(){sections:=[]string{\"setup\",\"run\"};fmt.Println(strings.Join(sections,\",\"))}\n",
+      "expected": "setup,migrate,test,run\n",
+      "solution": "package main\nimport(\"fmt\";\"strings\")\nfunc main(){sections:=[]string{\"setup\",\"migrate\",\"test\",\"run\"};fmt.Println(strings.Join(sections,\",\"))}\n"
+    }
+  ]
+}

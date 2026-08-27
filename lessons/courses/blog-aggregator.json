@@ -1,0 +1,188 @@
+{
+  "id": "blog-aggregator",
+  "title": "Build a Blog Aggregator in Go",
+  "description": "Build a database-backed Go CLI that collects and manages RSS feeds.",
+  "requiredLab": "postgres",
+  "lessons": [
+    {
+      "id": "blog-aggregator-01-01-welcome-to-the-blog-aggregator",
+      "chapter": "Chapter 1 · Config",
+      "title": "Welcome to the Blog Aggregator",
+      "instruction": "This project is a CLI pipeline: load configuration, fetch an RSS feed, parse its items, then store new posts. Put the missing parse stage between fetching and storage.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tstages := []string{\"configure\", \"fetch\", \"store\"}\n\tfmt.Println(strings.Join(stages, \" -> \"))\n}\n",
+      "expected": "configure -> fetch -> parse -> store",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tstages := []string{\"configure\", \"fetch\", \"parse\", \"store\"}\n\tfmt.Println(strings.Join(stages, \" -> \"))\n}\n",
+      "mode": "go"
+    },
+    {
+      "id": "blog-aggregator-01-02-config",
+      "chapter": "Chapter 1 · Config",
+      "title": "Config",
+      "instruction": "The CLI keeps the active username in a small JSON config file. Update the typed config before it is encoded back to disk; the JSON tag keeps the file format stable.",
+      "starter": "package main\n\nimport (\n\t\"encoding/json\"\n\t\"fmt\"\n)\n\ntype config struct {\n\tCurrentUserName string `json:\"current_user_name\"`\n}\n\nfunc setUser(cfg *config, name string) {\n\t_ = cfg\n\t_ = name\n}\n\nfunc main() {\n\tcfg := config{CurrentUserName: \"alice\"}\n\tsetUser(&cfg, \"gopher\")\n\tsaved, _ := json.Marshal(cfg)\n\tfmt.Println(string(saved))\n}\n",
+      "expected": "{\"current_user_name\":\"gopher\"}",
+      "solution": "package main\n\nimport (\n\t\"encoding/json\"\n\t\"fmt\"\n)\n\ntype config struct {\n\tCurrentUserName string `json:\"current_user_name\"`\n}\n\nfunc setUser(cfg *config, name string) {\n\tcfg.CurrentUserName = name\n}\n\nfunc main() {\n\tcfg := config{CurrentUserName: \"alice\"}\n\tsetUser(&cfg, \"gopher\")\n\tsaved, _ := json.Marshal(cfg)\n\tfmt.Println(string(saved))\n}\n",
+      "mode": "go"
+    },
+    {
+      "id": "blog-aggregator-01-03-commands",
+      "chapter": "Chapter 1 · Config",
+      "title": "Commands",
+      "instruction": "A command registry maps a command name to a handler. Register the login handler so dispatch can validate its argument and run it without a switch statement.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype handler func([]string) string\n\nfunc login(args []string) string {\n\tif len(args) != 1 {\n\t\treturn \"usage: login <name>\"\n\t}\n\treturn \"logged in \" + args[0]\n}\n\nfunc main() {\n\tcommands := map[string]handler{}\n\tresult := \"unknown command\"\n\tif run, ok := commands[\"login\"]; ok {\n\t\tresult = run([]string{\"alice\"})\n\t}\n\tfmt.Println(result)\n}\n",
+      "expected": "logged in alice",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype handler func([]string) string\n\nfunc login(args []string) string {\n\tif len(args) != 1 {\n\t\treturn \"usage: login <name>\"\n\t}\n\treturn \"logged in \" + args[0]\n}\n\nfunc main() {\n\tcommands := map[string]handler{\"login\": login}\n\tresult := \"unknown command\"\n\tif run, ok := commands[\"login\"]; ok {\n\t\tresult = run([]string{\"alice\"})\n\t}\n\tfmt.Println(result)\n}\n",
+      "mode": "go"
+    },
+    {
+      "id": "blog-aggregator-02-01-postgres",
+      "chapter": "Chapter 2 · Database",
+      "title": "Postgres",
+      "instruction": "The aggregator stores feeds and posts in PostgreSQL. Run Check to verify that the course database accepts a live connection.",
+      "starter": "check\n",
+      "expected": "PASS · The live postgres services are ready.",
+      "mode": "lab",
+      "validator": "service-ready"
+    },
+    {
+      "id": "blog-aggregator-02-02-goose-migrations",
+      "chapter": "Chapter 2 · Database",
+      "title": "Goose Migrations",
+      "instruction": "Goose records applied migration versions and runs the remaining versions in order. Build the pending list without reapplying version 1.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tversions := []int{1, 2, 3}\n\tapplied := map[int]bool{1: true}\n\tpending := []int{}\n\t_ = versions\n\t_ = applied\n\tfmt.Println(pending)\n}\n",
+      "expected": "[2 3]",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tversions := []int{1, 2, 3}\n\tapplied := map[int]bool{1: true}\n\tpending := []int{}\n\tfor _, version := range versions {\n\t\tif !applied[version] {\n\t\t\tpending = append(pending, version)\n\t\t}\n\t}\n\tfmt.Println(pending)\n}\n",
+      "mode": "go"
+    },
+    {
+      "id": "blog-aggregator-02-03-sqlc",
+      "chapter": "Chapter 2 · Database",
+      "title": "SQLC",
+      "instruction": "SQLC generates typed parameter and row types from SQL. Application code should build those parameters rather than editing generated query code; pass the requested name into the generated-style parameter value.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype createUserParams struct {\n\tName string\n}\n\ntype user struct {\n\tID   int64\n\tName string\n}\n\nfunc newCreateUserParams(name string) createUserParams {\n\t_ = name\n\treturn createUserParams{}\n}\n\nfunc createUser(params createUserParams) user {\n\treturn user{ID: 1, Name: params.Name}\n}\n\nfunc main() {\n\tcreated := createUser(newCreateUserParams(\"alice\"))\n\tfmt.Println(created.ID, created.Name)\n}\n",
+      "expected": "1 alice",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype createUserParams struct {\n\tName string\n}\n\ntype user struct {\n\tID   int64\n\tName string\n}\n\nfunc newCreateUserParams(name string) createUserParams {\n\treturn createUserParams{Name: name}\n}\n\nfunc createUser(params createUserParams) user {\n\treturn user{ID: 1, Name: params.Name}\n}\n\nfunc main() {\n\tcreated := createUser(newCreateUserParams(\"alice\"))\n\tfmt.Println(created.ID, created.Name)\n}\n",
+      "mode": "go"
+    },
+    {
+      "id": "blog-aggregator-02-04-reset",
+      "chapter": "Chapter 2 · Database",
+      "title": "Reset",
+      "instruction": "Reset is intentionally destructive. Without cascading deletes, child rows must be removed before the feeds and users they reference; put the tables in foreign-key-safe order.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\ttables := []string{\"users\", \"feeds\", \"feed_follows\", \"posts\"}\n\tfmt.Println(strings.Join(tables, \" -> \"))\n}\n",
+      "expected": "posts -> feed_follows -> feeds -> users",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\ttables := []string{\"posts\", \"feed_follows\", \"feeds\", \"users\"}\n\tfmt.Println(strings.Join(tables, \" -> \"))\n}\n",
+      "mode": "go"
+    },
+    {
+      "id": "blog-aggregator-02-05-list-users",
+      "chapter": "Chapter 2 · Database",
+      "title": "List Users",
+      "instruction": "List every persisted user and mark the one selected in configuration. Set the marker only when the row matches the current username.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tusers := []string{\"alice\", \"bob\"}\n\tcurrent := \"alice\"\n\tfor _, name := range users {\n\t\tmarker := \" \"\n\t\t_ = current\n\t\tfmt.Printf(\"%s %s\\n\", marker, name)\n\t}\n}\n",
+      "expected": "* alice\n  bob",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tusers := []string{\"alice\", \"bob\"}\n\tcurrent := \"alice\"\n\tfor _, name := range users {\n\t\tmarker := \" \"\n\t\tif name == current {\n\t\t\tmarker = \"*\"\n\t\t}\n\t\tfmt.Printf(\"%s %s\\n\", marker, name)\n\t}\n}\n",
+      "mode": "go"
+    },
+    {
+      "id": "blog-aggregator-03-01-rss",
+      "chapter": "Chapter 3 · RSS",
+      "title": "RSS",
+      "instruction": "RSS is XML: channel metadata and repeated item elements map cleanly to tagged Go fields. Correct the XML tags so the feed title and both items are decoded.",
+      "starter": "package main\n\nimport (\n\t\"encoding/xml\"\n\t\"fmt\"\n)\n\ntype rss struct {\n\tChannel channel `xml:\"channel\"`\n}\n\ntype channel struct {\n\tTitle string `xml:\"name\"`\n\tItems []item `xml:\"items\"`\n}\n\ntype item struct {\n\tTitle string `xml:\"title\"`\n}\n\nfunc main() {\n\tdata := []byte(`<rss><channel><title>Go Blog</title><item><title>One</title></item><item><title>Two</title></item></channel></rss>`)\n\tvar feed rss\n\t_ = xml.Unmarshal(data, &feed)\n\tfmt.Println(feed.Channel.Title, len(feed.Channel.Items))\n}\n",
+      "expected": "Go Blog 2",
+      "solution": "package main\n\nimport (\n\t\"encoding/xml\"\n\t\"fmt\"\n)\n\ntype rss struct {\n\tChannel channel `xml:\"channel\"`\n}\n\ntype channel struct {\n\tTitle string `xml:\"title\"`\n\tItems []item `xml:\"item\"`\n}\n\ntype item struct {\n\tTitle string `xml:\"title\"`\n}\n\nfunc main() {\n\tdata := []byte(`<rss><channel><title>Go Blog</title><item><title>One</title></item><item><title>Two</title></item></channel></rss>`)\n\tvar feed rss\n\t_ = xml.Unmarshal(data, &feed)\n\tfmt.Println(feed.Channel.Title, len(feed.Channel.Items))\n}\n",
+      "mode": "go"
+    },
+    {
+      "id": "blog-aggregator-03-02-feeds",
+      "chapter": "Chapter 3 · RSS",
+      "title": "Feeds",
+      "instruction": "A feed has a canonical URL and an owner, and the database should keep the URL unique. Prevent a second record from being added for an existing URL.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype feed struct {\n\tName  string\n\tURL   string\n\tOwner string\n}\n\nfunc addFeed(feeds []feed, candidate feed) []feed {\n\treturn append(feeds, candidate)\n}\n\nfunc main() {\n\tfeeds := []feed{{Name: \"Go Blog\", URL: \"https://go.dev/blog\", Owner: \"alice\"}}\n\tfeeds = addFeed(feeds, feed{Name: \"Duplicate\", URL: \"https://go.dev/blog\", Owner: \"bob\"})\n\tfmt.Println(len(feeds), feeds[0].Owner)\n}\n",
+      "expected": "1 alice",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype feed struct {\n\tName  string\n\tURL   string\n\tOwner string\n}\n\nfunc addFeed(feeds []feed, candidate feed) []feed {\n\tfor _, existing := range feeds {\n\t\tif existing.URL == candidate.URL {\n\t\t\treturn feeds\n\t\t}\n\t}\n\treturn append(feeds, candidate)\n}\n\nfunc main() {\n\tfeeds := []feed{{Name: \"Go Blog\", URL: \"https://go.dev/blog\", Owner: \"alice\"}}\n\tfeeds = addFeed(feeds, feed{Name: \"Duplicate\", URL: \"https://go.dev/blog\", Owner: \"bob\"})\n\tfmt.Println(len(feeds), feeds[0].Owner)\n}\n",
+      "mode": "go"
+    },
+    {
+      "id": "blog-aggregator-03-03-list-feeds",
+      "chapter": "Chapter 3 · RSS",
+      "title": "List Feeds",
+      "instruction": "A joined feed query can return display-ready rows containing the feed name, URL, and owner's username. Include all three values in each rendered row.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype feedRow struct {\n\tName  string\n\tURL   string\n\tOwner string\n}\n\nfunc render(row feedRow) string {\n\treturn fmt.Sprintf(\"%s | %s\", row.Name, row.URL)\n}\n\nfunc main() {\n\trows := []feedRow{\n\t\t{Name: \"Go Blog\", URL: \"https://go.dev/blog\", Owner: \"alice\"},\n\t\t{Name: \"Go Time\", URL: \"https://changelog.com/gotime/feed\", Owner: \"bob\"},\n\t}\n\tfor _, row := range rows {\n\t\tfmt.Println(render(row))\n\t}\n}\n",
+      "expected": "Go Blog | https://go.dev/blog | alice\nGo Time | https://changelog.com/gotime/feed | bob",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype feedRow struct {\n\tName  string\n\tURL   string\n\tOwner string\n}\n\nfunc render(row feedRow) string {\n\treturn fmt.Sprintf(\"%s | %s | %s\", row.Name, row.URL, row.Owner)\n}\n\nfunc main() {\n\trows := []feedRow{\n\t\t{Name: \"Go Blog\", URL: \"https://go.dev/blog\", Owner: \"alice\"},\n\t\t{Name: \"Go Time\", URL: \"https://changelog.com/gotime/feed\", Owner: \"bob\"},\n\t}\n\tfor _, row := range rows {\n\t\tfmt.Println(render(row))\n\t}\n}\n",
+      "mode": "go"
+    },
+    {
+      "id": "blog-aggregator-04-01-follow",
+      "chapter": "Chapter 4 · Following",
+      "title": "Follow",
+      "instruction": "Following is a many-to-many relationship. Treat the user/feed pair as unique so repeating the same follow command is idempotent while another user may still follow that feed.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype follow struct {\n\tUserID int\n\tFeedID int\n}\n\nfunc addFollow(all []follow, candidate follow) []follow {\n\treturn append(all, candidate)\n}\n\nfunc main() {\n\tfollows := []follow{{UserID: 1, FeedID: 10}}\n\tfollows = addFollow(follows, follow{UserID: 1, FeedID: 10})\n\tfollows = addFollow(follows, follow{UserID: 2, FeedID: 10})\n\tfmt.Println(len(follows))\n}\n",
+      "expected": "2",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype follow struct {\n\tUserID int\n\tFeedID int\n}\n\nfunc addFollow(all []follow, candidate follow) []follow {\n\tfor _, existing := range all {\n\t\tif existing.UserID == candidate.UserID && existing.FeedID == candidate.FeedID {\n\t\t\treturn all\n\t\t}\n\t}\n\treturn append(all, candidate)\n}\n\nfunc main() {\n\tfollows := []follow{{UserID: 1, FeedID: 10}}\n\tfollows = addFollow(follows, follow{UserID: 1, FeedID: 10})\n\tfollows = addFollow(follows, follow{UserID: 2, FeedID: 10})\n\tfmt.Println(len(follows))\n}\n",
+      "mode": "go"
+    },
+    {
+      "id": "blog-aggregator-04-02-middleware",
+      "chapter": "Chapter 4 · Following",
+      "title": "Middleware",
+      "instruction": "Authenticated command middleware resolves the configured user once, rejects a missing login, and passes a typed user to the real handler. Inject the selected user instead of an empty value.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype user struct {\n\tName string\n}\n\ntype handler func(user, []string) string\n\nfunc withUser(current *user, next handler) func([]string) string {\n\treturn func(args []string) string {\n\t\tif current == nil {\n\t\t\treturn \"no current user\"\n\t\t}\n\t\treturn next(user{}, args)\n\t}\n}\n\nfunc main() {\n\tcurrent := &user{Name: \"alice\"}\n\tfollow := withUser(current, func(selected user, args []string) string {\n\t\treturn fmt.Sprintf(\"%s followed %s\", selected.Name, args[0])\n\t})\n\tfmt.Println(follow([]string{\"Go Blog\"}))\n}\n",
+      "expected": "alice followed Go Blog",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype user struct {\n\tName string\n}\n\ntype handler func(user, []string) string\n\nfunc withUser(current *user, next handler) func([]string) string {\n\treturn func(args []string) string {\n\t\tif current == nil {\n\t\t\treturn \"no current user\"\n\t\t}\n\t\treturn next(*current, args)\n\t}\n}\n\nfunc main() {\n\tcurrent := &user{Name: \"alice\"}\n\tfollow := withUser(current, func(selected user, args []string) string {\n\t\treturn fmt.Sprintf(\"%s followed %s\", selected.Name, args[0])\n\t})\n\tfmt.Println(follow([]string{\"Go Blog\"}))\n}\n",
+      "mode": "go"
+    },
+    {
+      "id": "blog-aggregator-04-03-unfollow",
+      "chapter": "Chapter 4 · Following",
+      "title": "Unfollow",
+      "instruction": "Unfollow removes only the current user's relationship to one feed. Filter by both IDs so another user's follow and the current user's other feeds remain intact.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype follow struct {\n\tUserID int\n\tFeedID int\n\tLabel  string\n}\n\nfunc unfollow(all []follow, userID, feedID int) []follow {\n\t_ = userID\n\t_ = feedID\n\treturn all\n}\n\nfunc main() {\n\tfollows := []follow{\n\t\t{UserID: 1, FeedID: 10, Label: \"alice:go\"},\n\t\t{UserID: 2, FeedID: 10, Label: \"bob:go\"},\n\t\t{UserID: 1, FeedID: 20, Label: \"alice:news\"},\n\t}\n\tfor _, item := range unfollow(follows, 1, 10) {\n\t\tfmt.Println(item.Label)\n\t}\n}\n",
+      "expected": "bob:go\nalice:news",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype follow struct {\n\tUserID int\n\tFeedID int\n\tLabel  string\n}\n\nfunc unfollow(all []follow, userID, feedID int) []follow {\n\tkept := make([]follow, 0, len(all))\n\tfor _, item := range all {\n\t\tif item.UserID == userID && item.FeedID == feedID {\n\t\t\tcontinue\n\t\t}\n\t\tkept = append(kept, item)\n\t}\n\treturn kept\n}\n\nfunc main() {\n\tfollows := []follow{\n\t\t{UserID: 1, FeedID: 10, Label: \"alice:go\"},\n\t\t{UserID: 2, FeedID: 10, Label: \"bob:go\"},\n\t\t{UserID: 1, FeedID: 20, Label: \"alice:news\"},\n\t}\n\tfor _, item := range unfollow(follows, 1, 10) {\n\t\tfmt.Println(item.Label)\n\t}\n}\n",
+      "mode": "go"
+    },
+    {
+      "id": "blog-aggregator-05-01-aggregate",
+      "chapter": "Chapter 5 · Aggregate",
+      "title": "Aggregate",
+      "instruction": "A fair aggregator selects an unfetched feed first, then the feed fetched least recently. Fix the scheduler so a new feed is not starved by a recently fetched one.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"time\"\n)\n\ntype feed struct {\n\tName        string\n\tLastFetched *time.Time\n}\n\nfunc at(hour int) *time.Time {\n\tvalue := time.Date(2026, time.January, 1, hour, 0, 0, 0, time.UTC)\n\treturn &value\n}\n\nfunc nextFeed(feeds []feed) feed {\n\treturn feeds[0]\n}\n\nfunc main() {\n\tfeeds := []feed{\n\t\t{Name: \"recent\", LastFetched: at(12)},\n\t\t{Name: \"never\", LastFetched: nil},\n\t\t{Name: \"old\", LastFetched: at(8)},\n\t}\n\tfmt.Println(nextFeed(feeds).Name)\n}\n",
+      "expected": "never",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"time\"\n)\n\ntype feed struct {\n\tName        string\n\tLastFetched *time.Time\n}\n\nfunc at(hour int) *time.Time {\n\tvalue := time.Date(2026, time.January, 1, hour, 0, 0, 0, time.UTC)\n\treturn &value\n}\n\nfunc nextFeed(feeds []feed) feed {\n\tbest := feeds[0]\n\tfor _, candidate := range feeds[1:] {\n\t\tif candidate.LastFetched == nil && best.LastFetched != nil {\n\t\t\tbest = candidate\n\t\t\tcontinue\n\t\t}\n\t\tif candidate.LastFetched != nil && best.LastFetched != nil && candidate.LastFetched.Before(*best.LastFetched) {\n\t\t\tbest = candidate\n\t\t}\n\t}\n\treturn best\n}\n\nfunc main() {\n\tfeeds := []feed{\n\t\t{Name: \"recent\", LastFetched: at(12)},\n\t\t{Name: \"never\", LastFetched: nil},\n\t\t{Name: \"old\", LastFetched: at(8)},\n\t}\n\tfmt.Println(nextFeed(feeds).Name)\n}\n",
+      "mode": "go"
+    },
+    {
+      "id": "blog-aggregator-05-02-posts",
+      "chapter": "Chapter 5 · Aggregate",
+      "title": "Posts",
+      "instruction": "Feed polling sees the same items repeatedly. Keep a stable item URL or GUID unique so an existing post is skipped instead of inserted again.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype post struct {\n\tTitle string\n\tURL   string\n}\n\nfunc uniquePosts(items []post) []post {\n\treturn items\n}\n\nfunc main() {\n\titems := []post{\n\t\t{Title: \"Go 1.25\", URL: \"https://go.dev/blog/go1.25\"},\n\t\t{Title: \"Duplicate\", URL: \"https://go.dev/blog/go1.25\"},\n\t\t{Title: \"JSON v2\", URL: \"https://go.dev/blog/jsonv2-exp\"},\n\t}\n\tfmt.Println(len(uniquePosts(items)))\n}\n",
+      "expected": "2",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype post struct {\n\tTitle string\n\tURL   string\n}\n\nfunc uniquePosts(items []post) []post {\n\tseen := make(map[string]bool)\n\tunique := make([]post, 0, len(items))\n\tfor _, item := range items {\n\t\tif seen[item.URL] {\n\t\t\tcontinue\n\t\t}\n\t\tseen[item.URL] = true\n\t\tunique = append(unique, item)\n\t}\n\treturn unique\n}\n\nfunc main() {\n\titems := []post{\n\t\t{Title: \"Go 1.25\", URL: \"https://go.dev/blog/go1.25\"},\n\t\t{Title: \"Duplicate\", URL: \"https://go.dev/blog/go1.25\"},\n\t\t{Title: \"JSON v2\", URL: \"https://go.dev/blog/jsonv2-exp\"},\n\t}\n\tfmt.Println(len(uniquePosts(items)))\n}\n",
+      "mode": "go"
+    },
+    {
+      "id": "blog-aggregator-05-03-docs",
+      "chapter": "Chapter 5 · Aggregate",
+      "title": "Docs",
+      "instruction": "The README should cover installation, database setup, migrations, configuration, and every command. Add the aggregation command and its duration argument to the concise command reference.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tcommands := []string{\n\t\t\"register <name>\",\n\t\t\"login <name>\",\n\t\t\"feeds\",\n\t}\n\tfmt.Println(strings.Join(commands, \"\\n\"))\n}\n",
+      "expected": "register <name>\nlogin <name>\nfeeds\nagg <duration>",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tcommands := []string{\n\t\t\"register <name>\",\n\t\t\"login <name>\",\n\t\t\"feeds\",\n\t\t\"agg <duration>\",\n\t}\n\tfmt.Println(strings.Join(commands, \"\\n\"))\n}\n",
+      "mode": "go"
+    },
+    {
+      "id": "blog-aggregator-05-04-submit-your-repo",
+      "chapter": "Chapter 5 · Aggregate",
+      "title": "Submit Your Repo!",
+      "instruction": "A ready repository is formatted, tested, documented, and includes migrations and generated query code without committing credentials. Mark the test check complete so the final audit passes.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype check struct {\n\tName   string\n\tPassed bool\n}\n\nfunc status(checks []check) string {\n\tfor _, item := range checks {\n\t\tif !item.Passed {\n\t\t\treturn \"not ready: \" + item.Name\n\t\t}\n\t}\n\treturn \"ready\"\n}\n\nfunc main() {\n\tchecks := []check{\n\t\t{Name: \"gofmt\", Passed: true},\n\t\t{Name: \"go test\", Passed: false},\n\t\t{Name: \"migrations committed\", Passed: true},\n\t\t{Name: \".env ignored\", Passed: true},\n\t}\n\tfmt.Println(status(checks))\n}\n",
+      "expected": "ready",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype check struct {\n\tName   string\n\tPassed bool\n}\n\nfunc status(checks []check) string {\n\tfor _, item := range checks {\n\t\tif !item.Passed {\n\t\t\treturn \"not ready: \" + item.Name\n\t\t}\n\t}\n\treturn \"ready\"\n}\n\nfunc main() {\n\tchecks := []check{\n\t\t{Name: \"gofmt\", Passed: true},\n\t\t{Name: \"go test\", Passed: true},\n\t\t{Name: \"migrations committed\", Passed: true},\n\t\t{Name: \".env ignored\", Passed: true},\n\t}\n\tfmt.Println(status(checks))\n}\n",
+      "mode": "go"
+    }
+  ]
+}

@@ -1,0 +1,1312 @@
+{
+  "id": "learn-go",
+  "title": "Learn Go",
+  "description": "Learn Go by reading a focused explanation, editing real code, and checking exact output.",
+  "lessons": [
+    {
+      "id": "01-learn-go",
+      "chapter": "Chapter 1 · Variables",
+      "title": "Learn Go",
+      "instruction": "Go programs begin in package main and start at the main function. The fmt package lets a program write text to standard output.\n\nChange the program so it prints exactly:\n\nlocal practice ready",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfmt.Println(\"change me\")\n}\n",
+      "expected": "local practice ready\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfmt.Println(\"local practice ready\")\n}\n"
+    },
+    {
+      "id": "02-declaring-a-variable",
+      "chapter": "Chapter 1 · Variables",
+      "title": "Declaring a Variable",
+      "instruction": "A var declaration gives a value a name and a type. Replace the placeholder with a string variable named language whose value is Go, then print it.\n\nExpected output:\n\nGo",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\t// Declare language here using var.\n\tfmt.Println(language)\n}\n",
+      "expected": "Go\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvar language string = \"Go\"\n\tfmt.Println(language)\n}\n"
+    },
+    {
+      "id": "03-basic-variables",
+      "chapter": "Chapter 1 · Variables",
+      "title": "Basic Variables",
+      "instruction": "Variables can hold different kinds of values. Declare port as an int with value 8080 and secure as a bool with value true. Print both with one fmt.Println call.\n\nExpected output:\n\n8080 true",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\t// Declare port and secure.\n\tfmt.Println(port, secure)\n}\n",
+      "expected": "8080 true\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvar port int = 8080\n\tvar secure bool = true\n\tfmt.Println(port, secure)\n}\n"
+    },
+    {
+      "id": "04-short-variable-declaration",
+      "chapter": "Chapter 1 · Variables",
+      "title": "Short Variable Declaration",
+      "instruction": "Inside a function, := declares a variable and infers its type. Declare count with :=, give it the value 3, and print it with the existing format string.\n\nExpected output:\n\njobs: 3",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\t// Declare count with :=.\n\tfmt.Printf(\"jobs: %d\\n\", count)\n}\n",
+      "expected": "jobs: 3\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tcount := 3\n\tfmt.Printf(\"jobs: %d\\n\", count)\n}\n"
+    },
+    {
+      "id": "05-why-go",
+      "chapter": "Chapter 1 · Variables",
+      "title": "Why Go?",
+      "instruction": "Go is designed around a small language, fast compilation, and straightforward deployment. Store the three words in variables and print them separated by commas.\n\nExpected output:\n\nsimple, fast, compiled",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfirst := \"simple\"\n\tsecond := \"TODO\"\n\tthird := \"TODO\"\n\tfmt.Printf(\"%s, %s, %s\\n\", first, second, third)\n}\n",
+      "expected": "simple, fast, compiled\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfirst := \"simple\"\n\tsecond := \"fast\"\n\tthird := \"compiled\"\n\tfmt.Printf(\"%s, %s, %s\\n\", first, second, third)\n}\n"
+    },
+    {
+      "id": "06-comments",
+      "chapter": "Chapter 1 · Variables",
+      "title": "Comments",
+      "instruction": "A line beginning with // is ignored by the compiler. Turn the invalid English sentence into a comment so the program builds.\n\nExpected output:\n\ncomments do not run",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tThis line is for humans, not the compiler.\n\tfmt.Println(\"comments do not run\")\n}\n",
+      "expected": "comments do not run\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\t// This line is for humans, not the compiler.\n\tfmt.Println(\"comments do not run\")\n}\n"
+    },
+    {
+      "id": "07-compilation-process",
+      "chapter": "Chapter 1 · Variables",
+      "title": "The Compilation Process",
+      "instruction": "The Go tool turns source code into a binary, then that binary can run. Replace the missing stage.\n\nExpected output:\n\nsource -> binary -> run",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tsource := \"source\"\n\tmiddle := \"TODO\"\n\trun := \"run\"\n\tfmt.Printf(\"%s -> %s -> %s\\n\", source, middle, run)\n}\n",
+      "expected": "source -> binary -> run\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tsource := \"source\"\n\tmiddle := \"binary\"\n\trun := \"run\"\n\tfmt.Printf(\"%s -> %s -> %s\\n\", source, middle, run)\n}\n"
+    },
+    {
+      "id": "08-fast-and-compiled",
+      "chapter": "Chapter 1 · Variables",
+      "title": "Fast and Compiled",
+      "instruction": "A compiled program does its translation work before it is executed. Complete the two variables.\n\nExpected output:\n\ncompiled once, run many",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tbuilds := \"TODO\"\n\truns := \"TODO\"\n\tfmt.Printf(\"compiled %s, run %s\\n\", builds, runs)\n}\n",
+      "expected": "compiled once, run many\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tbuilds := \"once\"\n\truns := \"many\"\n\tfmt.Printf(\"compiled %s, run %s\\n\", builds, runs)\n}\n"
+    },
+    {
+      "id": "09-type-sizes",
+      "chapter": "Chapter 1 · Variables",
+      "title": "Type Sizes",
+      "instruction": "An int64 always occupies 8 bytes. Pass value to unsafe.Sizeof so the program reports its size.\n\nExpected output:\n\n8",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"unsafe\"\n)\n\nfunc main() {\n\tvar value int64 = 42\n\tfmt.Println(unsafe.Sizeof(/* value goes here */))\n}\n",
+      "expected": "8\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"unsafe\"\n)\n\nfunc main() {\n\tvar value int64 = 42\n\tfmt.Println(unsafe.Sizeof(value))\n}\n"
+    },
+    {
+      "id": "10-which-type",
+      "chapter": "Chapter 1 · Variables",
+      "title": "Which Type Should I Use?",
+      "instruction": "Choose types that describe the data: int for a count, float64 for a decimal ratio, and bool for a yes/no state. Fill the values without changing their declared types.\n\nExpected output:\n\n12 0.5 true",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvar requests int = 0\n\tvar ratio float64 = 0\n\tvar enabled bool = false\n\tfmt.Println(requests, ratio, enabled)\n}\n",
+      "expected": "12 0.5 true\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvar requests int = 12\n\tvar ratio float64 = 0.5\n\tvar enabled bool = true\n\tfmt.Println(requests, ratio, enabled)\n}\n"
+    },
+    {
+      "id": "11-statically-typed",
+      "chapter": "Chapter 1 · Variables",
+      "title": "Go Is Statically Typed",
+      "instruction": "Once count is inferred as an int, assigning a string to it is a compile error. Fix the assignment while keeping count numeric.\n\nExpected output:\n\n4",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tcount := 3\n\tcount = \"four\"\n\tfmt.Println(count)\n}\n",
+      "expected": "4\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tcount := 3\n\tcount = 4\n\tfmt.Println(count)\n}\n"
+    },
+    {
+      "id": "12-compiled-vs-interpreted",
+      "chapter": "Chapter 1 · Variables",
+      "title": "Compiled vs. Interpreted",
+      "instruction": "Go normally compiles source into a native executable. Replace the placeholder value.\n\nExpected output:\n\nGo is compiled",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tmode := \"TODO\"\n\tfmt.Printf(\"Go is %s\\n\", mode)\n}\n",
+      "expected": "Go is compiled\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tmode := \"compiled\"\n\tfmt.Printf(\"Go is %s\\n\", mode)\n}\n"
+    },
+    {
+      "id": "13-same-line-declarations",
+      "chapter": "Chapter 1 · Variables",
+      "title": "Same Line Declarations",
+      "instruction": "Go can declare multiple variables in one statement. Replace the two separate declarations with one short declaration on a single line.\n\nExpected output:\n\napi:8080",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tname := \"api\"\n\tport := 0\n\tfmt.Printf(\"%s:%d\\n\", name, port)\n}\n",
+      "expected": "api:8080\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tname, port := \"api\", 8080\n\tfmt.Printf(\"%s:%d\\n\", name, port)\n}\n"
+    },
+    {
+      "id": "14-small-memory-footprint",
+      "chapter": "Chapter 1 · Variables",
+      "title": "Small Memory Footprint",
+      "instruction": "A byte stores a small integer using one byte. Create a byte slice containing four values, then let len report its element count.\n\nExpected output:\n\nbuffer bytes: 4",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tbuffer := []byte{}\n\tfmt.Printf(\"buffer bytes: %d\\n\", len(buffer))\n}\n",
+      "expected": "buffer bytes: 4\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tbuffer := []byte{1, 2, 3, 4}\n\tfmt.Printf(\"buffer bytes: %d\\n\", len(buffer))\n}\n"
+    },
+    {
+      "id": "02-01-constants",
+      "chapter": "Chapter 2 · Constants and Formatting",
+      "title": "Constants",
+      "instruction": "Constants name values that cannot change while the program runs. Set maxRetries to 3.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tconst maxRetries = 1\n\tfmt.Println(maxRetries)\n}\n",
+      "expected": "3\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tconst maxRetries = 3\n\tfmt.Println(maxRetries)\n}\n"
+    },
+    {
+      "id": "02-02-computed-constants",
+      "chapter": "Chapter 2 · Constants and Formatting",
+      "title": "Computed Constants",
+      "instruction": "A constant expression can be calculated from other constants at compile time. Define seconds using minutes and secondsPerMinute.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tconst minutes = 2\n\tconst secondsPerMinute = 60\n\tconst seconds = minutes\n\tfmt.Println(seconds)\n}\n",
+      "expected": "120\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tconst minutes = 2\n\tconst secondsPerMinute = 60\n\tconst seconds = minutes * secondsPerMinute\n\tfmt.Println(seconds)\n}\n"
+    },
+    {
+      "id": "02-03-comparing-go-s-speed",
+      "chapter": "Chapter 2 · Constants and Formatting",
+      "title": "Comparing Go's Speed",
+      "instruction": "Go compiles to native machine code before execution. Correct both descriptors of its usual build model.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tconst translation = \"interpreted\"\n\tconst target = \"bytecode\"\n\tfmt.Println(translation, target)\n}\n",
+      "expected": "compiled native\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tconst translation = \"compiled\"\n\tconst target = \"native\"\n\tfmt.Println(translation, target)\n}\n"
+    },
+    {
+      "id": "02-04-formatting-strings-in-go",
+      "chapter": "Chapter 2 · Constants and Formatting",
+      "title": "Formatting Strings in Go",
+      "instruction": "Printf substitutes values into formatting verbs. Use %s for the name and %d for the task count.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tname, tasks := \"Ada\", 3\n\tfmt.Printf(\"%s: %d tasks\\n\", name, tasks)\n}\n",
+      "expected": "Ada has 3 tasks\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tname, tasks := \"Ada\", 3\n\tfmt.Printf(\"%s has %d tasks\\n\", name, tasks)\n}\n"
+    },
+    {
+      "id": "02-05-runes-and-string-encoding",
+      "chapter": "Chapter 2 · Constants and Formatting",
+      "title": "Runes and String Encoding",
+      "instruction": "len counts UTF-8 bytes, not characters. Count the runes in the string instead.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfmt.Println(len(\"Go✓\"))\n}\n",
+      "expected": "3\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"unicode/utf8\"\n)\n\nfunc main() {\n\tfmt.Println(utf8.RuneCountInString(\"Go✓\"))\n}\n"
+    },
+    {
+      "id": "02-06-fix-bugs",
+      "chapter": "Chapter 2 · Constants and Formatting",
+      "title": "Fix Bugs",
+      "instruction": "The total should include tax. Correct the arithmetic operator without changing the values.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tprice, tax := 100, 5\n\ttotal := price - tax\n\tfmt.Println(total)\n}\n",
+      "expected": "105\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tprice, tax := 100, 5\n\ttotal := price + tax\n\tfmt.Println(total)\n}\n"
+    },
+    {
+      "id": "02-07-fix-types",
+      "chapter": "Chapter 2 · Constants and Formatting",
+      "title": "Fix Types",
+      "instruction": "Integer division discards the fractional part. Convert before dividing so the average retains its decimal value.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\ttotal := 5\n\taverage := float64(total / 2)\n\tfmt.Printf(\"%.1f\\n\", average)\n}\n",
+      "expected": "2.5\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\ttotal := 5\n\taverage := float64(total) / 2\n\tfmt.Printf(\"%.1f\\n\", average)\n}\n"
+    },
+    {
+      "id": "02-08-type-inference",
+      "chapter": "Chapter 2 · Constants and Formatting",
+      "title": "Type Inference",
+      "instruction": "The := declaration infers a variable's type from its value. Make value infer as a string.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvalue := 42\n\tfmt.Printf(\"%T\\n\", value)\n}\n",
+      "expected": "string\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvalue := \"42\"\n\tfmt.Printf(\"%T\\n\", value)\n}\n"
+    },
+    {
+      "id": "02-09-format-practice",
+      "chapter": "Chapter 2 · Constants and Formatting",
+      "title": "Format Practice",
+      "instruction": "A width and leading-zero flag can pad an integer. Format id as a three-digit value.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tid := 7\n\tfmt.Printf(\"ID: %d\\n\", id)\n}\n",
+      "expected": "ID: 007\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tid := 7\n\tfmt.Printf(\"ID: %03d\\n\", id)\n}\n"
+    },
+    {
+      "id": "03-01-conditionals",
+      "chapter": "Chapter 3 · Conditionals",
+      "title": "Conditionals",
+      "instruction": "An if branch runs only when its condition is true. Accept scores of 60 or higher.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tscore := 72\n\tif score < 60 {\n\t\tfmt.Println(\"accepted\")\n\t} else {\n\t\tfmt.Println(\"rejected\")\n\t}\n}\n",
+      "expected": "accepted\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tscore := 72\n\tif score >= 60 {\n\t\tfmt.Println(\"accepted\")\n\t} else {\n\t\tfmt.Println(\"rejected\")\n\t}\n}\n"
+    },
+    {
+      "id": "03-02-the-initial-statement-of-an-if-block",
+      "chapter": "Chapter 3 · Conditionals",
+      "title": "The Initial Statement of an If Block",
+      "instruction": "An if statement may initialize a value scoped to its branches. Compare the initialized length with the correct value.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tif n := len(\"gopher\"); n == 5 {\n\t\tfmt.Println(\"length\", n)\n\t} else {\n\t\tfmt.Println(\"wrong\")\n\t}\n}\n",
+      "expected": "length 6\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tif n := len(\"gopher\"); n == 6 {\n\t\tfmt.Println(\"length\", n)\n\t} else {\n\t\tfmt.Println(\"wrong\")\n\t}\n}\n"
+    },
+    {
+      "id": "03-03-switch",
+      "chapter": "Chapter 3 · Conditionals",
+      "title": "Switch",
+      "instruction": "A switch selects the first matching case. Correct the label for day 2.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tday := 2\n\tswitch day {\n\tcase 1:\n\t\tfmt.Println(\"Monday\")\n\tcase 2:\n\t\tfmt.Println(\"Wednesday\")\n\tdefault:\n\t\tfmt.Println(\"unknown\")\n\t}\n}\n",
+      "expected": "Tuesday\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tday := 2\n\tswitch day {\n\tcase 1:\n\t\tfmt.Println(\"Monday\")\n\tcase 2:\n\t\tfmt.Println(\"Tuesday\")\n\tdefault:\n\t\tfmt.Println(\"unknown\")\n\t}\n}\n"
+    },
+    {
+      "id": "03-04-calculate-balance",
+      "chapter": "Chapter 3 · Conditionals",
+      "title": "Calculate Balance",
+      "instruction": "Withdraw only when enough funds are available. Fix the balance calculation for this valid withdrawal.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tbalance, withdrawal := 100, 30\n\tif withdrawal <= balance {\n\t\tbalance += withdrawal\n\t}\n\tfmt.Println(balance)\n}\n",
+      "expected": "70\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tbalance, withdrawal := 100, 30\n\tif withdrawal <= balance {\n\t\tbalance -= withdrawal\n\t}\n\tfmt.Println(balance)\n}\n"
+    },
+    {
+      "id": "04-01-functions",
+      "chapter": "Chapter 4 · Functions",
+      "title": "Functions",
+      "instruction": "Functions package reusable behavior behind a name. Make greet return the requested greeting.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc greet() string {\n\treturn \"hello TODO\"\n}\n\nfunc main() {\n\tfmt.Println(greet())\n}\n",
+      "expected": "hello Go\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc greet() string {\n\treturn \"hello Go\"\n}\n\nfunc main() {\n\tfmt.Println(greet())\n}\n"
+    },
+    {
+      "id": "04-02-multiple-parameters",
+      "chapter": "Chapter 4 · Functions",
+      "title": "Multiple Parameters",
+      "instruction": "Parameters supply separate inputs to a function. Use both quantity and unitPrice to calculate the total.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc total(quantity, unitPrice int) int {\n\treturn unitPrice\n}\n\nfunc main() {\n\tfmt.Println(total(4, 6))\n}\n",
+      "expected": "24\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc total(quantity, unitPrice int) int {\n\treturn quantity * unitPrice\n}\n\nfunc main() {\n\tfmt.Println(total(4, 6))\n}\n"
+    },
+    {
+      "id": "04-03-unit-test-lessons",
+      "chapter": "Chapter 4 · Functions",
+      "title": "Unit Test Lessons",
+      "instruction": "A deterministic function is easy to test with known inputs and output. Correct add so the printed test case passes.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc add(a, b int) int {\n\treturn a - b\n}\n\nfunc main() {\n\tfmt.Println(add(3, 4))\n}\n",
+      "expected": "7\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc add(a, b int) int {\n\treturn a + b\n}\n\nfunc main() {\n\tfmt.Println(add(3, 4))\n}\n"
+    },
+    {
+      "id": "04-04-declaration-syntax",
+      "chapter": "Chapter 4 · Functions",
+      "title": "Declaration Syntax",
+      "instruction": "A function declaration names its parameters before its return type. Build the label from both declared parameters.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc label(name string, count int) string {\n\treturn name\n}\n\nfunc main() {\n\tfmt.Println(label(\"jobs\", 3))\n}\n",
+      "expected": "jobs: 3\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc label(name string, count int) string {\n\treturn fmt.Sprintf(\"%s: %d\", name, count)\n}\n\nfunc main() {\n\tfmt.Println(label(\"jobs\", 3))\n}\n"
+    },
+    {
+      "id": "04-05-passing-variables-by-value",
+      "chapter": "Chapter 4 · Functions",
+      "title": "Passing Variables by Value",
+      "instruction": "An int parameter receives a copy, so changing it does not change the caller's variable. Increment the local copy.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc increment(value int) {\n\tfmt.Println(\"inside\", value)\n}\n\nfunc main() {\n\tvalue := 5\n\tincrement(value)\n\tfmt.Println(\"outside\", value)\n}\n",
+      "expected": "inside 6\noutside 5\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc increment(value int) {\n\tvalue++\n\tfmt.Println(\"inside\", value)\n}\n\nfunc main() {\n\tvalue := 5\n\tincrement(value)\n\tfmt.Println(\"outside\", value)\n}\n"
+    },
+    {
+      "id": "04-06-ignoring-return-values",
+      "chapter": "Chapter 4 · Functions",
+      "title": "Ignoring Return Values",
+      "instruction": "Use the blank identifier when a returned value is intentionally unused. Ignore the remainder and print only the quotient.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc divide(a, b int) (int, int) {\n\treturn a / b, a % b\n}\n\nfunc main() {\n\tquotient, remainder := divide(10, 3)\n\tfmt.Println(quotient, remainder)\n}\n",
+      "expected": "3\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc divide(a, b int) (int, int) {\n\treturn a / b, a % b\n}\n\nfunc main() {\n\tquotient, _ := divide(10, 3)\n\tfmt.Println(quotient)\n}\n"
+    },
+    {
+      "id": "04-07-named-return-values",
+      "chapter": "Chapter 4 · Functions",
+      "title": "Named Return Values",
+      "instruction": "Named results are variables initialized to zero values. Assign width and height before the bare return.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc dimensions() (width, height int) {\n\twidth = 1\n\theight = 1\n\treturn\n}\n\nfunc main() {\n\tfmt.Println(dimensions())\n}\n",
+      "expected": "4 3\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc dimensions() (width, height int) {\n\twidth = 4\n\theight = 3\n\treturn\n}\n\nfunc main() {\n\tfmt.Println(dimensions())\n}\n"
+    },
+    {
+      "id": "04-08-the-benefits-of-named-returns",
+      "chapter": "Chapter 4 · Functions",
+      "title": "The Benefits of Named Returns",
+      "instruction": "Named results can clarify which of several same-typed values is returned. Assign the smaller value to min and the larger to max.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc bounds(a, b int) (min, max int) {\n\tmin, max = b, a\n\treturn\n}\n\nfunc main() {\n\tfmt.Println(bounds(2, 9))\n}\n",
+      "expected": "2 9\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc bounds(a, b int) (min, max int) {\n\tmin, max = a, b\n\treturn\n}\n\nfunc main() {\n\tfmt.Println(bounds(2, 9))\n}\n"
+    },
+    {
+      "id": "04-09-explicit-returns",
+      "chapter": "Chapter 4 · Functions",
+      "title": "Explicit Returns",
+      "instruction": "An explicit return states the result directly, even when the result is named. Return the square of value.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc square(value int) (result int) {\n\treturn 0\n}\n\nfunc main() {\n\tfmt.Println(square(8))\n}\n",
+      "expected": "64\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc square(value int) (result int) {\n\treturn value * value\n}\n\nfunc main() {\n\tfmt.Println(square(8))\n}\n"
+    },
+    {
+      "id": "04-10-early-returns",
+      "chapter": "Chapter 4 · Functions",
+      "title": "Early Returns",
+      "instruction": "An early return handles an exceptional case before the main path. Return missing when name is empty.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc status(name string) string {\n\treturn \"ok\"\n}\n\nfunc main() {\n\tfmt.Println(status(\"\"))\n}\n",
+      "expected": "missing\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc status(name string) string {\n\tif name == \"\" {\n\t\treturn \"missing\"\n\t}\n\treturn \"ok\"\n}\n\nfunc main() {\n\tfmt.Println(status(\"\"))\n}\n"
+    },
+    {
+      "id": "04-11-functions-as-values",
+      "chapter": "Chapter 4 · Functions",
+      "title": "Functions As Values",
+      "instruction": "A function can be assigned to a variable and called through it. Assign add as the selected operation.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc add(a, b int) int { return a + b }\nfunc subtract(a, b int) int { return a - b }\n\nfunc main() {\n\toperation := subtract\n\tfmt.Println(operation(5, 3))\n}\n",
+      "expected": "8\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc add(a, b int) int { return a + b }\nfunc subtract(a, b int) int { return a - b }\n\nfunc main() {\n\toperation := add\n\tfmt.Println(operation(5, 3))\n}\n"
+    },
+    {
+      "id": "04-12-anonymous-functions",
+      "chapter": "Chapter 4 · Functions",
+      "title": "Anonymous Functions",
+      "instruction": "An anonymous function defines behavior inline without a package-level name. Make the assigned function square its argument.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\ttransform := func(value int) int {\n\t\treturn value + value\n\t}\n\tfmt.Println(transform(5))\n}\n",
+      "expected": "25\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\ttransform := func(value int) int {\n\t\treturn value * value\n\t}\n\tfmt.Println(transform(5))\n}\n"
+    },
+    {
+      "id": "04-13-defer",
+      "chapter": "Chapter 4 · Functions",
+      "title": "Defer",
+      "instruction": "A deferred call runs when its surrounding function returns. Defer cleanup so it happens after work.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfmt.Println(\"cleanup\")\n\tfmt.Println(\"work\")\n}\n",
+      "expected": "work\ncleanup\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tdefer fmt.Println(\"cleanup\")\n\tfmt.Println(\"work\")\n}\n"
+    },
+    {
+      "id": "04-14-block-scope",
+      "chapter": "Chapter 4 · Functions",
+      "title": "Block Scope",
+      "instruction": "A variable declared inside a block can shadow an outer variable only within that block. Print the outer value after the block.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tlabel := \"outer\"\n\t{\n\t\tlabel := \"inner\"\n\t\tfmt.Println(label)\n\t}\n\t_ = label\n}\n",
+      "expected": "outer\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tlabel := \"outer\"\n\t{\n\t\tlabel := \"inner\"\n\t\t_ = label\n\t}\n\tfmt.Println(label)\n}\n"
+    },
+    {
+      "id": "04-15-processing-orders",
+      "chapter": "Chapter 4 · Functions",
+      "title": "Processing Orders",
+      "instruction": "Keep pricing logic in a function. Apply a ten-percent discount to the order amount.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc discounted(amount int) int {\n\treturn amount\n}\n\nfunc main() {\n\tfmt.Println(discounted(100))\n}\n",
+      "expected": "90\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc discounted(amount int) int {\n\treturn amount * 90 / 100\n}\n\nfunc main() {\n\tfmt.Println(discounted(100))\n}\n"
+    },
+    {
+      "id": "04-16-closures",
+      "chapter": "Chapter 4 · Functions",
+      "title": "Closures",
+      "instruction": "A closure retains variables from the environment where it was created. Keep count outside the returned function so calls accumulate.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc counter() func() int {\n\treturn func() int {\n\t\tcount := 0\n\t\tcount++\n\t\treturn count\n\t}\n}\n\nfunc main() {\n\tnext := counter()\n\tfmt.Println(next(), next())\n}\n",
+      "expected": "1 2\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc counter() func() int {\n\tcount := 0\n\treturn func() int {\n\t\tcount++\n\t\treturn count\n\t}\n}\n\nfunc main() {\n\tnext := counter()\n\tfmt.Println(next(), next())\n}\n"
+    },
+    {
+      "id": "04-17-currying",
+      "chapter": "Chapter 4 · Functions",
+      "title": "Currying",
+      "instruction": "A curried function captures one argument and returns a function that accepts the next. Make multiplier apply multiplication.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc multiplier(factor int) func(int) int {\n\treturn func(value int) int {\n\t\treturn factor + value\n\t}\n}\n\nfunc main() {\n\ttimesThree := multiplier(3)\n\tfmt.Println(timesThree(4))\n}\n",
+      "expected": "12\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc multiplier(factor int) func(int) int {\n\treturn func(value int) int {\n\t\treturn factor * value\n\t}\n}\n\nfunc main() {\n\ttimesThree := multiplier(3)\n\tfmt.Println(timesThree(4))\n}\n"
+    },
+    {
+      "id": "05-01-structs-in-go",
+      "chapter": "Chapter 5 · Structs",
+      "title": "Structs in Go",
+      "instruction": "A struct groups named fields into one value. Initialize Ada's age correctly.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype person struct {\n\tname string\n\tage  int\n}\n\nfunc main() {\n\tada := person{name: \"Ada\", age: 0}\n\tfmt.Println(ada.name, ada.age)\n}\n",
+      "expected": "Ada 36\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype person struct {\n\tname string\n\tage  int\n}\n\nfunc main() {\n\tada := person{name: \"Ada\", age: 36}\n\tfmt.Println(ada.name, ada.age)\n}\n"
+    },
+    {
+      "id": "05-02-nested-structs-in-go",
+      "chapter": "Chapter 5 · Structs",
+      "title": "Nested Structs in Go",
+      "instruction": "A struct field can contain another struct. Set the nested address city to Lahore.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype address struct { city string }\ntype user struct {\n\tname    string\n\taddress address\n}\n\nfunc main() {\n\tmember := user{name: \"Sam\", address: address{city: \"unknown\"}}\n\tfmt.Println(member.address.city)\n}\n",
+      "expected": "Lahore\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype address struct { city string }\ntype user struct {\n\tname    string\n\taddress address\n}\n\nfunc main() {\n\tmember := user{name: \"Sam\", address: address{city: \"Lahore\"}}\n\tfmt.Println(member.address.city)\n}\n"
+    },
+    {
+      "id": "05-03-anonymous-structs-in-go",
+      "chapter": "Chapter 5 · Structs",
+      "title": "Anonymous Structs in Go",
+      "instruction": "An anonymous struct is useful for a small one-off value. Complete the inline point without declaring a named type.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tpoint := struct {\n\t\tx int\n\t\ty int\n\t}{x: 2, y: 0}\n\tfmt.Println(point.x, point.y)\n}\n",
+      "expected": "2 5\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tpoint := struct {\n\t\tx int\n\t\ty int\n\t}{x: 2, y: 5}\n\tfmt.Println(point.x, point.y)\n}\n"
+    },
+    {
+      "id": "05-04-embedded-structs",
+      "chapter": "Chapter 5 · Structs",
+      "title": "Embedded Structs",
+      "instruction": "Embedding promotes an inner struct's fields to the outer value. Read the promoted name field directly from member.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype profile struct { name string }\ntype member struct { profile }\n\nfunc main() {\n\tvalue := member{profile: profile{name: \"Ada\"}}\n\tfmt.Println(value.profile)\n}\n",
+      "expected": "Ada\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype profile struct { name string }\ntype member struct { profile }\n\nfunc main() {\n\tvalue := member{profile: profile{name: \"Ada\"}}\n\tfmt.Println(value.name)\n}\n"
+    },
+    {
+      "id": "05-05-struct-methods-in-go",
+      "chapter": "Chapter 5 · Structs",
+      "title": "Struct Methods in Go",
+      "instruction": "A method associates behavior with a receiver type. Make rectangle.area use both receiver fields.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype rectangle struct { width, height int }\n\nfunc (r rectangle) area() int {\n\treturn r.width\n}\n\nfunc main() {\n\tfmt.Println(rectangle{width: 4, height: 3}.area())\n}\n",
+      "expected": "12\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype rectangle struct { width, height int }\n\nfunc (r rectangle) area() int {\n\treturn r.width * r.height\n}\n\nfunc main() {\n\tfmt.Println(rectangle{width: 4, height: 3}.area())\n}\n"
+    },
+    {
+      "id": "05-06-memory-layout",
+      "chapter": "Chapter 5 · Structs",
+      "title": "Memory Layout",
+      "instruction": "Field alignment can add padding to a struct. Group the byte fields after the int64 to reduce this value's size.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"unsafe\"\n)\n\ntype record struct {\n\tactive byte\n\tcount  int64\n\tlevel  byte\n}\n\nfunc main() {\n\tfmt.Println(unsafe.Sizeof(record{}))\n}\n",
+      "expected": "16\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"unsafe\"\n)\n\ntype record struct {\n\tcount  int64\n\tactive byte\n\tlevel  byte\n}\n\nfunc main() {\n\tfmt.Println(unsafe.Sizeof(record{}))\n}\n"
+    },
+    {
+      "id": "05-07-empty-struct",
+      "chapter": "Chapter 5 · Structs",
+      "title": "Empty Struct",
+      "instruction": "struct{} carries no data, so it is a useful map value for a set. Add go to the set.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tlanguages := map[string]struct{}{}\n\t_, exists := languages[\"go\"]\n\tfmt.Println(exists)\n}\n",
+      "expected": "true\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tlanguages := map[string]struct{}{\"go\": {}}\n\t_, exists := languages[\"go\"]\n\tfmt.Println(exists)\n}\n"
+    },
+    {
+      "id": "05-08-empty-struct-memory",
+      "chapter": "Chapter 5 · Structs",
+      "title": "Empty Struct Memory",
+      "instruction": "An empty struct has size zero because it stores no fields. Measure struct{} instead of an integer.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"unsafe\"\n)\n\nfunc main() {\n\tfmt.Println(unsafe.Sizeof(0))\n}\n",
+      "expected": "0\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"unsafe\"\n)\n\nfunc main() {\n\tfmt.Println(unsafe.Sizeof(struct{}{}))\n}\n"
+    },
+    {
+      "id": "05-09-update-users",
+      "chapter": "Chapter 5 · Structs",
+      "title": "Update Users",
+      "instruction": "Ranging over structs yields copies. Update each slice element by index so the stored user becomes active.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype user struct { active bool }\n\nfunc main() {\n\tusers := []user{{active: false}}\n\tfor _, item := range users {\n\t\titem.active = true\n\t}\n\tfmt.Println(users[0].active)\n}\n",
+      "expected": "true\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype user struct { active bool }\n\nfunc main() {\n\tusers := []user{{active: false}}\n\tfor i := range users {\n\t\tusers[i].active = true\n\t}\n\tfmt.Println(users[0].active)\n}\n"
+    },
+    {
+      "id": "05-10-send-message",
+      "chapter": "Chapter 5 · Structs",
+      "title": "Send Message",
+      "instruction": "A method can format data held by its struct receiver. Return recipient followed by the message body.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype message struct {\n\trecipient string\n\tbody      string\n}\n\nfunc (m message) send() string {\n\treturn m.body + \": \" + m.recipient\n}\n\nfunc main() {\n\tfmt.Println(message{recipient: \"Ada\", body: \"hello\"}.send())\n}\n",
+      "expected": "Ada: hello\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype message struct {\n\trecipient string\n\tbody      string\n}\n\nfunc (m message) send() string {\n\treturn m.recipient + \": \" + m.body\n}\n\nfunc main() {\n\tfmt.Println(message{recipient: \"Ada\", body: \"hello\"}.send())\n}\n"
+    },
+    {
+      "id": "06-01-interfaces-in-go",
+      "chapter": "Chapter 6 · Interfaces",
+      "title": "Interfaces in Go",
+      "instruction": "An interface describes behavior through method signatures. Make dog satisfy speaker by returning the sound its Speak method promises.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype speaker interface {\n\tSpeak() string\n}\n\ntype dog struct{}\n\nfunc (dog) Speak() string { return \"...\" }\n\nfunc say(value speaker) { fmt.Println(value.Speak()) }\n\nfunc main() { say(dog{}) }\n",
+      "expected": "woof\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype speaker interface {\n\tSpeak() string\n}\n\ntype dog struct{}\n\nfunc (dog) Speak() string { return \"woof\" }\n\nfunc say(value speaker) { fmt.Println(value.Speak()) }\n\nfunc main() { say(dog{}) }\n"
+    },
+    {
+      "id": "06-02-interface-implementation",
+      "chapter": "Chapter 6 · Interfaces",
+      "title": "Interface Implementation",
+      "instruction": "A type implements an interface when its method set matches. Complete rectangle.Area so it can be passed to printArea as a shape.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype shape interface { Area() int }\ntype rectangle struct{ width, height int }\n\nfunc (r rectangle) Area() int { return 0 }\nfunc printArea(value shape) { fmt.Println(value.Area()) }\n\nfunc main() { printArea(rectangle{width: 3, height: 4}) }\n",
+      "expected": "12\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype shape interface { Area() int }\ntype rectangle struct{ width, height int }\n\nfunc (r rectangle) Area() int { return r.width * r.height }\nfunc printArea(value shape) { fmt.Println(value.Area()) }\n\nfunc main() { printArea(rectangle{width: 3, height: 4}) }\n"
+    },
+    {
+      "id": "06-03-interfaces-are-implemented-implicitly",
+      "chapter": "Chapter 6 · Interfaces",
+      "title": "Interfaces Are Implemented Implicitly",
+      "instruction": "Go has no implements declaration. Give user the String method required by fmt.Stringer; the existing assignment then works automatically.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype user struct{ name string }\n\nfunc (u user) String() string { return \"unknown\" }\n\nfunc main() {\n\tvar value fmt.Stringer = user{name: \"Ada\"}\n\tfmt.Println(value.String())\n}\n",
+      "expected": "Ada\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype user struct{ name string }\n\nfunc (u user) String() string { return u.name }\n\nfunc main() {\n\tvar value fmt.Stringer = user{name: \"Ada\"}\n\tfmt.Println(value.String())\n}\n"
+    },
+    {
+      "id": "06-04-interfaces-quiz",
+      "chapter": "Chapter 6 · Interfaces",
+      "title": "Interfaces Quiz",
+      "instruction": "Interface satisfaction depends on exact method names and signatures. Rename Drive so car satisfies mover, then let the comma-ok assertion confirm it.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype mover interface{ Move() }\ntype car struct{}\n\nfunc (car) Drive() {}\n\nfunc main() {\n\tvar value any = car{}\n\t_, ok := value.(mover)\n\tfmt.Println(ok)\n}\n",
+      "expected": "true\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype mover interface{ Move() }\ntype car struct{}\n\nfunc (car) Move() {}\n\nfunc main() {\n\tvar value any = car{}\n\t_, ok := value.(mover)\n\tfmt.Println(ok)\n}\n"
+    },
+    {
+      "id": "06-05-multiple-interfaces",
+      "chapter": "Chapter 6 · Interfaces",
+      "title": "Multiple Interfaces",
+      "instruction": "Interfaces can embed other interfaces. Use both methods exposed by readWriter to copy the source text into the device before printing it.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype reader interface{ Read() string }\ntype writer interface{ Write(string) }\ntype readWriter interface {\n\treader\n\twriter\n}\n\ntype device struct{ text string }\nfunc (d *device) Read() string { return \"hello\" }\nfunc (d *device) Write(text string) { d.text = text }\n\nfunc copyText(value readWriter) { value.Write(\"\") }\n\nfunc main() {\n\td := &device{}\n\tcopyText(d)\n\tfmt.Println(\"stored:\", d.text)\n}\n",
+      "expected": "stored: hello\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype reader interface{ Read() string }\ntype writer interface{ Write(string) }\ntype readWriter interface {\n\treader\n\twriter\n}\n\ntype device struct{ text string }\nfunc (d *device) Read() string { return \"hello\" }\nfunc (d *device) Write(text string) { d.text = text }\n\nfunc copyText(value readWriter) { value.Write(value.Read()) }\n\nfunc main() {\n\td := &device{}\n\tcopyText(d)\n\tfmt.Println(\"stored:\", d.text)\n}\n"
+    },
+    {
+      "id": "06-06-name-your-interface-parameters",
+      "chapter": "Chapter 6 · Interfaces",
+      "title": "Name Your Interface Parameters",
+      "instruction": "A named interface parameter can be used like any other value. Name the fmt.Stringer parameter value and return its String result.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype profile string\nfunc (p profile) String() string { return string(p) }\n\nfunc describe(_ fmt.Stringer) string { return \"unknown\" }\n\nfunc main() { fmt.Println(\"profile:\", describe(profile(\"Ada\"))) }\n",
+      "expected": "profile: Ada\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype profile string\nfunc (p profile) String() string { return string(p) }\n\nfunc describe(value fmt.Stringer) string { return value.String() }\n\nfunc main() { fmt.Println(\"profile:\", describe(profile(\"Ada\"))) }\n"
+    },
+    {
+      "id": "06-07-type-assertions-in-go",
+      "chapter": "Chapter 6 · Interfaces",
+      "title": "Type Assertions in Go",
+      "instruction": "A comma-ok type assertion safely reveals an interface's concrete value. Assert the stored value as int instead of string.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvar value any = 42\n\tnumber, ok := value.(string)\n\tfmt.Println(number, ok)\n}\n",
+      "expected": "42 true\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvar value any = 42\n\tnumber, ok := value.(int)\n\tfmt.Println(number, ok)\n}\n"
+    },
+    {
+      "id": "06-08-type-switches",
+      "chapter": "Chapter 6 · Interfaces",
+      "title": "Type Switches",
+      "instruction": "A type switch selects behavior using an interface's concrete type. Add the case needed to classify the int value as number.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc kind(value any) string {\n\tswitch value.(type) {\n\tcase string:\n\t\treturn \"text\"\n\tdefault:\n\t\treturn \"unknown\"\n\t}\n}\n\nfunc main() { fmt.Println(kind(7)) }\n",
+      "expected": "number\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc kind(value any) string {\n\tswitch value.(type) {\n\tcase string:\n\t\treturn \"text\"\n\tcase int:\n\t\treturn \"number\"\n\tdefault:\n\t\treturn \"unknown\"\n\t}\n}\n\nfunc main() { fmt.Println(kind(7)) }\n"
+    },
+    {
+      "id": "06-09-clean-interfaces",
+      "chapter": "Chapter 6 · Interfaces",
+      "title": "Clean Interfaces",
+      "instruction": "Keep interfaces as small as their consumer needs. Read Count through the one-method counter interface instead of inventing a larger contract.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype counter interface{ Count() int }\ntype service struct{ requests int }\nfunc (s service) Count() int { return s.requests }\nfunc (service) Reset() {}\n\nfunc total(value counter) int { return 0 }\n\nfunc main() { fmt.Println(total(service{requests: 3})) }\n",
+      "expected": "3\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype counter interface{ Count() int }\ntype service struct{ requests int }\nfunc (s service) Count() int { return s.requests }\nfunc (service) Reset() {}\n\nfunc total(value counter) int { return value.Count() }\n\nfunc main() { fmt.Println(total(service{requests: 3})) }\n"
+    },
+    {
+      "id": "06-10-message-formatter",
+      "chapter": "Chapter 6 · Interfaces",
+      "title": "Message Formatter",
+      "instruction": "An interface lets callers use different formatting strategies. Implement markdown.Format so render can format the message without knowing the concrete type.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype formatter interface{ Format(string) string }\ntype markdown struct{}\nfunc (markdown) Format(text string) string { return text }\n\nfunc render(f formatter, text string) string { return f.Format(text) }\n\nfunc main() { fmt.Println(render(markdown{}, \"hello\")) }\n",
+      "expected": "**hello**\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype formatter interface{ Format(string) string }\ntype markdown struct{}\nfunc (markdown) Format(text string) string { return \"**\" + text + \"**\" }\n\nfunc render(f formatter, text string) string { return f.Format(text) }\n\nfunc main() { fmt.Println(render(markdown{}, \"hello\")) }\n"
+    },
+    {
+      "id": "06-11-process-notifications",
+      "chapter": "Chapter 6 · Interfaces",
+      "title": "Process Notifications",
+      "instruction": "A slice of interface values can hold different notifier types. Complete sms.Notify so process can dispatch both implementations uniformly.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype notifier interface{ Notify() string }\ntype email struct{ address string }\ntype sms struct{ number string }\nfunc (e email) Notify() string { return \"email:\" + e.address }\nfunc (s sms) Notify() string { return \"pending\" }\n\nfunc process(values []notifier) {\n\tfor _, value := range values { fmt.Println(value.Notify()) }\n}\n\nfunc main() { process([]notifier{email{\"ada@example.com\"}, sms{\"555\"}}) }\n",
+      "expected": "email:ada@example.com\nsms:555\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype notifier interface{ Notify() string }\ntype email struct{ address string }\ntype sms struct{ number string }\nfunc (e email) Notify() string { return \"email:\" + e.address }\nfunc (s sms) Notify() string { return \"sms:\" + s.number }\n\nfunc process(values []notifier) {\n\tfor _, value := range values { fmt.Println(value.Notify()) }\n}\n\nfunc main() { process([]notifier{email{\"ada@example.com\"}, sms{\"555\"}}) }\n"
+    },
+    {
+      "id": "07-01-the-error-interface",
+      "chapter": "Chapter 7 · Errors",
+      "title": "The Error Interface",
+      "instruction": "The error interface requires Error() string. Return the validation message so validationError behaves like a standard Go error.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype validationError struct{ message string }\nfunc (e validationError) Error() string { return \"invalid\" }\n\nfunc main() {\n\tvar err error = validationError{message: \"age must be positive\"}\n\tfmt.Println(err)\n}\n",
+      "expected": "age must be positive\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype validationError struct{ message string }\nfunc (e validationError) Error() string { return e.message }\n\nfunc main() {\n\tvar err error = validationError{message: \"age must be positive\"}\n\tfmt.Println(err)\n}\n"
+    },
+    {
+      "id": "07-02-formatting-strings-review",
+      "chapter": "Chapter 7 · Errors",
+      "title": "Formatting Strings Review",
+      "instruction": "Formatting verbs must match their values. Use %s for the user's name and %d for the attempt count.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tname, attempts := \"Ada\", 3\n\tfmt.Printf(\"%d failed after %s attempts\\n\", name, attempts)\n}\n",
+      "expected": "Ada failed after 3 attempts\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tname, attempts := \"Ada\", 3\n\tfmt.Printf(\"%s failed after %d attempts\\n\", name, attempts)\n}\n"
+    },
+    {
+      "id": "07-03-the-error-interface",
+      "chapter": "Chapter 7 · Errors",
+      "title": "The Error Interface",
+      "instruction": "Functions return error values so callers can handle failure explicitly. Return an error when the divisor is zero.",
+      "starter": "package main\n\nimport (\n\t\"errors\"\n\t\"fmt\"\n)\n\nfunc divide(a, b int) (int, error) {\n\tif b == 0 { return 0, nil }\n\treturn a / b, nil\n}\n\nfunc main() {\n\t_, err := divide(8, 0)\n\tif err != nil { fmt.Println(err) }\n}\n\nvar _ = errors.New\n",
+      "expected": "cannot divide by zero\n",
+      "solution": "package main\n\nimport (\n\t\"errors\"\n\t\"fmt\"\n)\n\nfunc divide(a, b int) (int, error) {\n\tif b == 0 { return 0, errors.New(\"cannot divide by zero\") }\n\treturn a / b, nil\n}\n\nfunc main() {\n\t_, err := divide(8, 0)\n\tif err != nil { fmt.Println(err) }\n}\n"
+    },
+    {
+      "id": "07-04-errors-quiz",
+      "chapter": "Chapter 7 · Errors",
+      "title": "Errors Quiz",
+      "instruction": "Wrapped errors preserve an underlying cause. Replace direct equality with errors.Is so the sentinel is recognized through the wrapper.",
+      "starter": "package main\n\nimport (\n\t\"errors\"\n\t\"fmt\"\n)\n\nvar errNotFound = errors.New(\"not found\")\n\nfunc main() {\n\terr := fmt.Errorf(\"load profile: %w\", errNotFound)\n\tfmt.Println(err == errNotFound)\n}\n",
+      "expected": "true\n",
+      "solution": "package main\n\nimport (\n\t\"errors\"\n\t\"fmt\"\n)\n\nvar errNotFound = errors.New(\"not found\")\n\nfunc main() {\n\terr := fmt.Errorf(\"load profile: %w\", errNotFound)\n\tfmt.Println(errors.Is(err, errNotFound))\n}\n"
+    },
+    {
+      "id": "07-05-the-errors-package",
+      "chapter": "Chapter 7 · Errors",
+      "title": "The Errors Package",
+      "instruction": "errors.New creates a simple error from a fixed message. Replace the placeholder with the failure the caller should receive.",
+      "starter": "package main\n\nimport (\n\t\"errors\"\n\t\"fmt\"\n)\n\nfunc loadConfig() error { return errors.New(\"TODO\") }\n\nfunc main() { fmt.Println(loadConfig()) }\n",
+      "expected": "config missing\n",
+      "solution": "package main\n\nimport (\n\t\"errors\"\n\t\"fmt\"\n)\n\nfunc loadConfig() error { return errors.New(\"config missing\") }\n\nfunc main() { fmt.Println(loadConfig()) }\n"
+    },
+    {
+      "id": "07-06-panic",
+      "chapter": "Chapter 7 · Errors",
+      "title": "Panic",
+      "instruction": "Panic stops normal execution and carries a value; reserve it for unrecoverable states. Panic with the message observed by the deferred recovery.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tdefer func() { fmt.Println(\"recovered:\", recover()) }()\n\tpanic(\"unknown\")\n}\n",
+      "expected": "recovered: impossible state\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tdefer func() { fmt.Println(\"recovered:\", recover()) }()\n\tpanic(\"impossible state\")\n}\n"
+    },
+    {
+      "id": "07-07-user-input",
+      "chapter": "Chapter 7 · Errors",
+      "title": "User Input",
+      "instruction": "fmt.Fscan parses whitespace-separated input and reports an error. Scan the provided reader into age before printing it.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tinput := strings.NewReader(\"27\")\n\tage := 0\n\t_ = input\n\tfmt.Println(\"age:\", age)\n}\n",
+      "expected": "age: 27\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tinput := strings.NewReader(\"27\")\n\tage := 0\n\tif _, err := fmt.Fscan(input, &age); err != nil {\n\t\tfmt.Println(err)\n\t\treturn\n\t}\n\tfmt.Println(\"age:\", age)\n}\n"
+    },
+    {
+      "id": "08-01-loops-in-go",
+      "chapter": "Chapter 8 · Loops",
+      "title": "Loops in Go",
+      "instruction": "Go's for loop repeats initialization, condition, and post steps. Include 4 when summing the integers from 1 through 4.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\ttotal := 0\n\tfor i := 1; i < 4; i++ { total += i }\n\tfmt.Println(total)\n}\n",
+      "expected": "10\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\ttotal := 0\n\tfor i := 1; i <= 4; i++ { total += i }\n\tfmt.Println(total)\n}\n"
+    },
+    {
+      "id": "08-02-omitting-conditions-from-a-for-loop-in-go",
+      "chapter": "Chapter 8 · Loops",
+      "title": "Omitting Conditions from a for Loop in Go",
+      "instruction": "A bare for loop repeats until control leaves it. Adjust the explicit break so the counter reaches 4.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tcount := 0\n\tfor {\n\t\tcount++\n\t\tif count == 3 { break }\n\t}\n\tfmt.Println(count)\n}\n",
+      "expected": "4\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tcount := 0\n\tfor {\n\t\tcount++\n\t\tif count == 4 { break }\n\t}\n\tfmt.Println(count)\n}\n"
+    },
+    {
+      "id": "08-03-there-is-no-while-loop-in-go",
+      "chapter": "Chapter 8 · Loops",
+      "title": "There Is No While Loop in Go",
+      "instruction": "Go expresses a while-style loop with for followed by one condition. Change the condition so it runs three times.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tcount := 0\n\tfor count < 2 { count++ }\n\tfmt.Println(count)\n}\n",
+      "expected": "3\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tcount := 0\n\tfor count < 3 { count++ }\n\tfmt.Println(count)\n}\n"
+    },
+    {
+      "id": "08-04-fizzbuzz",
+      "chapter": "Chapter 8 · Loops",
+      "title": "Fizzbuzz",
+      "instruction": "FizzBuzz combines iteration with divisibility checks. Print Fizz for multiples of 3 and Buzz for multiples of 5 from 1 through 5.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfor i := 1; i <= 5; i++ {\n\t\tfmt.Println(i)\n\t}\n}\n",
+      "expected": "1\n2\nFizz\n4\nBuzz\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfor i := 1; i <= 5; i++ {\n\t\tswitch {\n\t\tcase i%3 == 0:\n\t\t\tfmt.Println(\"Fizz\")\n\t\tcase i%5 == 0:\n\t\t\tfmt.Println(\"Buzz\")\n\t\tdefault:\n\t\t\tfmt.Println(i)\n\t\t}\n\t}\n}\n"
+    },
+    {
+      "id": "08-05-continue-break",
+      "chapter": "Chapter 8 · Loops",
+      "title": "Continue & Break",
+      "instruction": "continue skips the current iteration; break leaves the loop. Skip even numbers and stop after printing 5.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfor i := 1; i <= 7; i++ {\n\t\tif i > 5 { break }\n\t\tfmt.Println(i)\n\t}\n}\n",
+      "expected": "1\n3\n5\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfor i := 1; i <= 7; i++ {\n\t\tif i > 5 { break }\n\t\tif i%2 == 0 { continue }\n\t\tfmt.Println(i)\n\t}\n}\n"
+    },
+    {
+      "id": "08-06-connections",
+      "chapter": "Chapter 8 · Loops",
+      "title": "Connections",
+      "instruction": "Nested loops can visit every unique pair. Start the inner loop after the current index so four users produce six connections without duplicates or self-pairs.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tusers := []string{\"A\", \"B\", \"C\", \"D\"}\n\tconnections := 0\n\tfor i := range users {\n\t\tfor j := i; j < len(users); j++ { connections++ }\n\t}\n\tfmt.Println(connections)\n}\n",
+      "expected": "6\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tusers := []string{\"A\", \"B\", \"C\", \"D\"}\n\tconnections := 0\n\tfor i := range users {\n\t\tfor j := i + 1; j < len(users); j++ { connections++ }\n\t}\n\tfmt.Println(connections)\n}\n"
+    },
+    {
+      "id": "09-01-arrays-in-go",
+      "chapter": "Chapter 9 · Slices",
+      "title": "Arrays in Go",
+      "instruction": "An array has a fixed length that is part of its type. Include every element of the three-item array in the total.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvalues := [3]int{1, 2, 3}\n\tfmt.Println(values[0] + values[1])\n}\n",
+      "expected": "6\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvalues := [3]int{1, 2, 3}\n\tfmt.Println(values[0] + values[1] + values[2])\n}\n"
+    },
+    {
+      "id": "09-02-slices-in-go",
+      "chapter": "Chapter 9 · Slices",
+      "title": "Slices in Go",
+      "instruction": "A slice expression uses an exclusive upper bound. Slice positions 1 through 3 from values.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvalues := []int{1, 2, 3, 4, 5}\n\tfmt.Println(values[1:3])\n}\n",
+      "expected": "[2 3 4]\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvalues := []int{1, 2, 3, 4, 5}\n\tfmt.Println(values[1:4])\n}\n"
+    },
+    {
+      "id": "09-03-slices-review",
+      "chapter": "Chapter 9 · Slices",
+      "title": "Slices Review",
+      "instruction": "append returns the updated slice header. Assign its result back to values so the new element is visible.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvalues := []int{1, 2}\n\tappend(values, 3)\n\tfmt.Println(values)\n}\n",
+      "expected": "[1 2 3]\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvalues := []int{1, 2}\n\tvalues = append(values, 3)\n\tfmt.Println(values)\n}\n"
+    },
+    {
+      "id": "09-04-make",
+      "chapter": "Chapter 9 · Slices",
+      "title": "Make",
+      "instruction": "make creates a slice with a chosen length and zero values. Allocate three slots so all indexed assignments fit.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvalues := make([]int, 2)\n\tvalues[0], values[1] = 4, 5\n\tfmt.Println(len(values))\n}\n",
+      "expected": "3\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvalues := make([]int, 3)\n\tvalues[0], values[1], values[2] = 4, 5, 6\n\tfmt.Println(len(values))\n}\n"
+    },
+    {
+      "id": "09-05-len-and-cap-review",
+      "chapter": "Chapter 9 · Slices",
+      "title": "Len and Cap Review",
+      "instruction": "len counts accessible elements; cap counts the backing capacity from the slice start. Print both values for this allocation.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvalues := make([]int, 2, 5)\n\tfmt.Println(cap(values), cap(values))\n}\n",
+      "expected": "2 5\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvalues := make([]int, 2, 5)\n\tfmt.Println(len(values), cap(values))\n}\n"
+    },
+    {
+      "id": "09-06-variadic",
+      "chapter": "Chapter 9 · Slices",
+      "title": "Variadic",
+      "instruction": "A variadic parameter arrives as a slice. Range over values and return their sum instead of their count.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc sum(values ...int) int { return len(values) }\n\nfunc main() { fmt.Println(sum(1, 2, 3, 4)) }\n",
+      "expected": "10\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc sum(values ...int) int {\n\ttotal := 0\n\tfor _, value := range values { total += value }\n\treturn total\n}\n\nfunc main() { fmt.Println(sum(1, 2, 3, 4)) }\n"
+    },
+    {
+      "id": "09-07-append",
+      "chapter": "Chapter 9 · Slices",
+      "title": "Append",
+      "instruction": "append may produce a new slice header and backing array. Keep its returned slice when adding rust.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tlanguages := []string{\"go\"}\n\tappend(languages, \"rust\")\n\tfmt.Println(languages)\n}\n",
+      "expected": "[go rust]\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tlanguages := []string{\"go\"}\n\tlanguages = append(languages, \"rust\")\n\tfmt.Println(languages)\n}\n"
+    },
+    {
+      "id": "09-08-range",
+      "chapter": "Chapter 9 · Slices",
+      "title": "Range",
+      "instruction": "range yields an index followed by the element value. Sum the values, not their indexes.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvalues := []int{3, 4, 5}\n\ttotal := 0\n\tfor index := range values { total += index }\n\tfmt.Println(total)\n}\n",
+      "expected": "12\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvalues := []int{3, 4, 5}\n\ttotal := 0\n\tfor _, value := range values { total += value }\n\tfmt.Println(total)\n}\n"
+    },
+    {
+      "id": "09-09-slice-of-slices",
+      "chapter": "Chapter 9 · Slices",
+      "title": "Slice of Slices",
+      "instruction": "A slice can contain other slices, forming rows with independent lengths. Index the second row's third value.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tgrid := [][]int{{1, 2, 3}, {4, 5, 6}}\n\tfmt.Println(grid[0][1])\n}\n",
+      "expected": "6\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tgrid := [][]int{{1, 2, 3}, {4, 5, 6}}\n\tfmt.Println(grid[1][2])\n}\n"
+    },
+    {
+      "id": "09-10-tricky-slices",
+      "chapter": "Chapter 9 · Slices",
+      "title": "Tricky Slices",
+      "instruction": "Sub-slices normally share a backing array. Copy the first two values before editing the sub-slice so original remains unchanged.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\toriginal := []int{1, 2, 3}\n\tcopyOfFirstTwo := original[:2]\n\tcopyOfFirstTwo[0] = 9\n\tfmt.Println(original)\n}\n",
+      "expected": "[1 2 3]\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\toriginal := []int{1, 2, 3}\n\tcopyOfFirstTwo := append([]int(nil), original[:2]...)\n\tcopyOfFirstTwo[0] = 9\n\tfmt.Println(original)\n}\n"
+    },
+    {
+      "id": "09-11-message-filter",
+      "chapter": "Chapter 9 · Slices",
+      "title": "Message Filter",
+      "instruction": "Build a filtered slice by appending only allowed words. Exclude spam while preserving the other words' order.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc filter(words []string) []string {\n\tresult := []string{}\n\tfor _, word := range words { result = append(result, word) }\n\treturn result\n}\n\nfunc main() { fmt.Println(strings.Join(filter([]string{\"go\", \"spam\", \"is\", \"clear\"}), \" \")) }\n",
+      "expected": "go is clear\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc filter(words []string) []string {\n\tresult := []string{}\n\tfor _, word := range words {\n\t\tif word != \"spam\" { result = append(result, word) }\n\t}\n\treturn result\n}\n\nfunc main() { fmt.Println(strings.Join(filter([]string{\"go\", \"spam\", \"is\", \"clear\"}), \" \")) }\n"
+    },
+    {
+      "id": "09-12-password-strength",
+      "chapter": "Chapter 9 · Slices",
+      "title": "Password Strength",
+      "instruction": "A useful password check combines rules. Require at least eight runes and at least one digit; this all-letter password should be weak.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc strong(password string) bool { return len([]rune(password)) >= 8 }\n\nfunc main() {\n\tif strong(\"abcdefgh\") { fmt.Println(\"strong\") } else { fmt.Println(\"weak\") }\n}\n",
+      "expected": "weak\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"unicode\"\n)\n\nfunc strong(password string) bool {\n\trunes := []rune(password)\n\tif len(runes) < 8 { return false }\n\tfor _, value := range runes {\n\t\tif unicode.IsDigit(value) { return true }\n\t}\n\treturn false\n}\n\nfunc main() {\n\tif strong(\"abcdefgh\") { fmt.Println(\"strong\") } else { fmt.Println(\"weak\") }\n}\n"
+    },
+    {
+      "id": "09-13-message-tagger",
+      "chapter": "Chapter 9 · Slices",
+      "title": "Message Tagger",
+      "instruction": "Derive a slice of tags from message content. Add failure when the message contains failed while retaining the existing urgent tag.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc tags(message string) []string {\n\tresult := []string{}\n\tif strings.Contains(message, \"urgent\") { result = append(result, \"urgent\") }\n\treturn result\n}\n\nfunc main() { fmt.Println(tags(\"urgent: deploy failed\")) }\n",
+      "expected": "[urgent failure]\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc tags(message string) []string {\n\tresult := []string{}\n\tif strings.Contains(message, \"urgent\") { result = append(result, \"urgent\") }\n\tif strings.Contains(message, \"failed\") { result = append(result, \"failure\") }\n\treturn result\n}\n\nfunc main() { fmt.Println(tags(\"urgent: deploy failed\")) }\n"
+    },
+    {
+      "id": "10-01-maps",
+      "chapter": "Chapter 10 · Maps",
+      "title": "Maps",
+      "instruction": "A map associates unique keys with values. Build the map so looking up \"go\" reports its release year.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tyears := map[string]int{\"go\": 0}\n\tfmt.Println(years[\"go\"])\n}\n",
+      "expected": "2009\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tyears := map[string]int{\"go\": 2009}\n\tfmt.Println(years[\"go\"])\n}\n"
+    },
+    {
+      "id": "10-02-mutations",
+      "chapter": "Chapter 10 · Maps",
+      "title": "Mutations",
+      "instruction": "Map entries can be inserted, updated, and deleted. Update the active count and remove the obsolete key.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tcounts := map[string]int{\"active\": 1, \"obsolete\": 8}\n\tcounts[\"active\"] = 1\n\tfmt.Println(counts[\"active\"], len(counts))\n}\n",
+      "expected": "2 1\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tcounts := map[string]int{\"active\": 1, \"obsolete\": 8}\n\tcounts[\"active\"] = 2\n\tdelete(counts, \"obsolete\")\n\tfmt.Println(counts[\"active\"], len(counts))\n}\n"
+    },
+    {
+      "id": "10-03-key-types",
+      "chapter": "Chapter 10 · Maps",
+      "title": "Key Types",
+      "instruction": "Any comparable type can be a map key, including a struct whose fields are comparable. Look up the coordinate (2, 3).",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype point struct { x, y int }\n\nfunc main() {\n\tlabels := map[point]string{{2, 3}: \"target\"}\n\tfmt.Println(labels[point{3, 2}])\n}\n",
+      "expected": "target\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype point struct { x, y int }\n\nfunc main() {\n\tlabels := map[point]string{{2, 3}: \"target\"}\n\tfmt.Println(labels[point{2, 3}])\n}\n"
+    },
+    {
+      "id": "10-04-count-instances",
+      "chapter": "Chapter 10 · Maps",
+      "title": "Count Instances",
+      "instruction": "A frequency map counts repeated values in one pass. Count every occurrence of \"go\" in the slice.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\twords := []string{\"go\", \"rust\", \"go\", \"go\"}\n\tcounts := map[string]int{}\n\tfor _, word := range words {\n\t\tcounts[word] = 1\n\t}\n\tfmt.Println(counts[\"go\"])\n}\n",
+      "expected": "3\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\twords := []string{\"go\", \"rust\", \"go\", \"go\"}\n\tcounts := map[string]int{}\n\tfor _, word := range words {\n\t\tcounts[word]++\n\t}\n\tfmt.Println(counts[\"go\"])\n}\n"
+    },
+    {
+      "id": "10-05-effective-go",
+      "chapter": "Chapter 10 · Maps",
+      "title": "Effective Go",
+      "instruction": "A map lookup's second result distinguishes a missing key from a stored zero. Use the comma-ok form to report presence.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tlimits := map[string]int{\"free\": 0}\n\tvalue := limits[\"free\"]\n\tfmt.Println(value, value != 0)\n}\n",
+      "expected": "0 true\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tlimits := map[string]int{\"free\": 0}\n\tvalue, ok := limits[\"free\"]\n\tfmt.Println(value, ok)\n}\n"
+    },
+    {
+      "id": "10-06-nested",
+      "chapter": "Chapter 10 · Maps",
+      "title": "Nested",
+      "instruction": "Nested maps model two levels of lookup. Read the API service's production port.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tports := map[string]map[string]int{\"api\": {\"dev\": 3000, \"prod\": 8080}}\n\tfmt.Println(ports[\"api\"][\"dev\"])\n}\n",
+      "expected": "8080\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tports := map[string]map[string]int{\"api\": {\"dev\": 3000, \"prod\": 8080}}\n\tfmt.Println(ports[\"api\"][\"prod\"])\n}\n"
+    },
+    {
+      "id": "10-07-distinct-words",
+      "chapter": "Chapter 10 · Maps",
+      "title": "Distinct Words",
+      "instruction": "A map with empty-struct values works as a set without storing per-key data. Count the distinct words.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\twords := []string{\"read\", \"run\", \"read\", \"pass\"}\n\tseen := map[string]struct{}{}\n\tfor _, word := range words[:2] {\n\t\tseen[word] = struct{}{}\n\t}\n\tfmt.Println(len(seen))\n}\n",
+      "expected": "3\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\twords := []string{\"read\", \"run\", \"read\", \"pass\"}\n\tseen := map[string]struct{}{}\n\tfor _, word := range words {\n\t\tseen[word] = struct{}{}\n\t}\n\tfmt.Println(len(seen))\n}\n"
+    },
+    {
+      "id": "11-01-introduction-to-pointers",
+      "chapter": "Chapter 11 · Pointers",
+      "title": "Introduction to Pointers",
+      "instruction": "A pointer stores a value's address; prefixing it with * reads the value there. Print the pointed-to number.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvalue := 42\n\tpointer := &value\n\tfmt.Println(pointer == nil)\n}\n",
+      "expected": "42\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvalue := 42\n\tpointer := &value\n\tfmt.Println(*pointer)\n}\n"
+    },
+    {
+      "id": "11-02-references",
+      "chapter": "Chapter 11 · Pointers",
+      "title": "References",
+      "instruction": "A pointer refers to the same storage as its original variable. Assign through the pointer so both names observe 9.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tcount := 4\n\treference := &count\n\tcopy := *reference\n\tcopy = 9\n\tfmt.Println(count)\n}\n",
+      "expected": "9\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tcount := 4\n\treference := &count\n\t*reference = 9\n\tfmt.Println(count)\n}\n"
+    },
+    {
+      "id": "11-03-pass-by-reference",
+      "chapter": "Chapter 11 · Pointers",
+      "title": "Pass by Reference",
+      "instruction": "Go passes arguments by value, but a copied pointer still identifies the caller's value. Make swap exchange both integers.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc swap(a, b *int) {\n\ta, b = b, a\n}\n\nfunc main() {\n\ta, b := 2, 7\n\tswap(&a, &b)\n\tfmt.Println(a, b)\n}\n",
+      "expected": "7 2\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc swap(a, b *int) {\n\t*a, *b = *b, *a\n}\n\nfunc main() {\n\ta, b := 2, 7\n\tswap(&a, &b)\n\tfmt.Println(a, b)\n}\n"
+    },
+    {
+      "id": "11-04-pointers-quiz",
+      "chapter": "Chapter 11 · Pointers",
+      "title": "Pointers Quiz",
+      "instruction": "Two pointers are equal when they hold the same address. Point both variables at the same integer.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfirst, second := 5, 5\n\ta, b := &first, &second\n\tfmt.Println(a == b)\n}\n",
+      "expected": "true\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfirst := 5\n\ta, b := &first, &first\n\tfmt.Println(a == b)\n}\n"
+    },
+    {
+      "id": "11-05-nil-pointers",
+      "chapter": "Chapter 11 · Pointers",
+      "title": "Nil Pointers",
+      "instruction": "A nil pointer has no value to dereference. Guard the access and return the supplied fallback.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc valueOr(pointer *int, fallback int) int {\n\tif pointer == nil {\n\t\treturn 0\n\t}\n\treturn *pointer\n}\n\nfunc main() {\n\tfmt.Println(valueOr(nil, 12))\n}\n",
+      "expected": "12\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc valueOr(pointer *int, fallback int) int {\n\tif pointer == nil {\n\t\treturn fallback\n\t}\n\treturn *pointer\n}\n\nfunc main() {\n\tfmt.Println(valueOr(nil, 12))\n}\n"
+    },
+    {
+      "id": "11-06-pointer-receivers",
+      "chapter": "Chapter 11 · Pointers",
+      "title": "Pointer Receivers",
+      "instruction": "A method with a pointer receiver can mutate its value. Make increment persist the updated counter.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype counter int\n\nfunc (c counter) increment() { c++ }\n\nfunc main() {\n\tvalue := counter(3)\n\tvalue.increment()\n\tfmt.Println(value)\n}\n",
+      "expected": "4\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype counter int\n\nfunc (c *counter) increment() { (*c)++ }\n\nfunc main() {\n\tvalue := counter(3)\n\tvalue.increment()\n\tfmt.Println(value)\n}\n"
+    },
+    {
+      "id": "11-07-pointer-receiver-code",
+      "chapter": "Chapter 11 · Pointers",
+      "title": "Pointer Receiver Code",
+      "instruction": "Pointer-receiver methods can update multiple struct fields in place. Implement move so the point changes by the supplied deltas.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype point struct { x, y int }\n\nfunc (p *point) move(dx, dy int) {}\n\nfunc main() {\n\tp := point{2, 3}\n\tp.move(4, -1)\n\tfmt.Println(p.x, p.y)\n}\n",
+      "expected": "6 2\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype point struct { x, y int }\n\nfunc (p *point) move(dx, dy int) {\n\tp.x += dx\n\tp.y += dy\n}\n\nfunc main() {\n\tp := point{2, 3}\n\tp.move(4, -1)\n\tfmt.Println(p.x, p.y)\n}\n"
+    },
+    {
+      "id": "11-08-pointer-performance",
+      "chapter": "Chapter 11 · Pointers",
+      "title": "Pointer Performance",
+      "instruction": "Passing a pointer avoids copying a large value when read-only access is enough. Change checksum to accept the existing buffer by pointer.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype buffer [1024]int\n\nfunc checksum(data buffer) int { return data[0] + data[1023] }\n\nfunc main() {\n\tdata := buffer{}\n\tdata[0], data[1023] = 3, 8\n\tfmt.Println(checksum(buffer{}))\n}\n",
+      "expected": "11\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype buffer [1024]int\n\nfunc checksum(data *buffer) int { return data[0] + data[1023] }\n\nfunc main() {\n\tdata := buffer{}\n\tdata[0], data[1023] = 3, 8\n\tfmt.Println(checksum(&data))\n}\n"
+    },
+    {
+      "id": "11-09-update-balance",
+      "chapter": "Chapter 11 · Pointers",
+      "title": "Update Balance",
+      "instruction": "Use a pointer receiver when an operation must persist account state. Apply the deposit to the account's balance.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype account struct { balance int }\n\nfunc (a *account) deposit(amount int) {\n\tbalance := a.balance\n\tbalance += amount\n}\n\nfunc main() {\n\ta := account{balance: 40}\n\ta.deposit(15)\n\tfmt.Println(a.balance)\n}\n",
+      "expected": "55\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype account struct { balance int }\n\nfunc (a *account) deposit(amount int) {\n\ta.balance += amount\n}\n\nfunc main() {\n\ta := account{balance: 40}\n\ta.deposit(15)\n\tfmt.Println(a.balance)\n}\n"
+    },
+    {
+      "id": "12-01-packages",
+      "chapter": "Chapter 12 · Packages and Modules",
+      "title": "Packages",
+      "instruction": "Packages group reusable declarations behind an import path. Call the imported strings package to normalize the command.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tfmt.Println(strings.ToLower(\"go test\"))\n}\n",
+      "expected": "GO TEST\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tfmt.Println(strings.ToUpper(\"go test\"))\n}\n"
+    },
+    {
+      "id": "12-02-package-naming",
+      "chapter": "Chapter 12 · Packages and Modules",
+      "title": "Package Naming",
+      "instruction": "Code refers to an imported package by its declared name or an explicit alias. Use a short alias for strings and call it.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\ts \"strings\"\n)\n\nfunc main() {\n\tfmt.Println(s.ToUpper(\"api\"))\n}\n",
+      "expected": "api\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\ts \"strings\"\n)\n\nfunc main() {\n\tfmt.Println(s.TrimSpace(\"  api  \"))\n}\n"
+    },
+    {
+      "id": "12-03-install",
+      "chapter": "Chapter 12 · Packages and Modules",
+      "title": "Install",
+      "instruction": "go install builds a command and places its binary in the Go bin directory. Complete the command for a versioned tool.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tverb := \"get\"\n\tfmt.Println(\"go\", verb, \"example.com/tool@latest\")\n}\n",
+      "expected": "go install example.com/tool@latest\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tverb := \"install\"\n\tfmt.Println(\"go\", verb, \"example.com/tool@latest\")\n}\n"
+    },
+    {
+      "id": "12-04-modules",
+      "chapter": "Chapter 12 · Packages and Modules",
+      "title": "Modules",
+      "instruction": "A module identifies a collection of versioned Go packages. Complete the directive that begins a go.mod file.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tdirective := \"package\"\n\tfmt.Println(directive, \"example.com/learn\")\n}\n",
+      "expected": "module example.com/learn\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tdirective := \"module\"\n\tfmt.Println(directive, \"example.com/learn\")\n}\n"
+    },
+    {
+      "id": "12-05-go-environment",
+      "chapter": "Chapter 12 · Packages and Modules",
+      "title": "Go Environment",
+      "instruction": "go env reports configuration used by the Go toolchain. Select the variable that names the module-cache location.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvariables := []string{\"GOROOT\", \"GOMODCACHE\", \"GOPATH\"}\n\tfmt.Println(variables[0])\n}\n",
+      "expected": "GOMODCACHE\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvariables := []string{\"GOROOT\", \"GOMODCACHE\", \"GOPATH\"}\n\tfmt.Println(variables[1])\n}\n"
+    },
+    {
+      "id": "12-06-first-local-program",
+      "chapter": "Chapter 12 · Packages and Modules",
+      "title": "First Local Program",
+      "instruction": "An executable Go program uses package main and a main function. Make this local program print its greeting.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tmessage := \"not ready\"\n\tfmt.Println(message)\n}\n",
+      "expected": "hello locally\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tmessage := \"hello locally\"\n\tfmt.Println(message)\n}\n"
+    },
+    {
+      "id": "12-07-go-run",
+      "chapter": "Chapter 12 · Packages and Modules",
+      "title": "Go Run",
+      "instruction": "go run compiles and immediately executes named source files. Assemble the command that runs main.go.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tparts := []string{\"go\", \"build\", \"main.go\"}\n\tfmt.Println(strings.Join(parts, \" \"))\n}\n",
+      "expected": "go run main.go\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tparts := []string{\"go\", \"run\", \"main.go\"}\n\tfmt.Println(strings.Join(parts, \" \"))\n}\n"
+    },
+    {
+      "id": "12-08-go-build",
+      "chapter": "Chapter 12 · Packages and Modules",
+      "title": "Go Build",
+      "instruction": "go build compiles a package without installing it. Choose the command that creates an executable from the current module.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tcommands := []string{\"go test ./...\", \"go build .\"}\n\tfmt.Println(commands[0])\n}\n",
+      "expected": "go build .\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tcommands := []string{\"go test ./...\", \"go build .\"}\n\tfmt.Println(commands[1])\n}\n"
+    },
+    {
+      "id": "12-09-go-install",
+      "chapter": "Chapter 12 · Packages and Modules",
+      "title": "Go Install",
+      "instruction": "For the current command package, go install builds and copies the executable to GOBIN. Select that local-package form.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tcommands := map[string]string{\"build\": \"go build .\", \"install\": \"go install .\"}\n\tfmt.Println(commands[\"build\"])\n}\n",
+      "expected": "go install .\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tcommands := map[string]string{\"build\": \"go build .\", \"install\": \"go install .\"}\n\tfmt.Println(commands[\"install\"])\n}\n"
+    },
+    {
+      "id": "12-10-custom-package",
+      "chapter": "Chapter 12 · Packages and Modules",
+      "title": "Custom Package",
+      "instruction": "Exported package names begin with an uppercase letter. Rename the helper so code outside its package could call it.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc formatID(value int) string { return fmt.Sprintf(\"ID-%d\", 0) }\n\nfunc main() {\n\tfmt.Println(formatID(7))\n}\n",
+      "expected": "ID-7\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc FormatID(value int) string { return fmt.Sprintf(\"ID-%d\", value) }\n\nfunc main() {\n\tfmt.Println(FormatID(7))\n}\n"
+    },
+    {
+      "id": "12-11-custom-package-continued",
+      "chapter": "Chapter 12 · Packages and Modules",
+      "title": "Custom Package Continued",
+      "instruction": "Callers qualify an exported declaration with its package name. Model that boundary by routing main through the reusable formatter.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc formatUser(name string) string { return \"user:\" + name }\n\nfunc main() {\n\tfmt.Println(\"user:unknown\")\n}\n",
+      "expected": "user:ada\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc formatUser(name string) string { return \"user:\" + name }\n\nfunc main() {\n\tfmt.Println(formatUser(\"ada\"))\n}\n"
+    },
+    {
+      "id": "12-12-remote-packages",
+      "chapter": "Chapter 12 · Packages and Modules",
+      "title": "Remote Packages",
+      "instruction": "Remote import paths identify the module host and package location. Normalize the path without fetching it.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tpath := \"GITHUB.COM/GO-CHI/CHI/V5\"\n\tfmt.Println(strings.ToUpper(path))\n}\n",
+      "expected": "github.com/go-chi/chi/v5\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tpath := \"GITHUB.COM/GO-CHI/CHI/V5\"\n\tfmt.Println(strings.ToLower(path))\n}\n"
+    },
+    {
+      "id": "12-13-clean-packages",
+      "chapter": "Chapter 12 · Packages and Modules",
+      "title": "Clean Packages",
+      "instruction": "A focused package exposes a small API and keeps details private. Use the exported operation instead of duplicating its internal rule.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc Total(subtotal, tax int) int { return subtotal + tax }\n\nfunc main() {\n\tfmt.Println(20 + 0)\n}\n",
+      "expected": "25\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc Total(subtotal, tax int) int { return subtotal + tax }\n\nfunc main() {\n\tfmt.Println(Total(20, 5))\n}\n"
+    },
+    {
+      "id": "13-01-concurrency",
+      "chapter": "Chapter 13 · Channels",
+      "title": "Concurrency",
+      "instruction": "A goroutine runs independently; synchronization makes its result observable before main exits. Wait for the worker's message.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tdone := make(chan string, 1)\n\tgo func() { done <- \"worker done\" }()\n\tfmt.Println(\"main done\")\n}\n",
+      "expected": "worker done\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tdone := make(chan string, 1)\n\tgo func() { done <- \"worker done\" }()\n\tfmt.Println(<-done)\n}\n"
+    },
+    {
+      "id": "13-02-channels",
+      "chapter": "Chapter 13 · Channels",
+      "title": "Channels",
+      "instruction": "Channels transfer typed values between goroutines. Receive the value sent by the producer instead of printing a placeholder.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvalues := make(chan int, 1)\n\tvalues <- 8\n\tfmt.Println(0)\n}\n",
+      "expected": "8\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvalues := make(chan int, 1)\n\tvalues <- 8\n\tfmt.Println(<-values)\n}\n"
+    },
+    {
+      "id": "13-03-channels",
+      "chapter": "Chapter 13 · Channels",
+      "title": "Channels",
+      "instruction": "Directional channel parameters document whether a function sends or receives. Give produce a send-only channel parameter and use it.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc produce(output chan int) { output <- 21 }\n\nfunc main() {\n\tvalues := make(chan int, 1)\n\tvalues <- 0\n\tfmt.Println(<-values)\n}\n",
+      "expected": "21\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc produce(output chan<- int) { output <- 21 }\n\nfunc main() {\n\tvalues := make(chan int, 1)\n\tproduce(values)\n\tfmt.Println(<-values)\n}\n"
+    },
+    {
+      "id": "13-04-buffered-channels",
+      "chapter": "Chapter 13 · Channels",
+      "title": "Buffered Channels",
+      "instruction": "A buffered channel accepts values without an immediate receiver until its capacity is full. Buffer both sends, then receive their sum.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvalues := make(chan int, 1)\n\tvalues <- 4\n\tfmt.Println(<-values)\n}\n",
+      "expected": "9\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvalues := make(chan int, 2)\n\tvalues <- 4\n\tvalues <- 5\n\tfmt.Println(<-values + <-values)\n}\n"
+    },
+    {
+      "id": "13-05-closing-channels-in-go",
+      "chapter": "Chapter 13 · Channels",
+      "title": "Closing Channels in Go",
+      "instruction": "Receiving from a closed, drained channel returns its zero value and false. Close the channel before the second receive.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvalues := make(chan int, 1)\n\tvalues <- 7\n\tvalue, ok := <-values\n\tfmt.Println(value, ok)\n}\n",
+      "expected": "0 false\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvalues := make(chan int, 1)\n\tvalues <- 7\n\tclose(values)\n\t<-values\n\tvalue, ok := <-values\n\tfmt.Println(value, ok)\n}\n"
+    },
+    {
+      "id": "13-06-range",
+      "chapter": "Chapter 13 · Channels",
+      "title": "Range",
+      "instruction": "Ranging over a channel receives until that channel closes. Close the populated channel and total every value.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvalues := make(chan int, 3)\n\tvalues <- 2\n\tvalues <- 3\n\tvalues <- 4\n\tclose(values)\n\ttotal := 0\n\tfor value := range values {\n\t\ttotal = value\n\t}\n\tfmt.Println(total)\n}\n",
+      "expected": "9\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvalues := make(chan int, 3)\n\tvalues <- 2\n\tvalues <- 3\n\tvalues <- 4\n\tclose(values)\n\ttotal := 0\n\tfor value := range values {\n\t\ttotal += value\n\t}\n\tfmt.Println(total)\n}\n"
+    },
+    {
+      "id": "13-07-select",
+      "chapter": "Chapter 13 · Channels",
+      "title": "Select",
+      "instruction": "select waits until one channel operation can proceed. Receive the ready result and label its source.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfast := make(chan string, 1)\n\tslow := make(chan string)\n\tfast <- \"cached\"\n\tselect {\n\tcase value := <-slow:\n\t\tfmt.Println(\"slow\", value)\n\tdefault:\n\t\tfmt.Println(\"none\")\n\t}\n}\n",
+      "expected": "fast cached\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfast := make(chan string, 1)\n\tslow := make(chan string)\n\tfast <- \"cached\"\n\tselect {\n\tcase value := <-fast:\n\t\tfmt.Println(\"fast\", value)\n\tcase value := <-slow:\n\t\tfmt.Println(\"slow\", value)\n\t}\n}\n"
+    },
+    {
+      "id": "13-08-select-default-case",
+      "chapter": "Chapter 13 · Channels",
+      "title": "Select Default Case",
+      "instruction": "A default case makes select non-blocking when no communication is ready. Add the fallback behavior.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvalues := make(chan int)\n\tselect {\n\tcase value := <-values:\n\t\tfmt.Println(value)\n\tdefault:\n\t\tfmt.Println(\"waiting\")\n\t}\n}\n",
+      "expected": "no value ready\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvalues := make(chan int)\n\tselect {\n\tcase value := <-values:\n\t\tfmt.Println(value)\n\tdefault:\n\t\tfmt.Println(\"no value ready\")\n\t}\n}\n"
+    },
+    {
+      "id": "13-09-channels-review",
+      "chapter": "Chapter 13 · Channels",
+      "title": "Channels Review",
+      "instruction": "A channel pipeline connects concurrent stages while preserving type safety. Send three integers, close the input, and receive their squared total.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc squares(input <-chan int, output chan<- int) {\n\tfor value := range input {\n\t\toutput <- value\n\t}\n\tclose(output)\n}\n\nfunc main() {\n\tinput := make(chan int, 3)\n\toutput := make(chan int, 3)\n\tfor _, value := range []int{1, 2, 3} { input <- value }\n\tclose(input)\n\tsquares(input, output)\n\ttotal := 0\n\tfor value := range output { total += value }\n\tfmt.Println(total)\n}\n",
+      "expected": "14\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc squares(input <-chan int, output chan<- int) {\n\tfor value := range input {\n\t\toutput <- value * value\n\t}\n\tclose(output)\n}\n\nfunc main() {\n\tinput := make(chan int, 3)\n\toutput := make(chan int, 3)\n\tfor _, value := range []int{1, 2, 3} { input <- value }\n\tclose(input)\n\tsquares(input, output)\n\ttotal := 0\n\tfor value := range output { total += value }\n\tfmt.Println(total)\n}\n"
+    },
+    {
+      "id": "13-10-ping-pong",
+      "chapter": "Chapter 13 · Channels",
+      "title": "Ping Pong",
+      "instruction": "Two channels can coordinate a request and response between goroutines. Send ping to the worker and print its pong reply.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\trequests := make(chan string)\n\treplies := make(chan string)\n\tgo func() {\n\t\tmessage := <-requests\n\t\treplies <- message\n\t}()\n\trequests <- \"ping\"\n\tfmt.Println(<-replies)\n}\n",
+      "expected": "pong\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\trequests := make(chan string)\n\treplies := make(chan string)\n\tgo func() {\n\t\t<-requests\n\t\treplies <- \"pong\"\n\t}()\n\trequests <- \"ping\"\n\tfmt.Println(<-replies)\n}\n"
+    },
+    {
+      "id": "14-01-mutexes-in-go",
+      "chapter": "Chapter 14 · Mutexes",
+      "title": "Mutexes in Go",
+      "instruction": "A mutex protects shared state so only one goroutine changes it at a time. Lock the counter around each increment.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"sync\"\n)\n\ntype counter struct {\n\tmu sync.Mutex\n\tn  int\n}\n\nfunc (c *counter) increment() {\n\t// Protect and update n.\n}\n\nfunc main() {\n\tvar c counter\n\tvar wg sync.WaitGroup\n\tfor i := 0; i < 4; i++ {\n\t\twg.Add(1)\n\t\tgo func() {\n\t\t\tdefer wg.Done()\n\t\t\tc.increment()\n\t\t}()\n\t}\n\twg.Wait()\n\tfmt.Println(c.n)\n}\n",
+      "expected": "4\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"sync\"\n)\n\ntype counter struct {\n\tmu sync.Mutex\n\tn  int\n}\n\nfunc (c *counter) increment() {\n\tc.mu.Lock()\n\tdefer c.mu.Unlock()\n\tc.n++\n}\n\nfunc main() {\n\tvar c counter\n\tvar wg sync.WaitGroup\n\tfor i := 0; i < 4; i++ {\n\t\twg.Add(1)\n\t\tgo func() {\n\t\t\tdefer wg.Done()\n\t\t\tc.increment()\n\t\t}()\n\t}\n\twg.Wait()\n\tfmt.Println(c.n)\n}\n"
+    },
+    {
+      "id": "14-02-why-is-it-called-a-mutex",
+      "chapter": "Chapter 14 · Mutexes",
+      "title": "Why Is It Called a 'mutex'?",
+      "instruction": "Mutex means mutual exclusion: one caller enters the critical section while others wait. Guard the vault's balance update.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"sync\"\n)\n\ntype vault struct {\n\tmu      sync.Mutex\n\tbalance int\n}\n\nfunc (v *vault) deposit(amount int) {\n\t_ = amount\n}\n\nfunc main() {\n\tv := vault{balance: 10}\n\tv.deposit(5)\n\tfmt.Println(v.balance)\n}\n",
+      "expected": "15\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"sync\"\n)\n\ntype vault struct {\n\tmu      sync.Mutex\n\tbalance int\n}\n\nfunc (v *vault) deposit(amount int) {\n\tv.mu.Lock()\n\tdefer v.mu.Unlock()\n\tv.balance += amount\n}\n\nfunc main() {\n\tv := vault{balance: 10}\n\tv.deposit(5)\n\tfmt.Println(v.balance)\n}\n"
+    },
+    {
+      "id": "14-03-mutex-review",
+      "chapter": "Chapter 14 · Mutexes",
+      "title": "Mutex Review",
+      "instruction": "Keep a mutex beside the value it protects. Complete the safe score method, including a deferred unlock.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"sync\"\n)\n\ntype scoreboard struct {\n\tmu    sync.Mutex\n\tvalue int\n}\n\nfunc (s *scoreboard) add(points int) {\n\t_ = points\n}\n\nfunc main() {\n\ts := scoreboard{value: 7}\n\ts.add(3)\n\tfmt.Println(s.value)\n}\n",
+      "expected": "10\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"sync\"\n)\n\ntype scoreboard struct {\n\tmu    sync.Mutex\n\tvalue int\n}\n\nfunc (s *scoreboard) add(points int) {\n\ts.mu.Lock()\n\tdefer s.mu.Unlock()\n\ts.value += points\n}\n\nfunc main() {\n\ts := scoreboard{value: 7}\n\ts.add(3)\n\tfmt.Println(s.value)\n}\n"
+    },
+    {
+      "id": "14-04-rw-mutex",
+      "chapter": "Chapter 14 · Mutexes",
+      "title": "RW Mutex",
+      "instruction": "RWMutex separates shared reads from exclusive writes. Use a read lock while looking up the language.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"sync\"\n)\n\ntype registry struct {\n\tmu     sync.RWMutex\n\tvalues map[string]string\n}\n\nfunc (r *registry) lookup(key string) (string, bool) {\n\treturn \"\", false\n}\n\nfunc main() {\n\tr := registry{values: map[string]string{\"go\": \"fast\"}}\n\tvalue, ok := r.lookup(\"go\")\n\tfmt.Println(value, ok)\n}\n",
+      "expected": "fast true\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"sync\"\n)\n\ntype registry struct {\n\tmu     sync.RWMutex\n\tvalues map[string]string\n}\n\nfunc (r *registry) lookup(key string) (string, bool) {\n\tr.mu.RLock()\n\tdefer r.mu.RUnlock()\n\tvalue, ok := r.values[key]\n\treturn value, ok\n}\n\nfunc main() {\n\tr := registry{values: map[string]string{\"go\": \"fast\"}}\n\tvalue, ok := r.lookup(\"go\")\n\tfmt.Println(value, ok)\n}\n"
+    },
+    {
+      "id": "14-05-read-write-mutex-review",
+      "chapter": "Chapter 14 · Mutexes",
+      "title": "Read/Write Mutex Review",
+      "instruction": "Use RLock for cache reads and Lock for cache writes. Complete both methods without exposing the map unsafely.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"sync\"\n)\n\ntype cache struct {\n\tmu   sync.RWMutex\n\tdata map[string]int\n}\n\nfunc (c *cache) set(key string, value int) {\n\t_ = key\n\t_ = value\n}\n\nfunc (c *cache) get(key string) int {\n\treturn 0\n}\n\nfunc main() {\n\tc := cache{data: make(map[string]int)}\n\tc.set(\"lessons\", 15)\n\tfmt.Println(c.get(\"lessons\"))\n}\n",
+      "expected": "15\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"sync\"\n)\n\ntype cache struct {\n\tmu   sync.RWMutex\n\tdata map[string]int\n}\n\nfunc (c *cache) set(key string, value int) {\n\tc.mu.Lock()\n\tdefer c.mu.Unlock()\n\tc.data[key] = value\n}\n\nfunc (c *cache) get(key string) int {\n\tc.mu.RLock()\n\tdefer c.mu.RUnlock()\n\treturn c.data[key]\n}\n\nfunc main() {\n\tc := cache{data: make(map[string]int)}\n\tc.set(\"lessons\", 15)\n\tfmt.Println(c.get(\"lessons\"))\n}\n"
+    },
+    {
+      "id": "15-01-generics-in-go",
+      "chapter": "Chapter 15 · Generics",
+      "title": "Generics in Go",
+      "instruction": "Type parameters let one function work safely with many element types. Return the first value from any non-empty slice.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc first[T any](values []T) T {\n\treturn values[len(values)-1]\n}\n\nfunc main() {\n\tfmt.Println(first([]string{\"go\", \"rust\"}))\n}\n",
+      "expected": "go\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc first[T any](values []T) T {\n\treturn values[0]\n}\n\nfunc main() {\n\tfmt.Println(first([]string{\"go\", \"rust\"}))\n}\n"
+    },
+    {
+      "id": "15-02-why-generics",
+      "chapter": "Chapter 15 · Generics",
+      "title": "Why Generics?",
+      "instruction": "Generics remove duplicated algorithms while preserving concrete types. Complete one sum function that accepts integers or floats.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype number interface {\n\tint | float64\n}\n\nfunc sum[T number](values []T) T {\n\tvar total T\n\treturn total\n}\n\nfunc main() {\n\tfmt.Println(sum([]int{2, 3, 5}))\n}\n",
+      "expected": "10\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype number interface {\n\tint | float64\n}\n\nfunc sum[T number](values []T) T {\n\tvar total T\n\tfor _, value := range values {\n\t\ttotal += value\n\t}\n\treturn total\n}\n\nfunc main() {\n\tfmt.Println(sum([]int{2, 3, 5}))\n}\n"
+    },
+    {
+      "id": "15-03-constraints",
+      "chapter": "Chapter 15 · Generics",
+      "title": "Constraints",
+      "instruction": "A constraint defines the operations allowed for a type parameter. Permit integer-like types, then double the input.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype integer interface {\n\t~int\n}\n\nfunc double[T integer](value T) T {\n\treturn value\n}\n\ntype points int\n\nfunc main() {\n\tfmt.Println(double(points(6)))\n}\n",
+      "expected": "12\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype integer interface {\n\t~int\n}\n\nfunc double[T integer](value T) T {\n\treturn value * 2\n}\n\ntype points int\n\nfunc main() {\n\tfmt.Println(double(points(6)))\n}\n"
+    },
+    {
+      "id": "15-04-interface-type-lists",
+      "chapter": "Chapter 15 · Generics",
+      "title": "Interface Type Lists",
+      "instruction": "A type list forms a union of permitted underlying types. Complete abs for values based on int or int64.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype signed interface {\n\t~int | ~int64\n}\n\nfunc abs[T signed](value T) T {\n\treturn value\n}\n\nfunc main() {\n\tfmt.Println(abs(int64(-8)))\n}\n",
+      "expected": "8\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype signed interface {\n\t~int | ~int64\n}\n\nfunc abs[T signed](value T) T {\n\tif value < 0 {\n\t\treturn -value\n\t}\n\treturn value\n}\n\nfunc main() {\n\tfmt.Println(abs(int64(-8)))\n}\n"
+    },
+    {
+      "id": "15-05-parametric-constraints",
+      "chapter": "Chapter 15 · Generics",
+      "title": "Parametric Constraints",
+      "instruction": "Method constraints require each type argument to provide specific behavior. Render any value implementing fmt.Stringer.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype label string\n\nfunc (l label) String() string {\n\treturn string(l)\n}\n\nfunc render[T fmt.Stringer](value T) string {\n\treturn \"missing\"\n}\n\nfunc main() {\n\tfmt.Println(render(label(\"ready\")))\n}\n",
+      "expected": "ready\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype label string\n\nfunc (l label) String() string {\n\treturn string(l)\n}\n\nfunc render[T fmt.Stringer](value T) string {\n\treturn value.String()\n}\n\nfunc main() {\n\tfmt.Println(render(label(\"ready\")))\n}\n"
+    },
+    {
+      "id": "15-06-naming-generic-types",
+      "chapter": "Chapter 15 · Generics",
+      "title": "Naming Generic Types",
+      "instruction": "Short type-parameter names suit small scopes; descriptive names help longer declarations. Complete the reusable Stack[T] methods.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype Stack[T any] []T\n\nfunc (s *Stack[T]) Push(value T) {\n\t_ = value\n}\n\nfunc (s *Stack[T]) Pop() T {\n\tvar zero T\n\treturn zero\n}\n\nfunc main() {\n\tvar words Stack[string]\n\twords.Push(\"clear\")\n\tfmt.Println(words.Pop())\n}\n",
+      "expected": "clear\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype Stack[T any] []T\n\nfunc (s *Stack[T]) Push(value T) {\n\t*s = append(*s, value)\n}\n\nfunc (s *Stack[T]) Pop() T {\n\tlast := len(*s) - 1\n\tvalue := (*s)[last]\n\t*s = (*s)[:last]\n\treturn value\n}\n\nfunc main() {\n\tvar words Stack[string]\n\twords.Push(\"clear\")\n\tfmt.Println(words.Pop())\n}\n"
+    },
+    {
+      "id": "16-01-lack-of-enums",
+      "chapter": "Chapter 16 · Enums",
+      "title": "Lack of Enums",
+      "instruction": "Go models enum-like values with a named type and constants. Select the running status instead of an untyped number.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype status string\n\nconst (\n\tstatusReady   status = \"ready\"\n\tstatusRunning status = \"running\"\n)\n\nfunc main() {\n\tcurrent := statusReady\n\tfmt.Println(current)\n}\n",
+      "expected": "running\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype status string\n\nconst (\n\tstatusReady   status = \"ready\"\n\tstatusRunning status = \"running\"\n)\n\nfunc main() {\n\tcurrent := statusRunning\n\tfmt.Println(current)\n}\n"
+    },
+    {
+      "id": "16-02-type-definitions",
+      "chapter": "Chapter 16 · Enums",
+      "title": "Type Definitions",
+      "instruction": "A type definition creates a distinct type, preventing accidental mixing. Convert Celsius to Fahrenheit explicitly.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype Celsius float64\ntype Fahrenheit float64\n\nfunc toFahrenheit(value Celsius) Fahrenheit {\n\treturn Fahrenheit(value)\n}\n\nfunc main() {\n\tfmt.Println(toFahrenheit(20))\n}\n",
+      "expected": "68\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype Celsius float64\ntype Fahrenheit float64\n\nfunc toFahrenheit(value Celsius) Fahrenheit {\n\treturn Fahrenheit(value*9/5 + 32)\n}\n\nfunc main() {\n\tfmt.Println(toFahrenheit(20))\n}\n"
+    },
+    {
+      "id": "16-03-iota",
+      "chapter": "Chapter 16 · Enums",
+      "title": "Iota",
+      "instruction": "Within a const block, iota advances from zero. Use bit shifts to give each permission its own flag.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype permission uint\n\nconst (\n\tread permission = 0\n\twrite permission = 0\n\texecute permission = 0\n)\n\nfunc main() {\n\tfmt.Println(read | execute)\n}\n",
+      "expected": "5\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype permission uint\n\nconst (\n\tread permission = 1 << iota\n\twrite\n\texecute\n)\n\nfunc main() {\n\tfmt.Println(read | execute)\n}\n"
+    },
+    {
+      "id": "17-01-go-proverbs",
+      "chapter": "Chapter 17 · Quiz",
+      "title": "Go Proverbs",
+      "instruction": "Go proverbs express design guidance, not compiler rules. Complete the proverb that favors readable code over ingenuity.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc proverb() string {\n\treturn \"clever is better than clear\"\n}\n\nfunc main() {\n\tfmt.Println(proverb())\n}\n",
+      "expected": "clear is better than clever\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc proverb() string {\n\treturn \"clear is better than clever\"\n}\n\nfunc main() {\n\tfmt.Println(proverb())\n}\n"
+    }
+  ]
+}

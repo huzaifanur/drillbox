@@ -54,6 +54,7 @@ window.createGoEditor = ({ parent, onRun, onDiagnostics }) => {
         basicSetup,
         go(),
         oneDark,
+        EditorView.lineWrapping,
         lintGutter(),
         goLinter,
         EditorView.contentAttributes.of({ "aria-label": "Go code" }),

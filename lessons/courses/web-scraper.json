@@ -1,0 +1,124 @@
+{
+  "id": "web-scraper",
+  "title": "Build a Web Scraper in Go",
+  "description": "Build a concurrent web crawler with URL handling, local HTML fixtures, bounded traversal, and deterministic reports.",
+  "lessons": [
+    {
+      "id": "web-scraper-01-01-welcome",
+      "chapter": "Chapter 1 · Setup",
+      "title": "Welcome",
+      "instruction": "A crawler repeats a small pipeline: normalize a URL, fetch it, extract new URLs, then report what it found. Put those stages in execution order.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tstages := []string{\"fetch\", \"report\", \"normalize\", \"extract\"}\n\tfmt.Println(strings.Join(stages, \" -> \"))\n}\n",
+      "expected": "normalize -> fetch -> extract -> report\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tstages := []string{\"normalize\", \"fetch\", \"extract\", \"report\"}\n\tfmt.Println(strings.Join(stages, \" -> \"))\n}\n"
+    },
+    {
+      "id": "web-scraper-01-02-golang-setup",
+      "chapter": "Chapter 1 · Setup",
+      "title": "Golang Setup",
+      "instruction": "Reuse one http.Client for connection pooling and give it a timeout; the zero timeout can wait forever. Configure this client to stop after five seconds.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n)\n\nfunc main() {\n\tclient := &http.Client{}\n\tfmt.Println(client.Timeout)\n}\n",
+      "expected": "5s\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/http\"\n\t\"time\"\n)\n\nfunc main() {\n\tclient := &http.Client{Timeout: 5 * time.Second}\n\tfmt.Println(client.Timeout)\n}\n"
+    },
+    {
+      "id": "web-scraper-01-03-normalize-urls",
+      "chapter": "Chapter 1 · Setup",
+      "title": "Normalize URLs",
+      "instruction": "Resolve relative references against the page URL before deduplication. Fragments do not identify a different document, and host names are case-insensitive; remove the fragment and lowercase the host.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/url\"\n)\n\nfunc normalize(baseURL, raw string) string {\n\tbase, _ := url.Parse(baseURL)\n\treference, _ := url.Parse(raw)\n\treturn base.ResolveReference(reference).String()\n}\n\nfunc main() {\n\tfmt.Println(normalize(\"https://Example.com/guide/\", \"../docs/page?q=go#intro\"))\n}\n",
+      "expected": "https://example.com/docs/page?q=go\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"net/url\"\n\t\"strings\"\n)\n\nfunc normalize(baseURL, raw string) string {\n\tbase, _ := url.Parse(baseURL)\n\treference, _ := url.Parse(raw)\n\tresolved := base.ResolveReference(reference)\n\tresolved.Host = strings.ToLower(resolved.Host)\n\tresolved.Fragment = \"\"\n\treturn resolved.String()\n}\n\nfunc main() {\n\tfmt.Println(normalize(\"https://Example.com/guide/\", \"../docs/page?q=go#intro\"))\n}\n"
+    },
+    {
+      "id": "web-scraper-01-04-extract-page-content",
+      "chapter": "Chapter 1 · Setup",
+      "title": "Extract Page Content",
+      "instruction": "Visible page content excludes markup plus script and style text. This local fixture is valid XHTML so the standard XML tokenizer is enough here; real websites need a tolerant HTML tokenizer.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc visibleText(source string) string {\n\treturn strings.Join(strings.Fields(source), \" \" )\n}\n\nfunc main() {\n\tsource := `<html><body><h1>Go makes crawlers clear.</h1><script>ignore()</script></body></html>`\n\tfmt.Println(visibleText(source))\n}\n",
+      "expected": "Go makes crawlers clear.\n",
+      "solution": "package main\n\nimport (\n\t\"encoding/xml\"\n\t\"fmt\"\n\t\"io\"\n\t\"strings\"\n)\n\nfunc visibleText(source string) string {\n\tdecoder := xml.NewDecoder(strings.NewReader(source))\n\twords := []string{}\n\tignored := 0\n\tfor {\n\t\ttoken, err := decoder.Token()\n\t\tif err == io.EOF {\n\t\t\tbreak\n\t\t}\n\t\tif err != nil {\n\t\t\treturn \"\"\n\t\t}\n\t\tswitch value := token.(type) {\n\t\tcase xml.StartElement:\n\t\t\tif value.Name.Local == \"script\" || value.Name.Local == \"style\" {\n\t\t\t\tignored++\n\t\t\t}\n\t\tcase xml.EndElement:\n\t\t\tif (value.Name.Local == \"script\" || value.Name.Local == \"style\") && ignored > 0 {\n\t\t\t\tignored--\n\t\t\t}\n\t\tcase xml.CharData:\n\t\t\tif ignored == 0 {\n\t\t\t\twords = append(words, strings.Fields(string(value))...)\n\t\t\t}\n\t\t}\n\t}\n\treturn strings.Join(words, \" \" )\n}\n\nfunc main() {\n\tsource := `<html><body><h1>Go makes crawlers clear.</h1><script>ignore()</script></body></html>`\n\tfmt.Println(visibleText(source))\n}\n"
+    },
+    {
+      "id": "web-scraper-01-05-extract-links-and-images",
+      "chapter": "Chapter 1 · Setup",
+      "title": "Extract Links and Images",
+      "instruction": "Links and image sources may be relative. Resolve href and src values against the page URL, discard non-HTTP schemes, and clear fragments before adding them to the crawl frontier.",
+      "starter": "package main\n\nimport (\n\t\"encoding/xml\"\n\t\"fmt\"\n\t\"io\"\n\t\"strings\"\n)\n\nfunc absolute(_ string, raw string) string {\n\treturn raw\n}\n\nfunc assets(baseURL, source string) []string {\n\tdecoder := xml.NewDecoder(strings.NewReader(source))\n\tfound := []string{}\n\tfor {\n\t\ttoken, err := decoder.Token()\n\t\tif err == io.EOF {\n\t\t\treturn found\n\t\t}\n\t\tstart, ok := token.(xml.StartElement)\n\t\tif !ok {\n\t\t\tcontinue\n\t\t}\n\t\twanted := map[string]string{\"a\": \"href\", \"img\": \"src\"}[start.Name.Local]\n\t\tfor _, attribute := range start.Attr {\n\t\t\tif attribute.Name.Local == wanted {\n\t\t\t\tif item := absolute(baseURL, attribute.Value); item != \"\" {\n\t\t\t\t\tfound = append(found, item)\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n\nfunc main() {\n\tsource := `<main><a href=\"/docs#top\">Docs</a><a href=\"mailto:team@example.com\">Mail</a><img src=\"../logo.png\"/></main>`\n\tfor _, item := range assets(\"https://example.com/guides/start/\", source) {\n\t\tfmt.Println(item)\n\t}\n}\n",
+      "expected": "https://example.com/docs\nhttps://example.com/guides/logo.png\n",
+      "solution": "package main\n\nimport (\n\t\"encoding/xml\"\n\t\"fmt\"\n\t\"io\"\n\t\"net/url\"\n\t\"strings\"\n)\n\nfunc absolute(baseURL, raw string) string {\n\tbase, err := url.Parse(baseURL)\n\tif err != nil {\n\t\treturn \"\"\n\t}\n\treference, err := url.Parse(raw)\n\tif err != nil {\n\t\treturn \"\"\n\t}\n\tresolved := base.ResolveReference(reference)\n\tif resolved.Scheme != \"http\" && resolved.Scheme != \"https\" {\n\t\treturn \"\"\n\t}\n\tresolved.Fragment = \"\"\n\treturn resolved.String()\n}\n\nfunc assets(baseURL, source string) []string {\n\tdecoder := xml.NewDecoder(strings.NewReader(source))\n\tfound := []string{}\n\tfor {\n\t\ttoken, err := decoder.Token()\n\t\tif err == io.EOF {\n\t\t\treturn found\n\t\t}\n\t\tstart, ok := token.(xml.StartElement)\n\t\tif !ok {\n\t\t\tcontinue\n\t\t}\n\t\twanted := map[string]string{\"a\": \"href\", \"img\": \"src\"}[start.Name.Local]\n\t\tfor _, attribute := range start.Attr {\n\t\t\tif attribute.Name.Local == wanted {\n\t\t\t\tif item := absolute(baseURL, attribute.Value); item != \"\" {\n\t\t\t\t\tfound = append(found, item)\n\t\t\t\t}\n\t\t\t}\n\t\t}\n\t}\n}\n\nfunc main() {\n\tsource := `<main><a href=\"/docs#top\">Docs</a><a href=\"mailto:team@example.com\">Mail</a><img src=\"../logo.png\"/></main>`\n\tfor _, item := range assets(\"https://example.com/guides/start/\", source) {\n\t\tfmt.Println(item)\n\t}\n}\n"
+    },
+    {
+      "id": "web-scraper-01-06-structure-page-data",
+      "chapter": "Chapter 1 · Setup",
+      "title": "Structure Page Data",
+      "instruction": "A typed page record keeps extraction and reporting separate. Add JSON field names so the exported report has the lowercase keys consumers expect.",
+      "starter": "package main\n\nimport (\n\t\"encoding/json\"\n\t\"fmt\"\n)\n\ntype Page struct {\n\tURL   string\n\tTitle string\n\tLinks []string\n}\n\nfunc main() {\n\tpage := Page{URL: \"https://example.com\", Title: \"Go\", Links: []string{\"https://example.com/docs\"}}\n\tdata, _ := json.Marshal(page)\n\tfmt.Println(string(data))\n}\n",
+      "expected": "{\"url\":\"https://example.com\",\"title\":\"Go\",\"links\":[\"https://example.com/docs\"]}\n",
+      "solution": "package main\n\nimport (\n\t\"encoding/json\"\n\t\"fmt\"\n)\n\ntype Page struct {\n\tURL   string   `json:\"url\"`\n\tTitle string   `json:\"title\"`\n\tLinks []string `json:\"links\"`\n}\n\nfunc main() {\n\tpage := Page{URL: \"https://example.com\", Title: \"Go\", Links: []string{\"https://example.com/docs\"}}\n\tdata, _ := json.Marshal(page)\n\tfmt.Println(string(data))\n}\n"
+    },
+    {
+      "id": "web-scraper-02-01-main",
+      "chapter": "Chapter 2 · Crawling",
+      "title": "Main",
+      "instruction": "Keep command-line parsing separate from crawling so it is easy to test. Parse one seed URL plus the maximum page count, request timeout, and report path from the supplied arguments.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"time\"\n)\n\ntype config struct {\n\tSeed     string\n\tMaxPages int\n\tTimeout  time.Duration\n\tOutput   string\n}\n\nfunc parseConfig(_ []string) config {\n\treturn config{}\n}\n\nfunc main() {\n\targs := []string{\"-max-pages\", \"25\", \"-timeout\", \"3s\", \"-out\", \"report.json\", \"https://example.com\"}\n\tcfg := parseConfig(args)\n\tfmt.Println(cfg.Seed, cfg.MaxPages, cfg.Timeout, cfg.Output)\n}\n",
+      "expected": "https://example.com 25 3s report.json\n",
+      "solution": "package main\n\nimport (\n\t\"flag\"\n\t\"fmt\"\n\t\"io\"\n\t\"time\"\n)\n\ntype config struct {\n\tSeed     string\n\tMaxPages int\n\tTimeout  time.Duration\n\tOutput   string\n}\n\nfunc parseConfig(args []string) config {\n\tflags := flag.NewFlagSet(\"crawler\", flag.ContinueOnError)\n\tflags.SetOutput(io.Discard)\n\tmaxPages := flags.Int(\"max-pages\", 10, \"maximum pages\")\n\ttimeout := flags.Duration(\"timeout\", 5*time.Second, \"request timeout\")\n\toutput := flags.String(\"out\", \"report.json\", \"report path\")\n\tif flags.Parse(args) != nil || flags.NArg() != 1 {\n\t\treturn config{}\n\t}\n\treturn config{Seed: flags.Arg(0), MaxPages: *maxPages, Timeout: *timeout, Output: *output}\n}\n\nfunc main() {\n\targs := []string{\"-max-pages\", \"25\", \"-timeout\", \"3s\", \"-out\", \"report.json\", \"https://example.com\"}\n\tcfg := parseConfig(args)\n\tfmt.Println(cfg.Seed, cfg.MaxPages, cfg.Timeout, cfg.Output)\n}\n"
+    },
+    {
+      "id": "web-scraper-02-02-get-html",
+      "chapter": "Chapter 2 · Crawling",
+      "title": "Get HTML",
+      "instruction": "A fetch helper must close the response body, accept only successful HTML responses, and cap how much it reads. Fetch this local test server without touching the public network.",
+      "starter": "package main\n\nimport (\n\t\"errors\"\n\t\"fmt\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n)\n\nfunc getHTML(_ *http.Client, _ string) (string, error) {\n\treturn \"\", errors.New(\"not implemented\")\n}\n\nfunc main() {\n\tserver := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, _ *http.Request) {\n\t\twriter.Header().Set(\"Content-Type\", \"text/html; charset=utf-8\")\n\t\tfmt.Fprint(writer, \"<h1>local fixture</h1>\")\n\t}))\n\tdefer server.Close()\n\tbody, err := getHTML(server.Client(), server.URL)\n\tif err != nil {\n\t\tfmt.Println(err)\n\t\treturn\n\t}\n\tfmt.Println(body)\n}\n",
+      "expected": "<h1>local fixture</h1>\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"io\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n\t\"strings\"\n)\n\nfunc getHTML(client *http.Client, address string) (string, error) {\n\tresponse, err := client.Get(address)\n\tif err != nil {\n\t\treturn \"\", err\n\t}\n\tdefer response.Body.Close()\n\tif response.StatusCode < 200 || response.StatusCode >= 300 {\n\t\treturn \"\", fmt.Errorf(\"status %s\", response.Status)\n\t}\n\tif !strings.HasPrefix(response.Header.Get(\"Content-Type\"), \"text/html\") {\n\t\treturn \"\", fmt.Errorf(\"not HTML\")\n\t}\n\tbody, err := io.ReadAll(io.LimitReader(response.Body, 1025))\n\tif err != nil {\n\t\treturn \"\", err\n\t}\n\tif len(body) > 1024 {\n\t\treturn \"\", fmt.Errorf(\"page too large\")\n\t}\n\treturn string(body), nil\n}\n\nfunc main() {\n\tserver := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, _ *http.Request) {\n\t\twriter.Header().Set(\"Content-Type\", \"text/html; charset=utf-8\")\n\t\tfmt.Fprint(writer, \"<h1>local fixture</h1>\")\n\t}))\n\tdefer server.Close()\n\tbody, err := getHTML(server.Client(), server.URL)\n\tif err != nil {\n\t\tfmt.Println(err)\n\t\treturn\n\t}\n\tfmt.Println(body)\n}\n"
+    },
+    {
+      "id": "web-scraper-02-03-adding-recursion",
+      "chapter": "Chapter 2 · Crawling",
+      "title": "Adding Recursion",
+      "instruction": "Pages can link back to ancestors, so mark a URL visited before following its outgoing links. Complete the traversal so the cyclic local site graph visits each page once.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc crawl(graph map[string][]string, current string, seen map[string]bool, order *[]string) {\n\tif seen[current] {\n\t\treturn\n\t}\n\tseen[current] = true\n\t*order = append(*order, current)\n}\n\nfunc main() {\n\tgraph := map[string][]string{\"home\": {\"docs\"}, \"docs\": {\"api\"}, \"api\": {\"home\"}}\n\torder := []string{}\n\tcrawl(graph, \"home\", map[string]bool{}, &order)\n\tfmt.Println(strings.Join(order, \" \"))\n}\n",
+      "expected": "home docs api\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc crawl(graph map[string][]string, current string, seen map[string]bool, order *[]string) {\n\tif seen[current] {\n\t\treturn\n\t}\n\tseen[current] = true\n\t*order = append(*order, current)\n\tfor _, next := range graph[current] {\n\t\tcrawl(graph, next, seen, order)\n\t}\n}\n\nfunc main() {\n\tgraph := map[string][]string{\"home\": {\"docs\"}, \"docs\": {\"api\"}, \"api\": {\"home\"}}\n\torder := []string{}\n\tcrawl(graph, \"home\", map[string]bool{}, &order)\n\tfmt.Println(strings.Join(order, \" \"))\n}\n"
+    },
+    {
+      "id": "web-scraper-03-01-concurrency",
+      "chapter": "Chapter 3 · Concurrency",
+      "title": "Concurrency",
+      "instruction": "A fixed worker pool bounds simultaneous fetches and avoids one goroutine per discovered URL. Start two workers, feed them the local paths, and sort results before reporting so output stays deterministic.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"sort\"\n\t\"strings\"\n)\n\nfunc crawl(paths []string, _ int) ([]string, int) {\n\tresults := make([]string, 0, len(paths))\n\tfor _, path := range paths {\n\t\tresults = append(results, strings.ToUpper(path))\n\t}\n\tsort.Strings(results)\n\treturn results, 1\n}\n\nfunc main() {\n\tresults, workers := crawl([]string{\"/d\", \"/b\", \"/a\", \"/c\"}, 2)\n\tfmt.Printf(\"workers=%d %s\\n\", workers, strings.Join(results, \",\"))\n}\n",
+      "expected": "workers=2 /A,/B,/C,/D\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"sort\"\n\t\"strings\"\n\t\"sync\"\n)\n\nfunc crawl(paths []string, workerCount int) ([]string, int) {\n\tjobs := make(chan string)\n\tresults := make(chan string, len(paths))\n\tvar workers sync.WaitGroup\n\tfor worker := 0; worker < workerCount; worker++ {\n\t\tworkers.Add(1)\n\t\tgo func() {\n\t\t\tdefer workers.Done()\n\t\t\tfor path := range jobs {\n\t\t\t\tresults <- strings.ToUpper(path)\n\t\t\t}\n\t\t}()\n\t}\n\tfor _, path := range paths {\n\t\tjobs <- path\n\t}\n\tclose(jobs)\n\tworkers.Wait()\n\tclose(results)\n\tfound := make([]string, 0, len(paths))\n\tfor result := range results {\n\t\tfound = append(found, result)\n\t}\n\tsort.Strings(found)\n\treturn found, workerCount\n}\n\nfunc main() {\n\tresults, workers := crawl([]string{\"/d\", \"/b\", \"/a\", \"/c\"}, 2)\n\tfmt.Printf(\"workers=%d %s\\n\", workers, strings.Join(results, \",\"))\n}\n"
+    },
+    {
+      "id": "web-scraper-03-02-max-pages",
+      "chapter": "Chapter 3 · Concurrency",
+      "title": "Max Pages",
+      "instruction": "Reserve a page slot before fetching it. The duplicate check, limit check, and reservation must share one lock so concurrent workers cannot admit the same URL or exceed the maximum.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n\t\"sync\"\n)\n\ntype limiter struct {\n\tmu    sync.Mutex\n\tseen  map[string]bool\n\tcount int\n\tmax   int\n}\n\nfunc (limit *limiter) reserve(_ string) bool {\n\tlimit.mu.Lock()\n\tdefer limit.mu.Unlock()\n\tif limit.count >= limit.max {\n\t\treturn false\n\t}\n\treturn true\n}\n\nfunc main() {\n\tlimit := limiter{seen: map[string]bool{}, max: 3}\n\tadmitted := []string{}\n\tfor _, page := range []string{\"a\", \"b\", \"a\", \"c\", \"d\"} {\n\t\tif limit.reserve(page) {\n\t\t\tadmitted = append(admitted, page)\n\t\t}\n\t}\n\tfmt.Printf(\"%s count=%d\\n\", strings.Join(admitted, \",\"), limit.count)\n}\n",
+      "expected": "a,b,c count=3\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n\t\"sync\"\n)\n\ntype limiter struct {\n\tmu    sync.Mutex\n\tseen  map[string]bool\n\tcount int\n\tmax   int\n}\n\nfunc (limit *limiter) reserve(page string) bool {\n\tlimit.mu.Lock()\n\tdefer limit.mu.Unlock()\n\tif limit.seen[page] || limit.count >= limit.max {\n\t\treturn false\n\t}\n\tlimit.seen[page] = true\n\tlimit.count++\n\treturn true\n}\n\nfunc main() {\n\tlimit := limiter{seen: map[string]bool{}, max: 3}\n\tadmitted := []string{}\n\tfor _, page := range []string{\"a\", \"b\", \"a\", \"c\", \"d\"} {\n\t\tif limit.reserve(page) {\n\t\t\tadmitted = append(admitted, page)\n\t\t}\n\t}\n\tfmt.Printf(\"%s count=%d\\n\", strings.Join(admitted, \",\"), limit.count)\n}\n"
+    },
+    {
+      "id": "web-scraper-04-01-json-report",
+      "chapter": "Chapter 4 · Reporting",
+      "title": "JSON Report",
+      "instruction": "Concurrent crawls discover pages in an unpredictable order. Sort records by URL before JSON encoding so reports, diffs, and tests remain stable.",
+      "starter": "package main\n\nimport (\n\t\"encoding/json\"\n\t\"fmt\"\n)\n\ntype Page struct {\n\tURL   string `json:\"url\"`\n\tTitle string `json:\"title\"`\n}\n\nfunc report(pages []Page) string {\n\tdata, _ := json.Marshal(pages)\n\treturn string(data)\n}\n\nfunc main() {\n\tpages := []Page{{\"https://c.test\", \"C\"}, {\"https://a.test\", \"A\"}, {\"https://b.test\", \"B\"}}\n\tfmt.Println(report(pages))\n}\n",
+      "expected": "[{\"url\":\"https://a.test\",\"title\":\"A\"},{\"url\":\"https://b.test\",\"title\":\"B\"},{\"url\":\"https://c.test\",\"title\":\"C\"}]\n",
+      "solution": "package main\n\nimport (\n\t\"encoding/json\"\n\t\"fmt\"\n\t\"sort\"\n)\n\ntype Page struct {\n\tURL   string `json:\"url\"`\n\tTitle string `json:\"title\"`\n}\n\nfunc report(pages []Page) string {\n\tsort.Slice(pages, func(left, right int) bool {\n\t\treturn pages[left].URL < pages[right].URL\n\t})\n\tdata, _ := json.Marshal(pages)\n\treturn string(data)\n}\n\nfunc main() {\n\tpages := []Page{{\"https://c.test\", \"C\"}, {\"https://a.test\", \"A\"}, {\"https://b.test\", \"B\"}}\n\tfmt.Println(report(pages))\n}\n"
+    },
+    {
+      "id": "web-scraper-04-02-submit-the-link-to-your-repository",
+      "chapter": "Chapter 4 · Reporting",
+      "title": "Submit the Link to Your Repository!",
+      "instruction": "A shareable crawler needs safe defaults, tests, usage instructions, and a reproducible JSON report. Complete the final readiness check for the project configuration represented here.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"time\"\n)\n\ntype project struct {\n\tTimeout  time.Duration\n\tMaxPages int\n\tOutput   string\n\tHasTests bool\n}\n\nfunc ready(_ project) bool {\n\treturn false\n}\n\nfunc main() {\n\titem := project{Timeout: 5 * time.Second, MaxPages: 100, Output: \"report.json\", HasTests: true}\n\tif ready(item) {\n\t\tfmt.Println(\"ready\")\n\t} else {\n\t\tfmt.Println(\"not ready\")\n\t}\n}\n",
+      "expected": "ready\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n\t\"time\"\n)\n\ntype project struct {\n\tTimeout  time.Duration\n\tMaxPages int\n\tOutput   string\n\tHasTests bool\n}\n\nfunc ready(item project) bool {\n\treturn item.Timeout > 0 && item.MaxPages > 0 && strings.HasSuffix(item.Output, \".json\") && item.HasTests\n}\n\nfunc main() {\n\titem := project{Timeout: 5 * time.Second, MaxPages: 100, Output: \"report.json\", HasTests: true}\n\tif ready(item) {\n\t\tfmt.Println(\"ready\")\n\t} else {\n\t\tfmt.Println(\"not ready\")\n\t}\n}\n"
+    }
+  ]
+}

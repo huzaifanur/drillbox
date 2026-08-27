@@ -7,11 +7,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -40,6 +42,7 @@ func loadAuthoredCourse(path string) (course, []lesson, error) {
 	for i := range authored.Lessons {
 		authored.Lessons[i].CourseID = authored.ID
 		authored.Lessons[i].CourseTitle = authored.Title
+		authored.Lessons[i].LabID = authored.RequiredLab
 	}
 	return course{
 		ID:          authored.ID,
@@ -48,6 +51,43 @@ func loadAuthoredCourse(path string) (course, []lesson, error) {
 		LessonCount: len(authored.Lessons),
 		RequiredLab: authored.RequiredLab,
 	}, authored.Lessons, nil
+}
+
+func loadAuthoredCourses(dir string) ([]course, []lesson, error) {
+	paths, err := filepath.Glob(filepath.Join(dir, "*.json"))
+	if err != nil {
+		return nil, nil, fmt.Errorf("find authored courses: %w", err)
+	}
+	if len(paths) == 0 {
+		return nil, nil, fmt.Errorf("no authored courses found in %s", dir)
+	}
+	sort.Strings(paths)
+	seenCourses := make(map[string]bool, len(paths))
+	seenLessons := make(map[string]bool)
+	courses := make([]course, 0, len(paths))
+	var lessons []lesson
+	for _, path := range paths {
+		item, items, err := loadAuthoredCourse(path)
+		if err != nil {
+			return nil, nil, fmt.Errorf("%s: %w", path, err)
+		}
+		if seenCourses[item.ID] {
+			return nil, nil, fmt.Errorf("duplicate course id %q", item.ID)
+		}
+		seenCourses[item.ID] = true
+		for _, lesson := range items {
+			if lesson.ID == "" || lesson.Chapter == "" || lesson.Title == "" || lesson.Instruction == "" || lesson.Starter == "" {
+				return nil, nil, fmt.Errorf("%s contains an incomplete lesson", path)
+			}
+			if seenLessons[lesson.ID] {
+				return nil, nil, fmt.Errorf("duplicate lesson id %q", lesson.ID)
+			}
+			seenLessons[lesson.ID] = true
+		}
+		courses = append(courses, item)
+		lessons = append(lessons, items...)
+	}
+	return courses, lessons, nil
 }
 
 type labStep struct {
@@ -75,6 +115,11 @@ type labManager struct {
 	grafanaURL string
 	promURL    string
 	metricsURL string
+	jaegerURL  string
+	rabbitURL  string
+	minioURL   string
+	minioUIURL string
+	postgres   string
 	client     *http.Client
 	composeRun func(context.Context, ...string) ([]byte, error)
 
@@ -84,6 +129,7 @@ type labManager struct {
 	message string
 	steps   []labStep
 	started bool
+	profile string
 }
 
 func newLabManager(ctx context.Context) *labManager {
@@ -100,10 +146,14 @@ func newLabManager(ctx context.Context) *labManager {
 		grafanaURL: envOr("READ_RUN_GRAFANA_URL", "http://127.0.0.1:3001"),
 		promURL:    envOr("READ_RUN_PROMETHEUS_URL", "http://127.0.0.1:9090"),
 		metricsURL: envOr("READ_RUN_METRICS_URL", "http://127.0.0.1:8081"),
+		jaegerURL:  envOr("READ_RUN_JAEGER_URL", "http://127.0.0.1:16686"),
+		rabbitURL:  envOr("READ_RUN_RABBIT_URL", "http://127.0.0.1:15672"),
+		minioURL:   envOr("READ_RUN_MINIO_URL", "http://127.0.0.1:9000"),
+		minioUIURL: envOr("READ_RUN_MINIO_CONSOLE_URL", "http://127.0.0.1:9001"),
+		postgres:   envOr("READ_RUN_POSTGRES_ADDRESS", "127.0.0.1:5433"),
 		client:     &http.Client{Timeout: 2 * time.Second},
 		state:      "stopped",
-		message:    "The required Grafana lab is stopped.",
-		steps:      defaultLabSteps(),
+		message:    "The required lab is stopped.",
 	}
 }
 
@@ -114,96 +164,180 @@ func envOr(name, fallback string) string {
 	return fallback
 }
 
-func defaultLabSteps() []labStep {
-	return []labStep{{Name: "Go metrics"}, {Name: "Prometheus"}, {Name: "Grafana"}}
-}
-
-func (m *labManager) publicStatus() labStatus {
-	m.mu.Lock()
-	defer m.mu.Unlock()
-	steps := append([]labStep(nil), m.steps...)
-	return labStatus{
-		State:   m.state,
-		Message: m.message,
-		Steps:   steps,
-		Links: []labLink{
-			{Label: "Grafana", URL: m.grafanaURL},
-			{Label: "Prometheus", URL: m.promURL},
-			{Label: "Go metrics", URL: m.metricsURL + "/metrics"},
-		},
-		Credentials: map[string]string{"username": "admin", "password": "admin"},
+func labProfile(profile string) (steps []labStep, services []string, ok bool) {
+	switch profile {
+	case "grafana":
+		return []labStep{{Name: "Go metrics"}, {Name: "Prometheus"}, {Name: "Grafana"}}, []string{"metrics", "prometheus", "grafana"}, true
+	case "observability":
+		return []labStep{{Name: "Go metrics"}, {Name: "Prometheus"}, {Name: "Grafana"}, {Name: "Jaeger"}}, []string{"metrics", "prometheus", "grafana", "jaeger"}, true
+	case "pubsub":
+		return []labStep{{Name: "RabbitMQ"}}, []string{"rabbitmq"}, true
+	case "postgres":
+		return []labStep{{Name: "PostgreSQL"}}, []string{"postgres"}, true
+	case "object-storage":
+		return []labStep{{Name: "MinIO"}}, []string{"minio"}, true
+	default:
+		return nil, nil, false
 	}
 }
 
-func (m *labManager) statusHandler(w http.ResponseWriter, _ *http.Request) {
-	writeJSON(w, http.StatusOK, m.publicStatus())
-}
-
-func (m *labManager) startHandler(w http.ResponseWriter, _ *http.Request) {
-	m.start()
-	writeJSON(w, http.StatusAccepted, m.publicStatus())
-}
-
-func (m *labManager) start() {
+func (m *labManager) publicStatus(profile string) labStatus {
 	m.mu.Lock()
-	if m.state == "starting" || m.state == "ready" {
+	defer m.mu.Unlock()
+	if profile != m.profile {
+		steps, _, _ := labProfile(profile)
+		return labStatus{State: "stopped", Message: "The required lab is stopped.", Steps: steps, Links: m.links(profile), Credentials: m.credentials(profile)}
+	}
+	steps := append([]labStep(nil), m.steps...)
+	return labStatus{
+		State:       m.state,
+		Message:     m.message,
+		Steps:       steps,
+		Links:       m.links(profile),
+		Credentials: m.credentials(profile),
+	}
+}
+
+func (m *labManager) links(profile string) []labLink {
+	switch profile {
+	case "grafana":
+		return []labLink{{Label: "Grafana", URL: m.grafanaURL}, {Label: "Prometheus", URL: m.promURL}, {Label: "Go metrics", URL: m.metricsURL + "/metrics"}}
+	case "observability":
+		return []labLink{{Label: "Grafana", URL: m.grafanaURL}, {Label: "Prometheus", URL: m.promURL}, {Label: "Jaeger", URL: m.jaegerURL}}
+	case "pubsub":
+		return []labLink{{Label: "RabbitMQ", URL: m.rabbitURL}}
+	case "object-storage":
+		return []labLink{{Label: "MinIO", URL: m.minioUIURL}}
+	default:
+		return []labLink{}
+	}
+}
+
+func (m *labManager) credentials(profile string) map[string]string {
+	switch profile {
+	case "grafana":
+		return map[string]string{"username": "admin", "password": "admin"}
+	case "observability":
+		return map[string]string{"username": "admin", "password": "admin"}
+	case "pubsub":
+		return map[string]string{"username": "guest", "password": "guest"}
+	case "object-storage":
+		return map[string]string{"username": "drillbox", "password": "drillbox-local"}
+	case "postgres":
+		return map[string]string{"username": "drillbox", "password": "drillbox-local"}
+	default:
+		return nil
+	}
+}
+
+func (m *labManager) statusHandler(w http.ResponseWriter, r *http.Request) {
+	profile := r.PathValue("id")
+	if _, _, ok := labProfile(profile); !ok {
+		http.Error(w, "lab not found", http.StatusNotFound)
+		return
+	}
+	writeJSON(w, http.StatusOK, m.publicStatus(profile))
+}
+
+func (m *labManager) startHandler(w http.ResponseWriter, r *http.Request) {
+	profile := r.PathValue("id")
+	if _, _, ok := labProfile(profile); !ok {
+		http.Error(w, "lab not found", http.StatusNotFound)
+		return
+	}
+	m.start(profile)
+	writeJSON(w, http.StatusAccepted, m.publicStatus(profile))
+}
+
+func (m *labManager) start(profile string) {
+	steps, services, ok := labProfile(profile)
+	if !ok {
+		return
+	}
+	m.mu.Lock()
+	if m.profile == profile && (m.state == "starting" || m.state == "ready") {
 		m.mu.Unlock()
 		return
 	}
+	m.profile = profile
 	m.state = "starting"
 	m.message = "Starting Docker services. The first launch can take a few minutes."
-	m.steps = defaultLabSteps()
+	m.steps = steps
 	m.started = true
 	m.mu.Unlock()
 
 	go func() {
 		m.opMu.Lock()
 		defer m.opMu.Unlock()
-		if err := m.ensureState(); err != nil {
-			m.fail(err)
+		if profile == "grafana" || profile == "observability" {
+			if err := m.ensureState(); err != nil {
+				m.fail(profile, err)
+				return
+			}
+		}
+		args := append([]string{"--profile", profile, "up", "-d"}, services...)
+		if output, err := m.compose(m.ctx, args...); err != nil {
+			m.fail(profile, fmt.Errorf("Docker could not start the lab: %s", commandMessage(output, err)))
 			return
 		}
-		if output, err := m.compose(m.ctx, "up", "-d"); err != nil {
-			m.fail(fmt.Errorf("Docker could not start the lab: %s", commandMessage(output, err)))
+		if err := m.waitReady(m.ctx, profile, 2*time.Minute); err != nil {
+			m.fail(profile, err)
 			return
 		}
-		if err := m.waitReady(m.ctx, 2*time.Minute); err != nil {
-			m.fail(err)
-			return
+		if profile == "grafana" || profile == "observability" {
+			if output, err := m.compose(m.ctx, "exec", "-T", "grafana", "grafana", "cli", "admin", "reset-admin-password", "admin"); err != nil {
+				m.fail(profile, fmt.Errorf("Grafana credentials could not be prepared: %s", commandMessage(output, err)))
+				return
+			}
 		}
-		if output, err := m.compose(m.ctx, "exec", "-T", "grafana", "grafana", "cli", "admin", "reset-admin-password", "admin"); err != nil {
-			m.fail(fmt.Errorf("Grafana credentials could not be prepared: %s", commandMessage(output, err)))
-			return
+		readySteps, _, _ := labProfile(profile)
+		for i := range readySteps {
+			readySteps[i].Ready = true
 		}
 		m.mu.Lock()
+		if m.profile != profile {
+			m.mu.Unlock()
+			return
+		}
 		m.state = "ready"
-		m.message = "Grafana, Prometheus, and the Go metrics service are ready."
-		m.steps = []labStep{{Name: "Go metrics", Ready: true}, {Name: "Prometheus", Ready: true}, {Name: "Grafana", Ready: true}}
+		m.message = "The required Docker services are ready."
+		m.steps = readySteps
 		m.mu.Unlock()
 	}()
 }
 
-func (m *labManager) fail(err error) {
+func (m *labManager) fail(profile string, err error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	if m.profile != profile {
+		return
+	}
 	if errors.Is(err, context.Canceled) {
 		m.state = "stopped"
-		m.message = "The Grafana lab was stopped."
+		m.message = "The required lab was stopped."
 		return
 	}
 	m.state = "error"
 	m.message = err.Error()
 }
 
-func (m *labManager) waitReady(ctx context.Context, timeout time.Duration) error {
+func (m *labManager) waitReady(ctx context.Context, profile string, timeout time.Duration) error {
 	deadline := time.NewTimer(timeout)
 	defer deadline.Stop()
 	ticker := time.NewTicker(time.Second)
 	defer ticker.Stop()
 	for {
-		steps := m.probe(ctx)
 		m.mu.Lock()
-		m.steps = steps
+		current := m.profile == profile
+		m.mu.Unlock()
+		if !current {
+			return errors.New("lab startup was replaced by another course")
+		}
+		steps := m.probe(ctx, profile)
+		m.mu.Lock()
+		if m.profile == profile {
+			m.steps = steps
+		}
 		m.mu.Unlock()
 		ready := true
 		for _, step := range steps {
@@ -216,18 +350,37 @@ func (m *labManager) waitReady(ctx context.Context, timeout time.Duration) error
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-deadline.C:
-			return errors.New("the Grafana lab did not become healthy within two minutes")
+			return errors.New("the required lab did not become healthy within two minutes")
 		case <-ticker.C:
 		}
 	}
 }
 
-func (m *labManager) probe(ctx context.Context) []labStep {
-	return []labStep{
-		{Name: "Go metrics", Ready: m.getOK(ctx, m.metricsURL+"/metrics", nil)},
-		{Name: "Prometheus", Ready: m.getOK(ctx, m.promURL+"/-/ready", nil)},
-		{Name: "Grafana", Ready: m.getOK(ctx, m.grafanaURL+"/api/health", nil)},
+func (m *labManager) probe(ctx context.Context, profile string) []labStep {
+	switch profile {
+	case "grafana":
+		return []labStep{{Name: "Go metrics", Ready: m.getOK(ctx, m.metricsURL+"/metrics", nil)}, {Name: "Prometheus", Ready: m.getOK(ctx, m.promURL+"/-/ready", nil)}, {Name: "Grafana", Ready: m.getOK(ctx, m.grafanaURL+"/api/health", nil)}}
+	case "observability":
+		return []labStep{{Name: "Go metrics", Ready: m.getOK(ctx, m.metricsURL+"/metrics", nil)}, {Name: "Prometheus", Ready: m.getOK(ctx, m.promURL+"/-/ready", nil)}, {Name: "Grafana", Ready: m.getOK(ctx, m.grafanaURL+"/api/health", nil)}, {Name: "Jaeger", Ready: m.getOK(ctx, m.jaegerURL, nil)}}
+	case "pubsub":
+		return []labStep{{Name: "RabbitMQ", Ready: m.getOK(ctx, m.rabbitURL, nil)}}
+	case "postgres":
+		return []labStep{{Name: "PostgreSQL", Ready: m.tcpOK(ctx, m.postgres)}}
+	case "object-storage":
+		return []labStep{{Name: "MinIO", Ready: m.getOK(ctx, m.minioURL+"/minio/health/live", nil)}}
+	default:
+		return nil
 	}
+}
+
+func (m *labManager) tcpOK(ctx context.Context, address string) bool {
+	dialer := net.Dialer{Timeout: 2 * time.Second}
+	connection, err := dialer.DialContext(ctx, "tcp", address)
+	if err != nil {
+		return false
+	}
+	connection.Close()
+	return true
 }
 
 func (m *labManager) getOK(ctx context.Context, endpoint string, target any) bool {
@@ -275,15 +428,28 @@ func (m *labManager) stop() {
 	started := m.started
 	m.started = false
 	m.state = "stopped"
-	m.message = "The required Grafana lab is stopped."
-	m.steps = defaultLabSteps()
+	m.message = "The required lab is stopped."
+	m.steps = nil
+	m.profile = ""
 	m.mu.Unlock()
 	if !started {
 		return
 	}
+	m.opMu.Lock()
+	defer m.opMu.Unlock()
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	_, _ = m.compose(ctx, "down", "--timeout", "10")
+	args := []string{
+		"--profile", "grafana",
+		"--profile", "observability",
+		"--profile", "pubsub",
+		"--profile", "postgres",
+		"--profile", "object-storage",
+		"down", "--timeout", "10",
+	}
+	if output, err := m.compose(ctx, args...); err != nil {
+		fmt.Fprintf(os.Stderr, "Drillbox could not clean up course containers: %s\n", commandMessage(output, err))
+	}
 }
 
 func (m *labManager) ensureState() error {
@@ -320,11 +486,18 @@ func (m *labManager) ensureState() error {
 }
 
 func (m *labManager) runLesson(ctx context.Context, item lesson, input string) (string, bool, error) {
-	if m.publicStatus().State != "ready" {
-		return "", false, errors.New("the required Grafana lab is not ready")
+	profile := item.LabID
+	if profile == "" {
+		profile = "grafana"
+	}
+	if m.publicStatus(profile).State != "ready" {
+		return "", false, errors.New("the required lab is not ready")
 	}
 	switch lessonMode(item) {
 	case "lab":
+		if item.Validator == "service-ready" {
+			return m.checkServiceReady(ctx, profile)
+		}
 		return m.check(ctx, item.Validator, input)
 	case "promql":
 		return m.checkPromQL(ctx, item.Validator, input)
@@ -333,6 +506,19 @@ func (m *labManager) runLesson(ctx context.Context, item lesson, input string) (
 	default:
 		return "", false, fmt.Errorf("unsupported lesson mode %q", item.Mode)
 	}
+}
+
+func (m *labManager) checkServiceReady(ctx context.Context, profile string) (string, bool, error) {
+	steps := m.probe(ctx, profile)
+	if len(steps) == 0 {
+		return "", false, fmt.Errorf("unknown lab profile %q", profile)
+	}
+	for _, step := range steps {
+		if !step.Ready {
+			return "NOT YET · " + step.Name + " is not ready.", false, nil
+		}
+	}
+	return "PASS · The live " + profile + " services are ready.", true, nil
 }
 
 func (m *labManager) checkPromQL(ctx context.Context, validator, input string) (string, bool, error) {
@@ -369,6 +555,10 @@ func (m *labManager) checkPromQL(ctx context.Context, validator, input string) (
 }
 
 func (m *labManager) applyFile(ctx context.Context, item lesson, input string) (string, bool, error) {
+	profile := item.LabID
+	if profile == "" {
+		profile = "grafana"
+	}
 	clean := filepath.Clean(item.Workspace)
 	if clean == "." || filepath.IsAbs(clean) || strings.HasPrefix(clean, ".."+string(filepath.Separator)) {
 		return "", false, errors.New("lesson workspace path is not allowed")
@@ -399,11 +589,11 @@ func (m *labManager) applyFile(ctx context.Context, item lesson, input string) (
 		m.mu.Unlock()
 		output, err := m.compose(ctx, "restart", "grafana")
 		if err != nil {
-			m.fail(fmt.Errorf("Grafana restart failed: %s", commandMessage(output, err)))
+			m.fail(profile, fmt.Errorf("Grafana restart failed: %s", commandMessage(output, err)))
 			return "", false, errors.New("Grafana restart failed")
 		}
-		if err := m.waitReady(ctx, 60*time.Second); err != nil {
-			m.fail(err)
+		if err := m.waitReady(ctx, profile, 60*time.Second); err != nil {
+			m.fail(profile, err)
 			return "", false, err
 		}
 		m.mu.Lock()
@@ -500,7 +690,7 @@ func (m *labManager) check(ctx context.Context, validator, input string) (string
 		}
 		return fail("Grafana health is not ready.")
 	case "stack-ready":
-		for _, step := range m.probe(ctx) {
+		for _, step := range m.probe(ctx, "grafana") {
 			if !step.Ready {
 				return fail(step.Name + " is not ready.")
 			}

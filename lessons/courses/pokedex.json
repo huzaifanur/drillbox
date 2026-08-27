@@ -1,0 +1,124 @@
+{
+  "id": "pokedex",
+  "title": "Build a Pokedex in Go",
+  "description": "Build a command-line Pokedex while practicing APIs, caching, and Go application structure.",
+  "lessons": [
+    {
+      "id": "pokedex-01-01-welcome-to-build-a-pokedex",
+      "chapter": "Chapter 1 · REPL",
+      "title": "Welcome to Build a Pokedex",
+      "instruction": "A Pokedex CLI grows one command at a time. Add the missing catch command so the initial command list previews the core explore, catch, and inspect workflow.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tcommands := []string{\"explore\", \"inspect\"}\n\tfor _, command := range commands {\n\t\tfmt.Println(command)\n\t}\n}\n",
+      "expected": "explore\ncatch\ninspect\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tcommands := []string{\"explore\", \"catch\", \"inspect\"}\n\tfor _, command := range commands {\n\t\tfmt.Println(command)\n\t}\n}\n"
+    },
+    {
+      "id": "pokedex-01-02-build",
+      "chapter": "Chapter 1 · REPL",
+      "title": "Build",
+      "instruction": "Keep build metadata in code so a compiled binary can identify itself. Change the version constant to the first release value.",
+      "starter": "package main\n\nimport \"fmt\"\n\nconst version = \"dev\"\n\nfunc main() {\n\tfmt.Printf(\"pokedex %s\\n\", version)\n}\n",
+      "expected": "pokedex v1\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nconst version = \"v1\"\n\nfunc main() {\n\tfmt.Printf(\"pokedex %s\\n\", version)\n}\n"
+    },
+    {
+      "id": "pokedex-01-03-tests",
+      "chapter": "Chapter 1 · REPL",
+      "title": "Tests",
+      "instruction": "Deterministic helpers make command parsing easy to test. Normalize the fixture by trimming repeated whitespace and lowercasing every token.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc cleanInput(text string) []string {\n\treturn strings.Fields(text)\n}\n\nfunc main() {\n\tfmt.Println(strings.Join(cleanInput(\"  Catch   Pikachu  \"), \" \"))\n}\n",
+      "expected": "catch pikachu\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc cleanInput(text string) []string {\n\treturn strings.Fields(strings.ToLower(text))\n}\n\nfunc main() {\n\tfmt.Println(strings.Join(cleanInput(\"  Catch   Pikachu  \"), \" \"))\n}\n"
+    },
+    {
+      "id": "pokedex-01-04-repl",
+      "chapter": "Chapter 1 · REPL",
+      "title": "REPL",
+      "instruction": "Drive the read-evaluate loop from the local input fixture. Parse each line and print only the command name, ignoring its arguments.",
+      "starter": "package main\n\nimport (\n\t\"bufio\"\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tinput := strings.NewReader(\"help\\ninspect pikachu\\nexit\\n\")\n\tscanner := bufio.NewScanner(input)\n\tfor scanner.Scan() {\n\t\tfmt.Println(\">\", scanner.Text())\n\t}\n}\n",
+      "expected": "> help\n> inspect\n> exit\n",
+      "solution": "package main\n\nimport (\n\t\"bufio\"\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tinput := strings.NewReader(\"help\\ninspect pikachu\\nexit\\n\")\n\tscanner := bufio.NewScanner(input)\n\tfor scanner.Scan() {\n\t\tfields := strings.Fields(scanner.Text())\n\t\tif len(fields) == 0 {\n\t\t\tcontinue\n\t\t}\n\t\tfmt.Println(\">\", fields[0])\n\t}\n}\n"
+    },
+    {
+      "id": "pokedex-01-05-help-and-exit",
+      "chapter": "Chapter 1 · REPL",
+      "title": "Help and Exit",
+      "instruction": "A command registry keeps help discoverable and ordered. Add the exit command with its description to the registry printed by help.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype command struct {\n\tname, description string\n}\n\nfunc main() {\n\tcommands := []command{\n\t\t{name: \"help\", description: \"show commands\"},\n\t}\n\tfor _, cmd := range commands {\n\t\tfmt.Printf(\"%s: %s\\n\", cmd.name, cmd.description)\n\t}\n}\n",
+      "expected": "help: show commands\nexit: close the Pokedex\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype command struct {\n\tname, description string\n}\n\nfunc main() {\n\tcommands := []command{\n\t\t{name: \"help\", description: \"show commands\"},\n\t\t{name: \"exit\", description: \"close the Pokedex\"},\n\t}\n\tfor _, cmd := range commands {\n\t\tfmt.Printf(\"%s: %s\\n\", cmd.name, cmd.description)\n\t}\n}\n"
+    },
+    {
+      "id": "pokedex-02-01-state",
+      "chapter": "Chapter 2 · Cache",
+      "title": "State",
+      "instruction": "Command callbacks must mutate shared pagination state rather than copies. Pass the config by pointer so moving forward and back updates one value.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype config struct {\n\tpage int\n}\n\nfunc move(c config, delta int) {\n\tc.page += delta\n\tfmt.Println(\"page\", c.page)\n}\n\nfunc main() {\n\tc := config{page: 1}\n\tmove(c, 1)\n\tmove(c, -1)\n}\n",
+      "expected": "page 2\npage 1\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype config struct {\n\tpage int\n}\n\nfunc move(c *config, delta int) {\n\tc.page += delta\n\tfmt.Println(\"page\", c.page)\n}\n\nfunc main() {\n\tc := config{page: 1}\n\tmove(&c, 1)\n\tmove(&c, -1)\n}\n"
+    },
+    {
+      "id": "pokedex-02-02-pokeapi",
+      "chapter": "Chapter 2 · Cache",
+      "title": "PokeAPI",
+      "instruction": "Use an in-process HTTP fixture instead of the public PokeAPI. Request the location-area endpoint, check the response status, decode its JSON, and print both names.",
+      "starter": "package main\n\nimport (\n\t\"encoding/json\"\n\t\"fmt\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n)\n\ntype response struct {\n\tResults []struct {\n\t\tName string `json:\"name\"`\n\t} `json:\"results\"`\n}\n\nfunc main() {\n\tserver := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {\n\t\tif r.URL.Path != \"/api/v2/location-area\" {\n\t\t\thttp.NotFound(w, r)\n\t\t\treturn\n\t\t}\n\t\tfmt.Fprint(w, `{\"results\":[{\"name\":\"canalave-city-area\"},{\"name\":\"eterna-city-area\"}]}`)\n\t}))\n\tdefer server.Close()\n\n\tres, _ := http.Get(server.URL + \"/wrong\")\n\tdefer res.Body.Close()\n\tvar payload response\n\t_ = json.NewDecoder(res.Body).Decode(&payload)\n\tfor _, area := range payload.Results {\n\t\tfmt.Println(area.Name)\n\t}\n}\n",
+      "expected": "canalave-city-area\neterna-city-area\n",
+      "solution": "package main\n\nimport (\n\t\"encoding/json\"\n\t\"fmt\"\n\t\"net/http\"\n\t\"net/http/httptest\"\n)\n\ntype response struct {\n\tResults []struct {\n\t\tName string `json:\"name\"`\n\t} `json:\"results\"`\n}\n\nfunc main() {\n\tserver := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {\n\t\tif r.URL.Path != \"/api/v2/location-area\" {\n\t\t\thttp.NotFound(w, r)\n\t\t\treturn\n\t\t}\n\t\tfmt.Fprint(w, `{\"results\":[{\"name\":\"canalave-city-area\"},{\"name\":\"eterna-city-area\"}]}`)\n\t}))\n\tdefer server.Close()\n\n\tres, err := http.Get(server.URL + \"/api/v2/location-area\")\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tdefer res.Body.Close()\n\tif res.StatusCode != http.StatusOK {\n\t\tpanic(res.Status)\n\t}\n\tvar payload response\n\tif err := json.NewDecoder(res.Body).Decode(&payload); err != nil {\n\t\tpanic(err)\n\t}\n\tfor _, area := range payload.Results {\n\t\tfmt.Println(area.Name)\n\t}\n}\n"
+    },
+    {
+      "id": "pokedex-02-03-caching",
+      "chapter": "Chapter 2 · Cache",
+      "title": "Caching",
+      "instruction": "Complete the local TTL cache. A value is a hit only when its key exists and the fixture clock has not reached its expiration time.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype entry struct {\n\tvalue     string\n\texpiresAt int\n}\n\ntype cache map[string]entry\n\nfunc (c cache) get(key string, now int) (string, bool) {\n\treturn \"\", false\n}\n\nfunc main() {\n\tc := cache{}\n\tif _, ok := c.get(\"pokemon/25\", 0); !ok {\n\t\tfmt.Println(\"miss\")\n\t}\n\tc[\"pokemon/25\"] = entry{value: \"pikachu\", expiresAt: 10}\n\tif value, ok := c.get(\"pokemon/25\", 5); ok {\n\t\tfmt.Println(\"hit\", value)\n\t}\n\tif _, ok := c.get(\"pokemon/25\", 10); !ok {\n\t\tfmt.Println(\"expired\")\n\t}\n}\n",
+      "expected": "miss\nhit pikachu\nexpired\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype entry struct {\n\tvalue     string\n\texpiresAt int\n}\n\ntype cache map[string]entry\n\nfunc (c cache) get(key string, now int) (string, bool) {\n\titem, ok := c[key]\n\tif !ok || now >= item.expiresAt {\n\t\treturn \"\", false\n\t}\n\treturn item.value, true\n}\n\nfunc main() {\n\tc := cache{}\n\tif _, ok := c.get(\"pokemon/25\", 0); !ok {\n\t\tfmt.Println(\"miss\")\n\t}\n\tc[\"pokemon/25\"] = entry{value: \"pikachu\", expiresAt: 10}\n\tif value, ok := c.get(\"pokemon/25\", 5); ok {\n\t\tfmt.Println(\"hit\", value)\n\t}\n\tif _, ok := c.get(\"pokemon/25\", 10); !ok {\n\t\tfmt.Println(\"expired\")\n\t}\n}\n"
+    },
+    {
+      "id": "pokedex-02-04-explore",
+      "chapter": "Chapter 2 · Cache",
+      "title": "Explore",
+      "instruction": "Decode the local location-area fixture. Match its nested encounter shape so explore prints every Pokémon found in the area.",
+      "starter": "package main\n\nimport (\n\t\"encoding/json\"\n\t\"fmt\"\n\t\"strings\"\n)\n\ntype area struct {\n\tEncounters []struct {\n\t\tPokemon struct {\n\t\t\tName string `json:\"wrong\"`\n\t\t} `json:\"pokemon\"`\n\t} `json:\"pokemon_encounters\"`\n}\n\nfunc main() {\n\tfixture := `{\"pokemon_encounters\":[{\"pokemon\":{\"name\":\"tentacool\"}},{\"pokemon\":{\"name\":\"starly\"}}]}`\n\tvar result area\n\t_ = json.NewDecoder(strings.NewReader(fixture)).Decode(&result)\n\tfor _, encounter := range result.Encounters {\n\t\tfmt.Println(encounter.Pokemon.Name)\n\t}\n}\n",
+      "expected": "tentacool\nstarly\n",
+      "solution": "package main\n\nimport (\n\t\"encoding/json\"\n\t\"fmt\"\n\t\"strings\"\n)\n\ntype area struct {\n\tEncounters []struct {\n\t\tPokemon struct {\n\t\t\tName string `json:\"name\"`\n\t\t} `json:\"pokemon\"`\n\t} `json:\"pokemon_encounters\"`\n}\n\nfunc main() {\n\tfixture := `{\"pokemon_encounters\":[{\"pokemon\":{\"name\":\"tentacool\"}},{\"pokemon\":{\"name\":\"starly\"}}]}`\n\tvar result area\n\tif err := json.NewDecoder(strings.NewReader(fixture)).Decode(&result); err != nil {\n\t\tpanic(err)\n\t}\n\tfor _, encounter := range result.Encounters {\n\t\tfmt.Println(encounter.Pokemon.Name)\n\t}\n}\n"
+    },
+    {
+      "id": "pokedex-02-05-catch",
+      "chapter": "Chapter 2 · Cache",
+      "title": "Catch",
+      "instruction": "Make capture outcomes deterministic by accepting the roll as input. A Pokémon is caught when the roll exceeds its base experience.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc caught(baseExperience, roll int) bool {\n\treturn false\n}\n\nfunc report(name string, baseExperience, roll int) {\n\tif caught(baseExperience, roll) {\n\t\tfmt.Println(name, \"was caught!\")\n\t\treturn\n\t}\n\tfmt.Println(name, \"escaped.\")\n}\n\nfunc main() {\n\treport(\"pikachu\", 112, 150)\n\treport(\"mewtwo\", 340, 150)\n}\n",
+      "expected": "pikachu was caught!\nmewtwo escaped.\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc caught(baseExperience, roll int) bool {\n\treturn roll > baseExperience\n}\n\nfunc report(name string, baseExperience, roll int) {\n\tif caught(baseExperience, roll) {\n\t\tfmt.Println(name, \"was caught!\")\n\t\treturn\n\t}\n\tfmt.Println(name, \"escaped.\")\n}\n\nfunc main() {\n\treport(\"pikachu\", 112, 150)\n\treport(\"mewtwo\", 340, 150)\n}\n"
+    },
+    {
+      "id": "pokedex-02-06-inspect",
+      "chapter": "Chapter 2 · Cache",
+      "title": "Inspect",
+      "instruction": "Inspect reads a previously caught Pokémon without another API request. Print Pikachu's stored height, weight, stats, and types in a stable layout.",
+      "starter": "package main\n\nimport \"fmt\"\n\ntype pokemon struct {\n\tname          string\n\theight, weight int\n\tstats, types   []string\n}\n\nfunc main() {\n\tp := pokemon{name: \"pikachu\", height: 4, weight: 60, stats: []string{\"speed: 90\", \"attack: 55\"}, types: []string{\"electric\"}}\n\tfmt.Println(\"Name:\", p.name)\n}\n",
+      "expected": "Name: pikachu\nHeight: 4\nWeight: 60\nStats:\n- speed: 90\n- attack: 55\nTypes:\n- electric\n",
+      "solution": "package main\n\nimport \"fmt\"\n\ntype pokemon struct {\n\tname           string\n\theight, weight int\n\tstats, types   []string\n}\n\nfunc main() {\n\tp := pokemon{name: \"pikachu\", height: 4, weight: 60, stats: []string{\"speed: 90\", \"attack: 55\"}, types: []string{\"electric\"}}\n\tfmt.Println(\"Name:\", p.name)\n\tfmt.Println(\"Height:\", p.height)\n\tfmt.Println(\"Weight:\", p.weight)\n\tfmt.Println(\"Stats:\")\n\tfor _, stat := range p.stats {\n\t\tfmt.Println(\"-\", stat)\n\t}\n\tfmt.Println(\"Types:\")\n\tfor _, kind := range p.types {\n\t\tfmt.Println(\"-\", kind)\n\t}\n}\n"
+    },
+    {
+      "id": "pokedex-03-01-pokedex",
+      "chapter": "Chapter 3 · Pokedex",
+      "title": "Pokedex",
+      "instruction": "Map iteration is not ordered. Sort the caught Pokémon names alphabetically before printing them so the Pokedex is deterministic.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"sort\"\n)\n\nfunc main() {\n\tcaught := map[string]bool{\"zubat\": true, \"pikachu\": true, \"bulbasaur\": true}\n\tnames := make([]string, 0, len(caught))\n\tfor name := range caught {\n\t\tnames = append(names, name)\n\t}\n\tsort.Sort(sort.Reverse(sort.StringSlice(names)))\n\tfor _, name := range names {\n\t\tfmt.Println(name)\n\t}\n}\n",
+      "expected": "bulbasaur\npikachu\nzubat\n",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"sort\"\n)\n\nfunc main() {\n\tcaught := map[string]bool{\"zubat\": true, \"pikachu\": true, \"bulbasaur\": true}\n\tnames := make([]string, 0, len(caught))\n\tfor name := range caught {\n\t\tnames = append(names, name)\n\t}\n\tsort.Strings(names)\n\tfor _, name := range names {\n\t\tfmt.Println(name)\n\t}\n}\n"
+    },
+    {
+      "id": "pokedex-03-02-submit-your-repo",
+      "chapter": "Chapter 3 · Pokedex",
+      "title": "Submit Your Repo",
+      "instruction": "A repository is ready to submit only after formatting, tests, build, and documentation all pass. Complete the local readiness checklist.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tchecks := map[string]bool{\n\t\t\"formatted\": true,\n\t\t\"tested\":    true,\n\t\t\"built\":     true,\n\t\t\"documented\": false,\n\t}\n\tready := checks[\"formatted\"] && checks[\"tested\"] && checks[\"built\"] && checks[\"documented\"]\n\tif ready {\n\t\tfmt.Println(\"repository ready\")\n\t} else {\n\t\tfmt.Println(\"repository incomplete\")\n\t}\n}\n",
+      "expected": "repository ready\n",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tchecks := map[string]bool{\n\t\t\"formatted\":  true,\n\t\t\"tested\":     true,\n\t\t\"built\":      true,\n\t\t\"documented\": true,\n\t}\n\tready := checks[\"formatted\"] && checks[\"tested\"] && checks[\"built\"] && checks[\"documented\"]\n\tif ready {\n\t\tfmt.Println(\"repository ready\")\n\t} else {\n\t\tfmt.Println(\"repository incomplete\")\n\t}\n}\n"
+    }
+  ]
+}

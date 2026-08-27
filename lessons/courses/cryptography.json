@@ -1,0 +1,709 @@
+{
+  "id": "cryptography",
+  "title": "Learn Cryptography in Go",
+  "description": "Practice cryptographic concepts in Go, from encodings and classical ciphers to authenticated encryption, signatures, and password-storage policy.",
+  "lessons": [
+    {
+      "id": "cryptography-01-01-cryptography-is-about-encryption",
+      "chapter": "Chapter 1 · Cryptography Foundations",
+      "title": "Cryptography Is More Than Encryption",
+      "instruction": "Cryptography can protect confidentiality, integrity, and authenticity. Encryption addresses confidentiality; other primitives answer whether data changed and who produced it. Complete the list of core properties.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tproperties := []string{\"confidentiality\", \"TODO\"}\n\tfmt.Println(strings.Join(properties, \" \"))\n}\n",
+      "expected": "confidentiality integrity authenticity",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tproperties := []string{\"confidentiality\", \"integrity\", \"authenticity\"}\n\tfmt.Println(strings.Join(properties, \" \"))\n}\n"
+    },
+    {
+      "id": "cryptography-01-02-what-is-cryptography",
+      "chapter": "Chapter 1 · Cryptography Foundations",
+      "title": "What Is Cryptography?",
+      "instruction": "Choose primitives by the property required. Encryption hides plaintext, while a keyed MAC detects changes and authenticates a party that knows the shared key. Correct the property assigned to HMAC.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tproperties := map[string]string{\n\t\t\"encryption\": \"confidentiality\",\n\t\t\"hmac\":       \"confidentiality\",\n\t}\n\tfmt.Printf(\"encryption=%s hmac=%s\\n\", properties[\"encryption\"], properties[\"hmac\"])\n}\n",
+      "expected": "encryption=confidentiality hmac=integrity+authenticity",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tproperties := map[string]string{\n\t\t\"encryption\": \"confidentiality\",\n\t\t\"hmac\":       \"integrity+authenticity\",\n\t}\n\tfmt.Printf(\"encryption=%s hmac=%s\\n\", properties[\"encryption\"], properties[\"hmac\"])\n}\n"
+    },
+    {
+      "id": "cryptography-01-03-symmetric-vs-asymmetric",
+      "chapter": "Chapter 1 · Cryptography Foundations",
+      "title": "Shared-Key Encryption",
+      "instruction": "Symmetric encryption requires both parties to possess the same secret key. Make the sender and receiver use the same key; never transmit that secret alongside the ciphertext.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tsenderKey := \"blue-key\"\n\treceiverKey := \"red-key\"\n\tfmt.Println(senderKey == receiverKey)\n}\n",
+      "expected": "true",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tsenderKey := \"blue-key\"\n\treceiverKey := \"blue-key\"\n\tfmt.Println(senderKey == receiverKey)\n}\n"
+    },
+    {
+      "id": "cryptography-01-04-symmetric-vs-asymmetric",
+      "chapter": "Chapter 1 · Cryptography Foundations",
+      "title": "Hybrid Encryption",
+      "instruction": "Public-key operations are useful for establishing a secret, while fast symmetric encryption protects the payload. Assign each job to the appropriate key type.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\twrapSessionKeyWith := \"session-key\"\n\tencryptPayloadWith := \"public-key\"\n\tfmt.Println(wrapSessionKeyWith, encryptPayloadWith)\n}\n",
+      "expected": "public-key session-key",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\twrapSessionKeyWith := \"public-key\"\n\tencryptPayloadWith := \"session-key\"\n\tfmt.Println(wrapSessionKeyWith, encryptPayloadWith)\n}\n"
+    },
+    {
+      "id": "cryptography-01-05-better-keys",
+      "chapter": "Chapter 1 · Cryptography Foundations",
+      "title": "Better Keys",
+      "instruction": "Encryption keys need unpredictable bytes from crypto/rand, not timestamps, math/rand, or memorable text. Allocate a 32-byte key and let crypto/rand fill it.",
+      "starter": "package main\n\nimport (\n\t\"crypto/rand\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tkey := make([]byte, 16)\n\tif _, err := rand.Read(key); err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Println(len(key))\n}\n",
+      "expected": "32",
+      "solution": "package main\n\nimport (\n\t\"crypto/rand\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tkey := make([]byte, 32)\n\tif _, err := rand.Read(key); err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Println(len(key))\n}\n"
+    },
+    {
+      "id": "cryptography-01-06-cryptology-cryptography-and-cryptanalysis",
+      "chapter": "Chapter 1 · Cryptography Foundations",
+      "title": "Cryptology, Cryptography, and Cryptanalysis",
+      "instruction": "Cryptology covers both building protection and studying how to defeat it. Label secure-system design as cryptography and attack analysis as cryptanalysis.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tdesign := \"cryptology\"\n\tattackStudy := \"cryptology\"\n\tfmt.Println(design, attackStudy)\n}\n",
+      "expected": "cryptography cryptanalysis",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tdesign := \"cryptography\"\n\tattackStudy := \"cryptanalysis\"\n\tfmt.Println(design, attackStudy)\n}\n"
+    },
+    {
+      "id": "cryptography-01-07-single-use-keys",
+      "chapter": "Chapter 1 · Cryptography Foundations",
+      "title": "Single-Use Keys",
+      "instruction": "A one-time pad XORs plaintext with a uniformly random key of equal length. Its key must remain secret and must never be reused. Apply the two-byte teaching pad; this is a demonstration, not a production cipher.",
+      "starter": "package main\n\nimport (\n\t\"encoding/hex\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tplaintext := []byte(\"GO\")\n\tkey := []byte{0x00, 0x00}\n\tciphertext := []byte{plaintext[0] ^ key[0], plaintext[1] ^ key[1]}\n\tfmt.Println(hex.EncodeToString(ciphertext))\n}\n",
+      "expected": "576f",
+      "solution": "package main\n\nimport (\n\t\"encoding/hex\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tplaintext := []byte(\"GO\")\n\tkey := []byte{0x10, 0x20}\n\tciphertext := []byte{plaintext[0] ^ key[0], plaintext[1] ^ key[1]}\n\tfmt.Println(hex.EncodeToString(ciphertext))\n}\n"
+    },
+    {
+      "id": "cryptography-01-08-single-use-keys-review",
+      "chapter": "Chapter 1 · Cryptography Foundations",
+      "title": "Single-Use Keys Review",
+      "instruction": "Reusing an XOR pad cancels the key when two ciphertexts are XORed, exposing the XOR of their plaintexts. Reuse one key below to demonstrate that failure.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc xor(a, b []byte) []byte {\n\tout := make([]byte, len(a))\n\tfor i := range a {\n\t\tout[i] = a[i] ^ b[i]\n\t}\n\treturn out\n}\n\nfunc main() {\n\tp1, p2 := []byte(\"cat\"), []byte(\"dog\")\n\tc1 := xor(p1, []byte{1, 2, 3})\n\tc2 := xor(p2, []byte{4, 5, 6})\n\tfmt.Println(string(xor(c1, c2)) == string(xor(p1, p2)))\n}\n",
+      "expected": "true",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc xor(a, b []byte) []byte {\n\tout := make([]byte, len(a))\n\tfor i := range a {\n\t\tout[i] = a[i] ^ b[i]\n\t}\n\treturn out\n}\n\nfunc main() {\n\tp1, p2 := []byte(\"cat\"), []byte(\"dog\")\n\tkey := []byte{1, 2, 3}\n\tc1 := xor(p1, key)\n\tc2 := xor(p2, key)\n\tfmt.Println(string(xor(c1, c2)) == string(xor(p1, p2)))\n}\n"
+    },
+    {
+      "id": "cryptography-02-01-encoding-bytes",
+      "chapter": "Chapter 2 · Encoding",
+      "title": "Encoding Bytes",
+      "instruction": "Hex encoding represents each byte with two printable characters. Encode the UTF-8 bytes for Go; the result is portable text, not secret data.",
+      "starter": "package main\n\nimport (\n\t\"encoding/hex\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tfmt.Println(hex.EncodeToString([]byte(\"TODO\")))\n}\n",
+      "expected": "476f",
+      "solution": "package main\n\nimport (\n\t\"encoding/hex\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tfmt.Println(hex.EncodeToString([]byte(\"Go\")))\n}\n"
+    },
+    {
+      "id": "cryptography-02-02-encoding-encryption",
+      "chapter": "Chapter 2 · Encoding",
+      "title": "Encoding Is Not Encryption",
+      "instruction": "Base64 has no key and anyone can reverse it. Decode the public representation R28= to show why encoding cannot provide confidentiality.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tencoded := \"R28=\"\n\tfmt.Println(encoded)\n}\n",
+      "expected": "Go",
+      "solution": "package main\n\nimport (\n\t\"encoding/base64\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tdecoded, err := base64.StdEncoding.DecodeString(\"R28=\")\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Println(string(decoded))\n}\n"
+    },
+    {
+      "id": "cryptography-02-03-formatting",
+      "chapter": "Chapter 2 · Encoding",
+      "title": "Formatting",
+      "instruction": "Base64 URL encoding replaces characters that conflict with URLs. Use raw URL-safe base64 for the two bytes so the result has neither +, /, nor padding.",
+      "starter": "package main\n\nimport (\n\t\"encoding/base64\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tfmt.Println(base64.StdEncoding.EncodeToString([]byte{0xfb, 0xff}))\n}\n",
+      "expected": "-_8",
+      "solution": "package main\n\nimport (\n\t\"encoding/base64\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tfmt.Println(base64.RawURLEncoding.EncodeToString([]byte{0xfb, 0xff}))\n}\n"
+    },
+    {
+      "id": "cryptography-02-04-decoding",
+      "chapter": "Chapter 2 · Encoding",
+      "title": "Decoding",
+      "instruction": "Decoders reject malformed input, so applications must check the returned error before using bytes. Supply valid base64 for Go and report successful decoding.",
+      "starter": "package main\n\nimport (\n\t\"encoding/base64\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tdecoded, err := base64.StdEncoding.DecodeString(\"***\")\n\tfmt.Println(string(decoded), err == nil)\n}\n",
+      "expected": "Go true",
+      "solution": "package main\n\nimport (\n\t\"encoding/base64\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tdecoded, err := base64.StdEncoding.DecodeString(\"R28=\")\n\tfmt.Println(string(decoded), err == nil)\n}\n"
+    },
+    {
+      "id": "cryptography-03-01-alphabet-formula",
+      "chapter": "Chapter 3 · Brute Force",
+      "title": "Alphabet Formula",
+      "instruction": "A fixed-length key made from A possible symbols has A^L candidates. Set the length so a 26-character alphabet produces 17,576 three-character keys.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc keyspace(alphabet, length int) int {\n\ttotal := 1\n\tfor range length {\n\t\ttotal *= alphabet\n\t}\n\treturn total\n}\n\nfunc main() {\n\tfmt.Println(keyspace(26, 2))\n}\n",
+      "expected": "17576",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc keyspace(alphabet, length int) int {\n\ttotal := 1\n\tfor range length {\n\t\ttotal *= alphabet\n\t}\n\treturn total\n}\n\nfunc main() {\n\tfmt.Println(keyspace(26, 3))\n}\n"
+    },
+    {
+      "id": "cryptography-03-02-brute-force-attacks",
+      "chapter": "Chapter 3 · Brute Force",
+      "title": "Brute-Force Attacks",
+      "instruction": "Attack cost depends on both the keyspace and the guess rate. Divide one million candidates by one thousand guesses per second to estimate the worst-case seconds.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tkeyspace := 100_000\n\tguessesPerSecond := 1_000\n\tfmt.Println(keyspace / guessesPerSecond)\n}\n",
+      "expected": "1000",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tkeyspace := 1_000_000\n\tguessesPerSecond := 1_000\n\tfmt.Println(keyspace / guessesPerSecond)\n}\n"
+    },
+    {
+      "id": "cryptography-03-03-crack-an-insecure-key",
+      "chapter": "Chapter 3 · Brute Force",
+      "title": "Crack an Insecure Key",
+      "instruction": "Tiny secrets can be exhausted quickly. Search every two-digit PIN and print the matching candidate; this toy search is why real keys need large, random keyspaces.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\ttarget := \"42\"\n\tfound := \"not found\"\n\tfor n := 0; n < 10; n++ {\n\t\tcandidate := fmt.Sprintf(\"%02d\", n)\n\t\tif candidate == target {\n\t\t\tfound = candidate\n\t\t}\n\t}\n\tfmt.Println(found)\n}\n",
+      "expected": "42",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\ttarget := \"42\"\n\tfound := \"not found\"\n\tfor n := 0; n < 100; n++ {\n\t\tcandidate := fmt.Sprintf(\"%02d\", n)\n\t\tif candidate == target {\n\t\t\tfound = candidate\n\t\t\tbreak\n\t\t}\n\t}\n\tfmt.Println(found)\n}\n"
+    },
+    {
+      "id": "cryptography-03-04-entropy",
+      "chapter": "Chapter 3 · Brute Force",
+      "title": "Entropy",
+      "instruction": "Uniformly choosing one of 256 byte values contributes eight bits of entropy. Set the length to four independent bytes and calculate the total entropy.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"math\"\n)\n\nfunc main() {\n\talphabet := 256.0\n\tlength := 3.0\n\tfmt.Printf(\"%.0f\\n\", math.Log2(alphabet)*length)\n}\n",
+      "expected": "32",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"math\"\n)\n\nfunc main() {\n\talphabet := 256.0\n\tlength := 4.0\n\tfmt.Printf(\"%.0f\\n\", math.Log2(alphabet)*length)\n}\n"
+    },
+    {
+      "id": "cryptography-04-01-what-is-a-cipher",
+      "chapter": "Chapter 4 · Caesar Cipher",
+      "title": "What Is a Cipher?",
+      "instruction": "A cipher is a keyed, reversible transformation between plaintext and ciphertext. A hash is deliberately one-way, so it is not a cipher. Correct the description.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tdescription := \"unkeyed one-way digest\"\n\tfmt.Println(description)\n}\n",
+      "expected": "keyed reversible transform",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tdescription := \"keyed reversible transform\"\n\tfmt.Println(description)\n}\n"
+    },
+    {
+      "id": "cryptography-04-02-caesar-cipher",
+      "chapter": "Chapter 4 · Caesar Cipher",
+      "title": "Caesar Cipher",
+      "instruction": "The Caesar cipher rotates letters through a 26-character alphabet. Implement the shift with wraparound to turn HELLO into KHOOR. This historical cipher is not secure.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc caesar(text string, shift byte) string {\n\tout := []byte(text)\n\tfor i, letter := range out {\n\t\tout[i] = letter\n\t}\n\treturn string(out)\n}\n\nfunc main() {\n\tfmt.Println(caesar(\"HELLO\", 3))\n}\n",
+      "expected": "KHOOR",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc caesar(text string, shift byte) string {\n\tout := []byte(text)\n\tfor i, letter := range out {\n\t\tout[i] = 'A' + (letter-'A'+shift)%26\n\t}\n\treturn string(out)\n}\n\nfunc main() {\n\tfmt.Println(caesar(\"HELLO\", 3))\n}\n"
+    },
+    {
+      "id": "cryptography-04-03-caesar-cipher-security",
+      "chapter": "Chapter 4 · Caesar Cipher",
+      "title": "Caesar Cipher Security",
+      "instruction": "A Caesar ciphertext has only 26 possible shifts, including the identity shift. Set the attack to enumerate the complete keyspace; modern ciphers rely on vastly larger keys.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tcandidates := 1\n\tfmt.Printf(\"%d candidates\\n\", candidates)\n}\n",
+      "expected": "26 candidates",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tcandidates := 26\n\tfmt.Printf(\"%d candidates\\n\", candidates)\n}\n"
+    },
+    {
+      "id": "cryptography-05-01-exclusive-or-xor",
+      "chapter": "Chapter 5 · XOR",
+      "title": "Exclusive Or (XOR)",
+      "instruction": "XOR sets a bit when its two input bits differ. Replace OR with XOR so binary 110 combined with 011 produces binary 101.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvalue := 0b110 | 0b011\n\tfmt.Printf(\"%03b\\n\", value)\n}\n",
+      "expected": "101",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tvalue := 0b110 ^ 0b011\n\tfmt.Printf(\"%03b\\n\", value)\n}\n"
+    },
+    {
+      "id": "cryptography-05-02-xor-quiz",
+      "chapter": "Chapter 5 · XOR",
+      "title": "XOR Reversibility",
+      "instruction": "Applying the same XOR key twice restores the original value: (message XOR key) XOR key equals message. Use the same key for both operations.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tmessage, key := byte(0x5a), byte(0xc3)\n\tciphertext := message ^ key\n\trecovered := ciphertext ^ 0x11\n\tfmt.Println(recovered == message)\n}\n",
+      "expected": "true",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tmessage, key := byte(0x5a), byte(0xc3)\n\tciphertext := message ^ key\n\trecovered := ciphertext ^ key\n\tfmt.Println(recovered == message)\n}\n"
+    },
+    {
+      "id": "cryptography-05-03-one-time-pad",
+      "chapter": "Chapter 5 · XOR",
+      "title": "One-Time Pad",
+      "instruction": "A one-time pad decrypts only when the receiver has the exact random pad used once by the sender. Recover the message with the original pad. This tiny fixture demonstrates the rule; it is not key management.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc xor(a, b []byte) []byte {\n\tout := make([]byte, len(a))\n\tfor i := range a {\n\t\tout[i] = a[i] ^ b[i]\n\t}\n\treturn out\n}\n\nfunc main() {\n\tmessage := []byte(\"pad\")\n\tpad := []byte{0x91, 0x22, 0x73}\n\tciphertext := xor(message, pad)\n\trecovered := xor(ciphertext, []byte{0x91, 0x22, 0x00})\n\tfmt.Println(string(recovered) == string(message))\n}\n",
+      "expected": "true",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc xor(a, b []byte) []byte {\n\tout := make([]byte, len(a))\n\tfor i := range a {\n\t\tout[i] = a[i] ^ b[i]\n\t}\n\treturn out\n}\n\nfunc main() {\n\tmessage := []byte(\"pad\")\n\tpad := []byte{0x91, 0x22, 0x73}\n\tciphertext := xor(message, pad)\n\trecovered := xor(ciphertext, pad)\n\tfmt.Println(string(recovered) == string(message))\n}\n"
+    },
+    {
+      "id": "cryptography-05-04-perfect-security",
+      "chapter": "Chapter 5 · XOR",
+      "title": "Perfect Security",
+      "instruction": "Perfect secrecy for a one-time pad requires a uniformly random secret key as long as the message and no key reuse. Correct the reuse condition.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\trandom, equalLength, secret, reused := true, true, true, true\n\tfmt.Printf(\"random=%t equal=%t secret=%t reused=%t\\n\", random, equalLength, secret, reused)\n}\n",
+      "expected": "random=true equal=true secret=true reused=false",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\trandom, equalLength, secret, reused := true, true, true, false\n\tfmt.Printf(\"random=%t equal=%t secret=%t reused=%t\\n\", random, equalLength, secret, reused)\n}\n"
+    },
+    {
+      "id": "cryptography-06-01-stream-ciphers",
+      "chapter": "Chapter 6 · Stream Ciphers",
+      "title": "Keystreams",
+      "instruction": "A stream cipher combines plaintext with a pseudorandom keystream, commonly through XOR. Apply the teaching keystream to GO. Real systems use authenticated constructions, not this fixed example.",
+      "starter": "package main\n\nimport (\n\t\"encoding/hex\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tmessage := []byte(\"GO\")\n\tkeystream := []byte{0, 0}\n\tfor i := range message {\n\t\tmessage[i] ^= keystream[i]\n\t}\n\tfmt.Println(hex.EncodeToString(message))\n}\n",
+      "expected": "464d",
+      "solution": "package main\n\nimport (\n\t\"encoding/hex\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tmessage := []byte(\"GO\")\n\tkeystream := []byte{1, 2}\n\tfor i := range message {\n\t\tmessage[i] ^= keystream[i]\n\t}\n\tfmt.Println(hex.EncodeToString(message))\n}\n"
+    },
+    {
+      "id": "cryptography-06-02-stream-ciphers",
+      "chapter": "Chapter 6 · Stream Ciphers",
+      "title": "Streaming Encryption",
+      "instruction": "Go's cipher.Stream can transform arbitrary-length data. Use the identical key and initial counter for decryption. CTR alone does not authenticate data; production designs should use an AEAD.",
+      "starter": "package main\n\nimport (\n\t\"crypto/aes\"\n\t\"crypto/cipher\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tkey := make([]byte, 16)\n\tblock, _ := aes.NewCipher(key)\n\tiv := make([]byte, aes.BlockSize)\n\tmessage := []byte(\"stream data\")\n\tciphertext := make([]byte, len(message))\n\tcipher.NewCTR(block, iv).XORKeyStream(ciphertext, message)\n\twrongIV := append([]byte(nil), iv...)\n\twrongIV[len(wrongIV)-1] = 1\n\trecovered := make([]byte, len(message))\n\tcipher.NewCTR(block, wrongIV).XORKeyStream(recovered, ciphertext)\n\tfmt.Println(string(recovered) == string(message))\n}\n",
+      "expected": "true",
+      "solution": "package main\n\nimport (\n\t\"crypto/aes\"\n\t\"crypto/cipher\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tkey := make([]byte, 16)\n\tblock, _ := aes.NewCipher(key)\n\tiv := make([]byte, aes.BlockSize)\n\tmessage := []byte(\"stream data\")\n\tciphertext := make([]byte, len(message))\n\tcipher.NewCTR(block, iv).XORKeyStream(ciphertext, message)\n\trecovered := make([]byte, len(message))\n\tcipher.NewCTR(block, iv).XORKeyStream(recovered, ciphertext)\n\tfmt.Println(string(recovered) == string(message))\n}\n"
+    },
+    {
+      "id": "cryptography-06-03-state-ciphers",
+      "chapter": "Chapter 6 · Stream Ciphers",
+      "title": "Cipher State",
+      "instruction": "A stream object advances its keystream position after every byte. Encrypt two chunks with one continuous stream so their result matches one-shot processing. CTR remains an unauthenticated teaching example here.",
+      "starter": "package main\n\nimport (\n\t\"bytes\"\n\t\"crypto/aes\"\n\t\"crypto/cipher\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tblock, _ := aes.NewCipher(make([]byte, 16))\n\tiv := make([]byte, aes.BlockSize)\n\toneShot := make([]byte, 10)\n\tcipher.NewCTR(block, iv).XORKeyStream(oneShot, []byte(\"helloworld\"))\n\tchunked := make([]byte, 10)\n\tcipher.NewCTR(block, iv).XORKeyStream(chunked[:5], []byte(\"hello\"))\n\tcipher.NewCTR(block, iv).XORKeyStream(chunked[5:], []byte(\"world\"))\n\tfmt.Println(bytes.Equal(oneShot, chunked))\n}\n",
+      "expected": "true",
+      "solution": "package main\n\nimport (\n\t\"bytes\"\n\t\"crypto/aes\"\n\t\"crypto/cipher\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tblock, _ := aes.NewCipher(make([]byte, 16))\n\tiv := make([]byte, aes.BlockSize)\n\toneShot := make([]byte, 10)\n\tcipher.NewCTR(block, iv).XORKeyStream(oneShot, []byte(\"helloworld\"))\n\tchunked := make([]byte, 10)\n\tstream := cipher.NewCTR(block, iv)\n\tstream.XORKeyStream(chunked[:5], []byte(\"hello\"))\n\tstream.XORKeyStream(chunked[5:], []byte(\"world\"))\n\tfmt.Println(bytes.Equal(oneShot, chunked))\n}\n"
+    },
+    {
+      "id": "cryptography-06-04-state-ciphers",
+      "chapter": "Chapter 6 · Stream Ciphers",
+      "title": "State Reuse",
+      "instruction": "Reusing a CTR key and initial counter repeats the keystream, so XORing ciphertexts exposes the XOR of plaintexts. Reuse the IV only to demonstrate this failure; never do it in a real system.",
+      "starter": "package main\n\nimport (\n\t\"bytes\"\n\t\"crypto/aes\"\n\t\"crypto/cipher\"\n\t\"fmt\"\n)\n\nfunc apply(block cipher.Block, iv, input []byte) []byte {\n\tout := make([]byte, len(input))\n\tcipher.NewCTR(block, iv).XORKeyStream(out, input)\n\treturn out\n}\n\nfunc xor(a, b []byte) []byte {\n\tout := make([]byte, len(a))\n\tfor i := range a {\n\t\tout[i] = a[i] ^ b[i]\n\t}\n\treturn out\n}\n\nfunc main() {\n\tblock, _ := aes.NewCipher(make([]byte, 16))\n\tiv1 := make([]byte, aes.BlockSize)\n\tiv2 := make([]byte, aes.BlockSize)\n\tiv2[15] = 1\n\tp1, p2 := []byte(\"first\"), []byte(\"other\")\n\tfmt.Println(bytes.Equal(xor(apply(block, iv1, p1), apply(block, iv2, p2)), xor(p1, p2)))\n}\n",
+      "expected": "true",
+      "solution": "package main\n\nimport (\n\t\"bytes\"\n\t\"crypto/aes\"\n\t\"crypto/cipher\"\n\t\"fmt\"\n)\n\nfunc apply(block cipher.Block, iv, input []byte) []byte {\n\tout := make([]byte, len(input))\n\tcipher.NewCTR(block, iv).XORKeyStream(out, input)\n\treturn out\n}\n\nfunc xor(a, b []byte) []byte {\n\tout := make([]byte, len(a))\n\tfor i := range a {\n\t\tout[i] = a[i] ^ b[i]\n\t}\n\treturn out\n}\n\nfunc main() {\n\tblock, _ := aes.NewCipher(make([]byte, 16))\n\tiv := make([]byte, aes.BlockSize)\n\tp1, p2 := []byte(\"first\"), []byte(\"other\")\n\tfmt.Println(bytes.Equal(xor(apply(block, iv, p1), apply(block, iv, p2)), xor(p1, p2)))\n}\n"
+    },
+    {
+      "id": "cryptography-07-01-block-ciphers",
+      "chapter": "Chapter 7 · Block Ciphers",
+      "title": "Block Ciphers",
+      "instruction": "A block cipher transforms one fixed-size block under a key. AES uses 16-byte blocks. Set the payload to two complete blocks; applications still need a secure mode such as GCM.",
+      "starter": "package main\n\nimport (\n\t\"crypto/aes\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tpayload := make([]byte, 16)\n\tfmt.Println(len(payload) / aes.BlockSize)\n}\n",
+      "expected": "2",
+      "solution": "package main\n\nimport (\n\t\"crypto/aes\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tpayload := make([]byte, 32)\n\tfmt.Println(len(payload) / aes.BlockSize)\n}\n"
+    },
+    {
+      "id": "cryptography-07-02-block-vs-stream",
+      "chapter": "Chapter 7 · Block Ciphers",
+      "title": "Block vs. Stream",
+      "instruction": "A stream interface accepts arbitrary lengths, while a raw block operation requires exact block alignment. Check the 24-byte message against AES's real block size.",
+      "starter": "package main\n\nimport (\n\t\"crypto/aes\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tmessage := make([]byte, 24)\n\tstreamAccepts := true\n\tblockAligned := len(message)%8 == 0\n\t_ = aes.BlockSize\n\tfmt.Printf(\"stream=%t block-aligned=%t\\n\", streamAccepts, blockAligned)\n}\n",
+      "expected": "stream=true block-aligned=false",
+      "solution": "package main\n\nimport (\n\t\"crypto/aes\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tmessage := make([]byte, 24)\n\tstreamAccepts := true\n\tblockAligned := len(message)%aes.BlockSize == 0\n\tfmt.Printf(\"stream=%t block-aligned=%t\\n\", streamAccepts, blockAligned)\n}\n"
+    },
+    {
+      "id": "cryptography-07-03-block-sizes",
+      "chapter": "Chapter 7 · Block Ciphers",
+      "title": "Block Sizes",
+      "instruction": "AES always has a 16-byte block size, independent of whether its key is 16, 24, or 32 bytes. Print the package constant rather than guessing from the key.",
+      "starter": "package main\n\nimport (\n\t\"crypto/aes\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tfmt.Println(aes.BlockSize / 2)\n}\n",
+      "expected": "16",
+      "solution": "package main\n\nimport (\n\t\"crypto/aes\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tfmt.Println(aes.BlockSize)\n}\n"
+    },
+    {
+      "id": "cryptography-07-04-chunks-review",
+      "chapter": "Chapter 7 · Block Ciphers",
+      "title": "Chunks Review",
+      "instruction": "Raw block processing advances exactly one block at a time. Count the AES-sized chunks in a 32-byte buffer. This lesson concerns boundaries, not an encryption mode.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tdata := make([]byte, 32)\n\tchunks := 0\n\tfor offset := 0; offset < len(data); offset += 8 {\n\t\tchunks++\n\t}\n\tfmt.Println(chunks)\n}\n",
+      "expected": "2",
+      "solution": "package main\n\nimport (\n\t\"crypto/aes\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tdata := make([]byte, 32)\n\tchunks := 0\n\tfor offset := 0; offset < len(data); offset += aes.BlockSize {\n\t\tchunks++\n\t}\n\tfmt.Println(chunks)\n}\n"
+    },
+    {
+      "id": "cryptography-07-05-key-schedules",
+      "chapter": "Chapter 7 · Block Ciphers",
+      "title": "Key Schedules",
+      "instruction": "A key schedule derives round keys from the original key. Complete three rounds of this tiny rotation model to see the progression. It is intentionally not AES and must never protect data.",
+      "starter": "package main\n\nimport (\n\t\"encoding/hex\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tkey := byte(1)\n\troundKeys := []byte{key}\n\tfor range 2 {\n\t\tkey = key<<1 | key>>7\n\t\troundKeys = append(roundKeys, key)\n\t}\n\tfmt.Println(hex.EncodeToString(roundKeys))\n}\n",
+      "expected": "01020408",
+      "solution": "package main\n\nimport (\n\t\"encoding/hex\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tkey := byte(1)\n\troundKeys := []byte{key}\n\tfor range 3 {\n\t\tkey = key<<1 | key>>7\n\t\troundKeys = append(roundKeys, key)\n\t}\n\tfmt.Println(hex.EncodeToString(roundKeys))\n}\n"
+    },
+    {
+      "id": "cryptography-07-06-key-schedule-review",
+      "chapter": "Chapter 7 · Block Ciphers",
+      "title": "Key Schedule Review",
+      "instruction": "AES expands 128-, 192-, and 256-bit keys for 10, 12, and 14 rounds respectively. Complete the lookup for the 32-byte key.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\trounds := map[int]int{16: 10, 24: 12}\n\tfmt.Println(rounds[16], rounds[24], rounds[32])\n}\n",
+      "expected": "10 12 14",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\trounds := map[int]int{16: 10, 24: 12, 32: 14}\n\tfmt.Println(rounds[16], rounds[24], rounds[32])\n}\n"
+    },
+    {
+      "id": "cryptography-08-01-feistel-network",
+      "chapter": "Chapter 8 · DES",
+      "title": "Feistel Rounds",
+      "instruction": "A Feistel round sends the old right half left and XORs the old left with a round function. Complete one small round to understand the structure; this toy function is not secure encryption.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc f(value byte) byte { return value }\n\nfunc main() {\n\tleft, right := byte(0x12), byte(0x34)\n\tleft, right = right, left^f(right)\n\tfmt.Printf(\"%02x %02x\\n\", left, right)\n}\n",
+      "expected": "34 29",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc f(value byte) byte { return value ^ 0x0f }\n\nfunc main() {\n\tleft, right := byte(0x12), byte(0x34)\n\tleft, right = right, left^f(right)\n\tfmt.Printf(\"%02x %02x\\n\", left, right)\n}\n"
+    },
+    {
+      "id": "cryptography-08-02-feistel-network",
+      "chapter": "Chapter 8 · DES",
+      "title": "Feistel Decryption",
+      "instruction": "A Feistel round is reversible even when its round function is not. Recover the original halves from the prior round by applying the inverse relationship.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc f(value byte) byte { return value ^ 0x0f }\n\nfunc main() {\n\tnewLeft, newRight := byte(0x34), byte(0x29)\n\toldLeft, oldRight := newLeft, newRight\n\tfmt.Printf(\"%02x %02x\\n\", oldLeft, oldRight)\n\t_ = f\n}\n",
+      "expected": "12 34",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc f(value byte) byte { return value ^ 0x0f }\n\nfunc main() {\n\tnewLeft, newRight := byte(0x34), byte(0x29)\n\toldRight := newLeft\n\toldLeft := newRight ^ f(newLeft)\n\tfmt.Printf(\"%02x %02x\\n\", oldLeft, oldRight)\n}\n"
+    },
+    {
+      "id": "cryptography-08-03-data-encryption-standard",
+      "chapter": "Chapter 8 · DES",
+      "title": "Data Encryption Standard",
+      "instruction": "DES has an 8-byte block and an effective 56-bit key. NIST withdrew it because that keyspace is no longer secure. Inspect its block size while keeping its status explicit: historical only.",
+      "starter": "package main\n\nimport (\n\t\"crypto/des\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tblock, err := des.NewCipher(make([]byte, 8))\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Println(block.BlockSize(), \"secure\")\n}\n",
+      "expected": "8 obsolete",
+      "solution": "package main\n\nimport (\n\t\"crypto/des\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tblock, err := des.NewCipher(make([]byte, 8))\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Println(block.BlockSize(), \"obsolete\")\n}\n"
+    },
+    {
+      "id": "cryptography-08-04-des-review",
+      "chapter": "Chapter 8 · DES",
+      "title": "DES Review",
+      "instruction": "Although a DES key is stored in eight bytes, parity bits leave only 56 effective key bits. Record that strength and reject DES as a modern choice.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\teffectiveBits := 64\n\tuseForNewSystems := true\n\tfmt.Println(effectiveBits, useForNewSystems)\n}\n",
+      "expected": "56 false",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\teffectiveBits := 56\n\tuseForNewSystems := false\n\tfmt.Println(effectiveBits, useForNewSystems)\n}\n"
+    },
+    {
+      "id": "cryptography-08-05-initialization-vectors",
+      "chapter": "Chapter 8 · DES",
+      "title": "Initialization Vectors",
+      "instruction": "CBC requires a fresh, unpredictable IV exactly one block long. Generate an 8-byte DES-sized IV only to inspect the historical mode's requirement; use modern authenticated encryption for real data.",
+      "starter": "package main\n\nimport (\n\t\"crypto/des\"\n\t\"crypto/rand\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tiv := make([]byte, 4)\n\tif _, err := rand.Read(iv); err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Println(len(iv), len(iv) == des.BlockSize)\n}\n",
+      "expected": "8 true",
+      "solution": "package main\n\nimport (\n\t\"crypto/des\"\n\t\"crypto/rand\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tiv := make([]byte, des.BlockSize)\n\tif _, err := rand.Read(iv); err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Println(len(iv), len(iv) == des.BlockSize)\n}\n"
+    },
+    {
+      "id": "cryptography-08-06-des-feistel-network",
+      "chapter": "Chapter 8 · DES",
+      "title": "DES Feistel Network",
+      "instruction": "DES applies multiple keyed Feistel rounds; decryption uses the round keys in reverse order. Make the toy encrypt and decrypt paths use the same two rounds. This model is instructional, not DES security.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc round(left, right, key byte) (byte, byte) {\n\treturn right, left^(right+key)\n}\n\nfunc encrypt(left, right byte, keys []byte) (byte, byte) {\n\tfor _, key := range keys {\n\t\tleft, right = round(left, right, key)\n\t}\n\treturn left, right\n}\n\nfunc decrypt(left, right byte, keys []byte) (byte, byte) {\n\tfor i := len(keys) - 1; i >= 0; i-- {\n\t\tleft, right = right^(left+keys[i]), left\n\t}\n\treturn left, right\n}\n\nfunc main() {\n\tl, r := encrypt(0x12, 0x34, []byte{1})\n\tl, r = decrypt(l, r, []byte{1, 2})\n\tfmt.Println(l == 0x12 && r == 0x34)\n}\n",
+      "expected": "true",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc round(left, right, key byte) (byte, byte) {\n\treturn right, left^(right+key)\n}\n\nfunc encrypt(left, right byte, keys []byte) (byte, byte) {\n\tfor _, key := range keys {\n\t\tleft, right = round(left, right, key)\n\t}\n\treturn left, right\n}\n\nfunc decrypt(left, right byte, keys []byte) (byte, byte) {\n\tfor i := len(keys) - 1; i >= 0; i-- {\n\t\tleft, right = right^(left+keys[i]), left\n\t}\n\treturn left, right\n}\n\nfunc main() {\n\tkeys := []byte{1, 2}\n\tl, r := encrypt(0x12, 0x34, keys)\n\tl, r = decrypt(l, r, keys)\n\tfmt.Println(l == 0x12 && r == 0x34)\n}\n"
+    },
+    {
+      "id": "cryptography-08-07-substitution-box",
+      "chapter": "Chapter 8 · DES",
+      "title": "S-Box Lookup",
+      "instruction": "An S-box replaces a small input with a table value to introduce nonlinearity. Read row 1, column 2 from this reduced teaching table; it is not a complete DES S-box.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tsbox := [4][4]int{{14, 4, 13, 1}, {2, 15, 11, 8}, {3, 10, 6, 12}, {5, 9, 0, 7}}\n\tfmt.Println(sbox[0][2])\n}\n",
+      "expected": "11",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tsbox := [4][4]int{{14, 4, 13, 1}, {2, 15, 11, 8}, {3, 10, 6, 12}, {5, 9, 0, 7}}\n\tfmt.Println(sbox[1][2])\n}\n"
+    },
+    {
+      "id": "cryptography-08-08-substitution-box",
+      "chapter": "Chapter 8 · DES",
+      "title": "S-Box Row and Column",
+      "instruction": "For a DES-style six-bit S-box input, the outer bits select the row and the middle four select the column. Extract both indices from binary 100011.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tinput := byte(0b100011)\n\trow := (input >> 4) & 0b11\n\tcolumn := input & 0b1111\n\tfmt.Println(row, column)\n}\n",
+      "expected": "3 1",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tinput := byte(0b100011)\n\trow := ((input & 0b100000) >> 4) | (input & 1)\n\tcolumn := (input >> 1) & 0b1111\n\tfmt.Println(row, column)\n}\n"
+    },
+    {
+      "id": "cryptography-09-01-advanced-encryption-standard",
+      "chapter": "Chapter 9 · AES",
+      "title": "AES Keys and Blocks",
+      "instruction": "AES accepts 16-, 24-, or 32-byte keys and always uses 16-byte blocks. Supply a valid 16-byte key and confirm construction succeeds; use random key material outside this exercise.",
+      "starter": "package main\n\nimport (\n\t\"crypto/aes\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tkey := make([]byte, 15)\n\t_, err := aes.NewCipher(key)\n\tfmt.Println(len(key), err == nil)\n}\n",
+      "expected": "16 true",
+      "solution": "package main\n\nimport (\n\t\"crypto/aes\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tkey := make([]byte, 16)\n\t_, err := aes.NewCipher(key)\n\tfmt.Println(len(key), err == nil)\n}\n"
+    },
+    {
+      "id": "cryptography-09-02-advanced-encryption-standard",
+      "chapter": "Chapter 9 · AES",
+      "title": "Authenticated Encryption with AES-GCM",
+      "instruction": "AES-GCM encrypts and authenticates both the ciphertext and optional associated data. Open the message with the same associated header used by Seal; never replace an AEAD with raw AES blocks.",
+      "starter": "package main\n\nimport (\n\t\"crypto/aes\"\n\t\"crypto/cipher\"\n\t\"crypto/rand\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tblock, _ := aes.NewCipher(make([]byte, 32))\n\tgcm, _ := cipher.NewGCM(block)\n\tnonce := make([]byte, gcm.NonceSize())\n\tif _, err := rand.Read(nonce); err != nil {\n\t\tpanic(err)\n\t}\n\tciphertext := gcm.Seal(nil, nonce, []byte(\"secret\"), []byte(\"header\"))\n\tplaintext, err := gcm.Open(nil, nonce, ciphertext, []byte(\"wrong\"))\n\tfmt.Println(err == nil && string(plaintext) == \"secret\")\n}\n",
+      "expected": "true",
+      "solution": "package main\n\nimport (\n\t\"crypto/aes\"\n\t\"crypto/cipher\"\n\t\"crypto/rand\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tblock, _ := aes.NewCipher(make([]byte, 32))\n\tgcm, _ := cipher.NewGCM(block)\n\tnonce := make([]byte, gcm.NonceSize())\n\tif _, err := rand.Read(nonce); err != nil {\n\t\tpanic(err)\n\t}\n\theader := []byte(\"header\")\n\tciphertext := gcm.Seal(nil, nonce, []byte(\"secret\"), header)\n\tplaintext, err := gcm.Open(nil, nonce, ciphertext, header)\n\tfmt.Println(err == nil && string(plaintext) == \"secret\")\n}\n"
+    },
+    {
+      "id": "cryptography-09-03-nonces",
+      "chapter": "Chapter 9 · AES",
+      "title": "Nonces",
+      "instruction": "A GCM nonce is not secret, but it must be unique for every message under one key. Allocate the AEAD's required nonce size and fill it from crypto/rand.",
+      "starter": "package main\n\nimport (\n\t\"crypto/aes\"\n\t\"crypto/cipher\"\n\t\"crypto/rand\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tblock, _ := aes.NewCipher(make([]byte, 16))\n\tgcm, _ := cipher.NewGCM(block)\n\tnonce := make([]byte, 8)\n\tif _, err := rand.Read(nonce); err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Println(len(nonce), len(nonce) == gcm.NonceSize())\n}\n",
+      "expected": "12 true",
+      "solution": "package main\n\nimport (\n\t\"crypto/aes\"\n\t\"crypto/cipher\"\n\t\"crypto/rand\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tblock, _ := aes.NewCipher(make([]byte, 16))\n\tgcm, _ := cipher.NewGCM(block)\n\tnonce := make([]byte, gcm.NonceSize())\n\tif _, err := rand.Read(nonce); err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Println(len(nonce), len(nonce) == gcm.NonceSize())\n}\n"
+    },
+    {
+      "id": "cryptography-09-04-nonce-review",
+      "chapter": "Chapter 9 · AES",
+      "title": "Nonce and Tag Review",
+      "instruction": "GCM's authentication tag makes modified ciphertext fail closed. Tamper with one byte and confirm Open rejects it. Nonce uniqueness is still mandatory even when the tag is checked.",
+      "starter": "package main\n\nimport (\n\t\"crypto/aes\"\n\t\"crypto/cipher\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tblock, _ := aes.NewCipher(make([]byte, 16))\n\tgcm, _ := cipher.NewGCM(block)\n\tnonce := make([]byte, gcm.NonceSize())\n\tciphertext := gcm.Seal(nil, nonce, []byte(\"message\"), nil)\n\t_, err := gcm.Open(nil, nonce, ciphertext, nil)\n\tfmt.Println(err != nil)\n}\n",
+      "expected": "true",
+      "solution": "package main\n\nimport (\n\t\"crypto/aes\"\n\t\"crypto/cipher\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tblock, _ := aes.NewCipher(make([]byte, 16))\n\tgcm, _ := cipher.NewGCM(block)\n\tnonce := make([]byte, gcm.NonceSize())\n\tciphertext := gcm.Seal(nil, nonce, []byte(\"message\"), nil)\n\tciphertext[0] ^= 1\n\t_, err := gcm.Open(nil, nonce, ciphertext, nil)\n\tfmt.Println(err != nil)\n}\n"
+    },
+    {
+      "id": "cryptography-10-01-asymmetric-encryption",
+      "chapter": "Chapter 10 · Asymmetric Encryption",
+      "title": "Asymmetric Encryption",
+      "instruction": "Public-key encryption lets a sender encrypt with the recipient's public key and the recipient decrypt with the private key. Correct the direction of those operations.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tencryptWith := \"private\"\n\tdecryptWith := \"public\"\n\tfmt.Printf(\"encrypt=%s decrypt=%s\\n\", encryptWith, decryptWith)\n}\n",
+      "expected": "encrypt=public decrypt=private",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tencryptWith := \"public\"\n\tdecryptWith := \"private\"\n\tfmt.Printf(\"encrypt=%s decrypt=%s\\n\", encryptWith, decryptWith)\n}\n"
+    },
+    {
+      "id": "cryptography-10-02-public-private-keys",
+      "chapter": "Chapter 10 · Asymmetric Encryption",
+      "title": "Public and Private Keys",
+      "instruction": "For signatures, the private key signs and the public key verifies. Sign with one Ed25519 key pair and verify with its matching public key; signing proves authenticity but does not hide the message.",
+      "starter": "package main\n\nimport (\n\t\"crypto/ed25519\"\n\t\"crypto/rand\"\n\t\"fmt\"\n)\n\nfunc main() {\n\t_, privateKey, _ := ed25519.GenerateKey(rand.Reader)\n\twrongPublic, _, _ := ed25519.GenerateKey(rand.Reader)\n\tmessage := []byte(\"signed\")\n\tsignature := ed25519.Sign(privateKey, message)\n\tfmt.Println(ed25519.Verify(wrongPublic, message, signature))\n}\n",
+      "expected": "true",
+      "solution": "package main\n\nimport (\n\t\"crypto/ed25519\"\n\t\"crypto/rand\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tpublicKey, privateKey, _ := ed25519.GenerateKey(rand.Reader)\n\tmessage := []byte(\"signed\")\n\tsignature := ed25519.Sign(privateKey, message)\n\tfmt.Println(ed25519.Verify(publicKey, message, signature))\n}\n"
+    },
+    {
+      "id": "cryptography-11-01-rsa",
+      "chapter": "Chapter 11 · RSA",
+      "title": "RSA",
+      "instruction": "An RSA public key contains the modulus n and public exponent e; the private exponent d must remain secret. Complete the component labels before studying the arithmetic.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tpublicParts := \"n\"\n\tprivatePart := \"e\"\n\tfmt.Printf(\"public=%s private=%s\\n\", publicParts, privatePart)\n}\n",
+      "expected": "public=n,e private=d",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tpublicParts := \"n,e\"\n\tprivatePart := \"d\"\n\tfmt.Printf(\"public=%s private=%s\\n\", publicParts, privatePart)\n}\n"
+    },
+    {
+      "id": "cryptography-11-02-rsa-vs-ecc",
+      "chapter": "Chapter 11 · RSA",
+      "title": "RSA vs. Elliptic-Curve Cryptography",
+      "instruction": "RSA and elliptic-curve systems use different mathematics and key representations; byte lengths are not directly comparable security measures. Record a common 2048-bit RSA modulus beside Ed25519's 32-byte public key.",
+      "starter": "package main\n\nimport (\n\t\"crypto/ed25519\"\n\t\"fmt\"\n)\n\nfunc main() {\n\trsaModulusBits := 1024\n\tfmt.Println(rsaModulusBits, ed25519.PublicKeySize)\n}\n",
+      "expected": "2048 32",
+      "solution": "package main\n\nimport (\n\t\"crypto/ed25519\"\n\t\"fmt\"\n)\n\nfunc main() {\n\trsaModulusBits := 2048\n\tfmt.Println(rsaModulusBits, ed25519.PublicKeySize)\n}\n"
+    },
+    {
+      "id": "cryptography-11-03-rsa-key-generation",
+      "chapter": "Chapter 11 · RSA",
+      "title": "RSA Key Generation",
+      "instruction": "Generate RSA keys with crypto/rand and validate them; never choose primes by hand. Use a 2048-bit modulus for this exercise and prefer protocol-specific modern guidance in production.",
+      "starter": "package main\n\nimport (\n\t\"crypto/rand\"\n\t\"crypto/rsa\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tkey, err := rsa.GenerateKey(rand.Reader, 1024)\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Println(key.N.BitLen() >= 2048, key.Validate() == nil)\n}\n",
+      "expected": "true true",
+      "solution": "package main\n\nimport (\n\t\"crypto/rand\"\n\t\"crypto/rsa\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tkey, err := rsa.GenerateKey(rand.Reader, 2048)\n\tif err != nil {\n\t\tpanic(err)\n\t}\n\tfmt.Println(key.N.BitLen() >= 2048, key.Validate() == nil)\n}\n"
+    },
+    {
+      "id": "cryptography-11-04-totient-and-e",
+      "chapter": "Chapter 11 · RSA",
+      "title": "Totient and E",
+      "instruction": "In textbook RSA arithmetic, φ(n)=(p−1)(q−1), and e must be coprime with φ(n). Use e=17 for the classic tiny p=61, q=53 example. These numbers are educational only.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc gcd(a, b int) int {\n\tfor b != 0 {\n\t\ta, b = b, a%b\n\t}\n\treturn a\n}\n\nfunc main() {\n\tp, q, e := 61, 53, 18\n\tphi := (p - 1) * (q - 1)\n\tfmt.Println(phi, gcd(e, phi))\n}\n",
+      "expected": "3120 1",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc gcd(a, b int) int {\n\tfor b != 0 {\n\t\ta, b = b, a%b\n\t}\n\treturn a\n}\n\nfunc main() {\n\tp, q, e := 61, 53, 17\n\tphi := (p - 1) * (q - 1)\n\tfmt.Println(phi, gcd(e, phi))\n}\n"
+    },
+    {
+      "id": "cryptography-11-05-modular-arithmetic",
+      "chapter": "Chapter 11 · RSA",
+      "title": "Modular Exponentiation",
+      "instruction": "RSA computes powers modulo n without constructing the enormous full power. Finish square-and-multiply for 65^17 mod 3233. This is textbook arithmetic, not padded RSA encryption.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc modPow(base, exponent, modulus int) int {\n\tresult := 1\n\tfor exponent > 0 {\n\t\tif exponent%2 == 1 {\n\t\t\tresult = result * base\n\t\t}\n\t\tbase = base * base\n\t\texponent /= 2\n\t}\n\treturn result\n}\n\nfunc main() {\n\tfmt.Println(modPow(65, 17, 3233))\n}\n",
+      "expected": "2790",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc modPow(base, exponent, modulus int) int {\n\tresult := 1\n\tbase %= modulus\n\tfor exponent > 0 {\n\t\tif exponent%2 == 1 {\n\t\t\tresult = result * base % modulus\n\t\t}\n\t\tbase = base * base % modulus\n\t\texponent /= 2\n\t}\n\treturn result\n}\n\nfunc main() {\n\tfmt.Println(modPow(65, 17, 3233))\n}\n"
+    },
+    {
+      "id": "cryptography-11-06-modular-arithmetic",
+      "chapter": "Chapter 11 · RSA",
+      "title": "Modular Congruence",
+      "instruction": "Two integers are congruent modulo n when they leave the same remainder. Check that 35 and 11 are congruent modulo 12.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\ta, b, modulus := 35, 11, 10\n\tfmt.Println(a%modulus == b%modulus)\n}\n",
+      "expected": "true",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\ta, b, modulus := 35, 11, 12\n\tfmt.Println(a%modulus == b%modulus)\n}\n"
+    },
+    {
+      "id": "cryptography-11-07-encryption",
+      "chapter": "Chapter 11 · RSA",
+      "title": "RSA-OAEP Encryption",
+      "instruction": "Practical RSA encryption requires randomized padding. Encrypt with OAEP and decrypt with the same hash and context label; do not use textbook RSA or PKCS #1 v1.5 encryption for new designs.",
+      "starter": "package main\n\nimport (\n\t\"bytes\"\n\t\"crypto/rand\"\n\t\"crypto/rsa\"\n\t\"crypto/sha256\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tkey, _ := rsa.GenerateKey(rand.Reader, 2048)\n\tmessage := []byte(\"session key\")\n\tciphertext, _ := rsa.EncryptOAEP(sha256.New(), rand.Reader, &key.PublicKey, message, []byte(\"course\"))\n\tplaintext, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, key, ciphertext, []byte(\"wrong\"))\n\tfmt.Println(err == nil && bytes.Equal(plaintext, message))\n}\n",
+      "expected": "true",
+      "solution": "package main\n\nimport (\n\t\"bytes\"\n\t\"crypto/rand\"\n\t\"crypto/rsa\"\n\t\"crypto/sha256\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tkey, _ := rsa.GenerateKey(rand.Reader, 2048)\n\tmessage := []byte(\"session key\")\n\tlabel := []byte(\"course\")\n\tciphertext, _ := rsa.EncryptOAEP(sha256.New(), rand.Reader, &key.PublicKey, message, label)\n\tplaintext, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, key, ciphertext, label)\n\tfmt.Println(err == nil && bytes.Equal(plaintext, message))\n}\n"
+    },
+    {
+      "id": "cryptography-11-08-multiplicative-inverse",
+      "chapter": "Chapter 11 · RSA",
+      "title": "Multiplicative Inverse",
+      "instruction": "The private exponent d is the multiplicative inverse of e modulo φ(n). Search the full toy range to find the inverse of 17 modulo 3120; real libraries derive this internally.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc inverse(value, modulus int) int {\n\tfor candidate := 1; candidate < 100; candidate++ {\n\t\tif value*candidate%modulus == 1 {\n\t\t\treturn candidate\n\t\t}\n\t}\n\treturn 0\n}\n\nfunc main() {\n\tfmt.Println(inverse(17, 3120))\n}\n",
+      "expected": "2753",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc inverse(value, modulus int) int {\n\tfor candidate := 1; candidate < modulus; candidate++ {\n\t\tif value*candidate%modulus == 1 {\n\t\t\treturn candidate\n\t\t}\n\t}\n\treturn 0\n}\n\nfunc main() {\n\tfmt.Println(inverse(17, 3120))\n}\n"
+    },
+    {
+      "id": "cryptography-11-09-private-key",
+      "chapter": "Chapter 11 · RSA",
+      "title": "Private Key",
+      "instruction": "The toy exponents must satisfy e·d ≡ 1 mod φ(n). Set d to the derived private exponent and confirm the relationship. Never log or expose a real private exponent or prime factors.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\te, d, phi := 17, 17, 3120\n\tfmt.Println(e*d%phi == 1)\n}\n",
+      "expected": "true",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\te, d, phi := 17, 2753, 3120\n\tfmt.Println(e*d%phi == 1)\n}\n"
+    },
+    {
+      "id": "cryptography-11-10-decryption",
+      "chapter": "Chapter 11 · RSA",
+      "title": "Textbook RSA Decryption",
+      "instruction": "For the tiny teaching key, decryption computes c^d mod n. Use d=2753 to recover numeric message 65 from ciphertext 2790. Real applications must use RSA-OAEP instead of this unpadded operation.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc modPow(base, exponent, modulus int) int {\n\tresult := 1\n\tfor exponent > 0 {\n\t\tif exponent%2 == 1 {\n\t\t\tresult = result * base % modulus\n\t\t}\n\t\tbase = base * base % modulus\n\t\texponent /= 2\n\t}\n\treturn result\n}\n\nfunc main() {\n\tfmt.Println(modPow(2790, 17, 3233))\n}\n",
+      "expected": "65",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc modPow(base, exponent, modulus int) int {\n\tresult := 1\n\tfor exponent > 0 {\n\t\tif exponent%2 == 1 {\n\t\t\tresult = result * base % modulus\n\t\t}\n\t\tbase = base * base % modulus\n\t\texponent /= 2\n\t}\n\treturn result\n}\n\nfunc main() {\n\tfmt.Println(modPow(2790, 2753, 3233))\n}\n"
+    },
+    {
+      "id": "cryptography-11-11-encryption-and-decryption-explained",
+      "chapter": "Chapter 11 · RSA",
+      "title": "RSA-OAEP Round Trip",
+      "instruction": "OAEP randomness makes two encryptions of the same message differ, while either can still decrypt with the private key. Confirm both properties with Go's RSA implementation.",
+      "starter": "package main\n\nimport (\n\t\"bytes\"\n\t\"crypto/rand\"\n\t\"crypto/rsa\"\n\t\"crypto/sha256\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tkey, _ := rsa.GenerateKey(rand.Reader, 2048)\n\tmessage := []byte(\"payload\")\n\tc1, _ := rsa.EncryptOAEP(sha256.New(), rand.Reader, &key.PublicKey, message, nil)\n\tc2, _ := rsa.EncryptOAEP(sha256.New(), rand.Reader, &key.PublicKey, message, nil)\n\tplaintext, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, key, c1, nil)\n\tdifferent := bytes.Equal(c1, c2)\n\tfmt.Println(different, err == nil && bytes.Equal(plaintext, message))\n}\n",
+      "expected": "true true",
+      "solution": "package main\n\nimport (\n\t\"bytes\"\n\t\"crypto/rand\"\n\t\"crypto/rsa\"\n\t\"crypto/sha256\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tkey, _ := rsa.GenerateKey(rand.Reader, 2048)\n\tmessage := []byte(\"payload\")\n\tc1, _ := rsa.EncryptOAEP(sha256.New(), rand.Reader, &key.PublicKey, message, nil)\n\tc2, _ := rsa.EncryptOAEP(sha256.New(), rand.Reader, &key.PublicKey, message, nil)\n\tplaintext, err := rsa.DecryptOAEP(sha256.New(), rand.Reader, key, c1, nil)\n\tdifferent := !bytes.Equal(c1, c2)\n\tfmt.Println(different, err == nil && bytes.Equal(plaintext, message))\n}\n"
+    },
+    {
+      "id": "cryptography-12-01-hash-functions",
+      "chapter": "Chapter 12 · Hash Functions",
+      "title": "Hash Functions",
+      "instruction": "A cryptographic hash maps any message to a fixed-size digest. Hash \"drillbox\" with SHA-256 and print the digest length; a digest identifies content but does not conceal it.",
+      "starter": "package main\n\nimport (\n\t\"crypto/sha256\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tdigest := sha256.Sum256(nil)\n\twant := sha256.Sum256([]byte(\"drillbox\"))\n\tfmt.Println(len(digest), digest == want)\n}\n",
+      "expected": "32 true",
+      "solution": "package main\n\nimport (\n\t\"crypto/sha256\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tdigest := sha256.Sum256([]byte(\"drillbox\"))\n\twant := sha256.Sum256([]byte(\"drillbox\"))\n\tfmt.Println(len(digest), digest == want)\n}\n"
+    },
+    {
+      "id": "cryptography-12-02-hash-collisions",
+      "chapter": "Chapter 12 · Hash Functions",
+      "title": "Hash Collisions",
+      "instruction": "A collision is two different inputs with the same digest. Use the deliberately weak sum-mod-10 hash to show that \"ab\" and \"ba\" collide; real systems need collision-resistant hashes.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc toyHash(value string) int {\n\ttotal := 0\n\tfor _, b := range []byte(value) {\n\t\ttotal += int(b)\n\t}\n\treturn total % 10\n}\n\nfunc main() {\n\ta, b := \"ab\", \"ac\"\n\tfmt.Println(a != b && toyHash(a) == toyHash(b))\n}\n",
+      "expected": "true",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc toyHash(value string) int {\n\ttotal := 0\n\tfor _, b := range []byte(value) {\n\t\ttotal += int(b)\n\t}\n\treturn total % 10\n}\n\nfunc main() {\n\ta, b := \"ab\", \"ba\"\n\tfmt.Println(a != b && toyHash(a) == toyHash(b))\n}\n"
+    },
+    {
+      "id": "cryptography-12-03-hashmaps",
+      "chapter": "Chapter 12 · Hash Functions",
+      "title": "Hashmaps",
+      "instruction": "Go maps use hashes internally for comparable keys, but their iteration order is unspecified. Look up the digest name directly instead of depending on map order.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tdigests := map[string]int{\"sha256\": 32, \"sha512\": 64}\n\tfmt.Println(digests[\"md5\"])\n}\n",
+      "expected": "32",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tdigests := map[string]int{\"sha256\": 32, \"sha512\": 64}\n\tfmt.Println(digests[\"sha256\"])\n}\n"
+    },
+    {
+      "id": "cryptography-12-04-deterministic",
+      "chapter": "Chapter 12 · Hash Functions",
+      "title": "Deterministic",
+      "instruction": "The same hash algorithm and bytes always produce the same digest. Hash identical messages twice and compare the fixed-size arrays directly.",
+      "starter": "package main\n\nimport (\n\t\"crypto/sha256\"\n\t\"fmt\"\n)\n\nfunc main() {\n\ta := sha256.Sum256([]byte(\"same\"))\n\tb := sha256.Sum256([]byte(\"different\"))\n\tfmt.Println(a == b)\n}\n",
+      "expected": "true",
+      "solution": "package main\n\nimport (\n\t\"crypto/sha256\"\n\t\"fmt\"\n)\n\nfunc main() {\n\ta := sha256.Sum256([]byte(\"same\"))\n\tb := sha256.Sum256([]byte(\"same\"))\n\tfmt.Println(a == b)\n}\n"
+    },
+    {
+      "id": "cryptography-12-05-one-way",
+      "chapter": "Chapter 12 · Hash Functions",
+      "title": "One Way",
+      "instruction": "Cryptographic hashes are designed to resist recovering an input from its digest. Verify a candidate by hashing it and comparing digests; there is no decrypt operation.",
+      "starter": "package main\n\nimport (\n\t\"crypto/sha256\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tstored := sha256.Sum256([]byte(\"correct horse\"))\n\tcandidate := sha256.Sum256([]byte(\"wrong\"))\n\tfmt.Println(stored == candidate)\n}\n",
+      "expected": "true",
+      "solution": "package main\n\nimport (\n\t\"crypto/sha256\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tstored := sha256.Sum256([]byte(\"correct horse\"))\n\tcandidate := sha256.Sum256([]byte(\"correct horse\"))\n\tfmt.Println(stored == candidate)\n}\n"
+    },
+    {
+      "id": "cryptography-12-06-toy-hash-function",
+      "chapter": "Chapter 12 · Hash Functions",
+      "title": "Toy Hash Function",
+      "instruction": "Implement a tiny byte-sum hash to see compression and collisions firsthand. Return the sum modulo 256 for \"abc\"; never use this construction for security.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc toyHash(value []byte) byte {\n\tvar sum byte\n\treturn sum\n}\n\nfunc main() {\n\tfmt.Println(toyHash([]byte(\"abc\")))\n}\n",
+      "expected": "38",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc toyHash(value []byte) byte {\n\tvar sum byte\n\tfor _, b := range value {\n\t\tsum += b\n\t}\n\treturn sum\n}\n\nfunc main() {\n\tfmt.Println(toyHash([]byte(\"abc\")))\n}\n"
+    },
+    {
+      "id": "cryptography-12-07-toy-hash-review",
+      "chapter": "Chapter 12 · Hash Functions",
+      "title": "Toy Hash Review",
+      "instruction": "A useful cryptographic hash changes drastically when one input bit changes. Confirm SHA-256 gives different digests for nearby messages; the earlier byte-sum toy does not provide this avalanche behavior.",
+      "starter": "package main\n\nimport (\n\t\"crypto/sha256\"\n\t\"fmt\"\n)\n\nfunc main() {\n\ta := sha256.Sum256([]byte(\"lesson\"))\n\tb := sha256.Sum256([]byte(\"lesson\"))\n\tfmt.Println(a != b)\n}\n",
+      "expected": "true",
+      "solution": "package main\n\nimport (\n\t\"crypto/sha256\"\n\t\"fmt\"\n)\n\nfunc main() {\n\ta := sha256.Sum256([]byte(\"lesson\"))\n\tb := sha256.Sum256([]byte(\"less0n\"))\n\tfmt.Println(a != b)\n}\n"
+    },
+    {
+      "id": "cryptography-13-01-what-is-a-message-integrity",
+      "chapter": "Chapter 13 · Digital Signatures",
+      "title": "What Is Message Integrity?",
+      "instruction": "Integrity means detecting unauthorized changes; authenticity means knowing who produced the message. A plain hash can detect accidental changes only when its trusted expected digest arrives separately.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tplainHashAuthenticatesSender := true\n\tfmt.Println(plainHashAuthenticatesSender)\n}\n",
+      "expected": "false",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tplainHashAuthenticatesSender := false\n\tfmt.Println(plainHashAuthenticatesSender)\n}\n"
+    },
+    {
+      "id": "cryptography-13-02-message-authentication-code-mac",
+      "chapter": "Chapter 13 · Digital Signatures",
+      "title": "Message Authentication Code (MAC)",
+      "instruction": "A MAC combines a secret key with a message so parties sharing the key can detect tampering and authenticate the sender as a key holder. Create an HMAC-SHA-256 tag.",
+      "starter": "package main\n\nimport (\n\t\"crypto/hmac\"\n\t\"crypto/sha512\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tmac := hmac.New(sha512.New, []byte(\"shared secret\"))\n\tmac.Write([]byte(\"deploy\"))\n\tfmt.Println(len(mac.Sum(nil)))\n}\n",
+      "expected": "32",
+      "solution": "package main\n\nimport (\n\t\"crypto/hmac\"\n\t\"crypto/sha256\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tmac := hmac.New(sha256.New, []byte(\"shared secret\"))\n\tmac.Write([]byte(\"deploy\"))\n\tfmt.Println(len(mac.Sum(nil)))\n}\n"
+    },
+    {
+      "id": "cryptography-13-03-message-authentication-code-mac",
+      "chapter": "Chapter 13 · Digital Signatures",
+      "title": "Verify a MAC",
+      "instruction": "Recompute a tag with the same key and compare it with hmac.Equal, which avoids timing-sensitive byte-by-byte comparisons. Verify the original message, not a modified one.",
+      "starter": "package main\n\nimport (\n\t\"crypto/hmac\"\n\t\"crypto/sha256\"\n\t\"fmt\"\n)\n\nfunc tag(message []byte) []byte {\n\tmac := hmac.New(sha256.New, []byte(\"key\"))\n\tmac.Write(message)\n\treturn mac.Sum(nil)\n}\n\nfunc main() {\n\twant := tag([]byte(\"amount=10\"))\n\tfmt.Println(hmac.Equal(want, tag([]byte(\"amount=90\"))))\n}\n",
+      "expected": "true",
+      "solution": "package main\n\nimport (\n\t\"crypto/hmac\"\n\t\"crypto/sha256\"\n\t\"fmt\"\n)\n\nfunc tag(message []byte) []byte {\n\tmac := hmac.New(sha256.New, []byte(\"key\"))\n\tmac.Write(message)\n\treturn mac.Sum(nil)\n}\n\nfunc main() {\n\twant := tag([]byte(\"amount=10\"))\n\tfmt.Println(hmac.Equal(want, tag([]byte(\"amount=10\"))))\n}\n"
+    },
+    {
+      "id": "cryptography-13-04-hash-based-message-authentication-code",
+      "chapter": "Chapter 13 · Digital Signatures",
+      "title": "Hash-Based Message Authentication Code",
+      "instruction": "HMAC safely combines a cryptographic hash with a key; simply prepending a secret to a message is not a replacement. Check that HMAC-SHA-256 reports a 32-byte tag size.",
+      "starter": "package main\n\nimport (\n\t\"crypto/hmac\"\n\t\"crypto/sha512\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tmac := hmac.New(sha512.New, []byte(\"key\"))\n\tfmt.Println(mac.Size())\n}\n",
+      "expected": "32",
+      "solution": "package main\n\nimport (\n\t\"crypto/hmac\"\n\t\"crypto/sha256\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tmac := hmac.New(sha256.New, []byte(\"key\"))\n\tfmt.Println(mac.Size())\n}\n"
+    },
+    {
+      "id": "cryptography-13-05-toy-hmac",
+      "chapter": "Chapter 13 · Digital Signatures",
+      "title": "Toy HMAC",
+      "instruction": "Use Go's HMAC construction rather than inventing one. Produce a tag for a message, then verify it with the same key and hmac.Equal.",
+      "starter": "package main\n\nimport (\n\t\"crypto/hmac\"\n\t\"crypto/sha256\"\n\t\"fmt\"\n)\n\nfunc sign(key, message []byte) []byte {\n\tmac := hmac.New(sha256.New, key)\n\tmac.Write(message)\n\treturn mac.Sum(nil)\n}\n\nfunc main() {\n\ttag := sign([]byte(\"key\"), []byte(\"message\"))\n\tfmt.Println(hmac.Equal(tag, sign([]byte(\"other\"), []byte(\"message\"))))\n}\n",
+      "expected": "true",
+      "solution": "package main\n\nimport (\n\t\"crypto/hmac\"\n\t\"crypto/sha256\"\n\t\"fmt\"\n)\n\nfunc sign(key, message []byte) []byte {\n\tmac := hmac.New(sha256.New, key)\n\tmac.Write(message)\n\treturn mac.Sum(nil)\n}\n\nfunc main() {\n\tkey, message := []byte(\"key\"), []byte(\"message\")\n\ttag := sign(key, message)\n\tfmt.Println(hmac.Equal(tag, sign(key, message)))\n}\n"
+    },
+    {
+      "id": "cryptography-13-06-macs-and-jwts",
+      "chapter": "Chapter 13 · Digital Signatures",
+      "title": "MACs and JWTs",
+      "instruction": "An HS256 JWT uses HMAC-SHA-256: every verifier needs the same secret and can therefore mint tokens too. JWT payloads are encoded, not encrypted.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tverifierCanSign := false\n\tpayloadIsEncrypted := true\n\tfmt.Println(verifierCanSign, payloadIsEncrypted)\n}\n",
+      "expected": "true false",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tverifierCanSign := true\n\tpayloadIsEncrypted := false\n\tfmt.Println(verifierCanSign, payloadIsEncrypted)\n}\n"
+    },
+    {
+      "id": "cryptography-13-07-asymmetric-jwts",
+      "chapter": "Chapter 13 · Digital Signatures",
+      "title": "Asymmetric JWTs",
+      "instruction": "With an asymmetric JWT algorithm, the issuer signs with a private key while services verify with a public key. That separation lets verifiers validate tokens without gaining signing authority.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tsignWith, verifyWith := \"public\", \"private\"\n\tfmt.Printf(\"sign=%s verify=%s\\n\", signWith, verifyWith)\n}\n",
+      "expected": "sign=private verify=public",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tsignWith, verifyWith := \"private\", \"public\"\n\tfmt.Printf(\"sign=%s verify=%s\\n\", signWith, verifyWith)\n}\n"
+    },
+    {
+      "id": "cryptography-13-08-asymmetric-jwt-review",
+      "chapter": "Chapter 13 · Digital Signatures",
+      "title": "Asymmetric JWT Review",
+      "instruction": "A signature covers the exact bytes that were signed. Sign a token-like payload with Ed25519 and confirm that changing the role makes verification fail.",
+      "starter": "package main\n\nimport (\n\t\"crypto/ed25519\"\n\t\"crypto/rand\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tpublicKey, privateKey, _ := ed25519.GenerateKey(rand.Reader)\n\tsignature := ed25519.Sign(privateKey, []byte(\"role=user\"))\n\tfmt.Println(ed25519.Verify(publicKey, []byte(\"role=user\"), signature))\n}\n",
+      "expected": "false",
+      "solution": "package main\n\nimport (\n\t\"crypto/ed25519\"\n\t\"crypto/rand\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tpublicKey, privateKey, _ := ed25519.GenerateKey(rand.Reader)\n\tsignature := ed25519.Sign(privateKey, []byte(\"role=user\"))\n\tfmt.Println(ed25519.Verify(publicKey, []byte(\"role=admin\"), signature))\n}\n"
+    },
+    {
+      "id": "cryptography-14-01-key-derivation-functions",
+      "chapter": "Chapter 14 · KDFs",
+      "title": "Key Derivation Functions",
+      "instruction": "A KDF derives fixed-size key material from an input secret plus parameters such as a salt and context. Password KDFs also add memory or CPU cost; a plain fast hash is not enough.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tinputs := []string{\"password\"}\n\tfmt.Println(inputs)\n}\n",
+      "expected": "[password salt parameters]",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tinputs := []string{\"password\", \"salt\", \"parameters\"}\n\tfmt.Println(inputs)\n}\n"
+    },
+    {
+      "id": "cryptography-14-02-argon2-storing-passwords",
+      "chapter": "Chapter 14 · KDFs",
+      "title": "Argon2 – Storing Passwords",
+      "instruction": "Store a password verifier, never the password. Argon2id PHC strings record the algorithm, version, cost parameters, salt, and derived hash so verification can reproduce the work.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tencoded := \"sha256$hash\"\n\tfmt.Println(strings.HasPrefix(encoded, \"$argon2id$\"))\n}\n",
+      "expected": "true",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tencoded := \"$argon2id$v=19$m=65536,t=3,p=1$c2FsdA$aGFzaA\"\n\tfmt.Println(strings.HasPrefix(encoded, \"$argon2id$\"))\n}\n"
+    },
+    {
+      "id": "cryptography-14-03-argon2-phc-review",
+      "chapter": "Chapter 14 · KDFs",
+      "title": "Argon2 PHC Review",
+      "instruction": "A PHC-formatted Argon2id verifier is self-describing. Split one into fields and identify its algorithm and parameter section; the salt and hash remain encoded data, not secrets.",
+      "starter": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tparts := strings.Split(\"$argon2id$v=19$m=65536,t=3,p=1$salt$hash\", \"$\")\n\tfmt.Println(parts[2], parts[1])\n}\n",
+      "expected": "argon2id m=65536,t=3,p=1",
+      "solution": "package main\n\nimport (\n\t\"fmt\"\n\t\"strings\"\n)\n\nfunc main() {\n\tparts := strings.Split(\"$argon2id$v=19$m=65536,t=3,p=1$salt$hash\", \"$\")\n\tfmt.Println(parts[1], parts[3])\n}\n"
+    },
+    {
+      "id": "cryptography-14-04-salts",
+      "chapter": "Chapter 14 · KDFs",
+      "title": "Salts",
+      "instruction": "Generate a fresh random salt for every password. Salts need not be secret; uniqueness prevents identical passwords from sharing verifiers and defeats reusable precomputed tables.",
+      "starter": "package main\n\nimport (\n\t\"bytes\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tsaltA := []byte(\"same salt\")\n\tsaltB := []byte(\"same salt\")\n\tfmt.Println(!bytes.Equal(saltA, saltB))\n}\n",
+      "expected": "true",
+      "solution": "package main\n\nimport (\n\t\"bytes\"\n\t\"crypto/rand\"\n\t\"fmt\"\n)\n\nfunc main() {\n\tsaltA := make([]byte, 16)\n\tsaltB := make([]byte, 16)\n\t_, _ = rand.Read(saltA)\n\t_, _ = rand.Read(saltB)\n\tfmt.Println(!bytes.Equal(saltA, saltB))\n}\n"
+    },
+    {
+      "id": "cryptography-14-05-why-are-kdfs-slow",
+      "chapter": "Chapter 14 · KDFs",
+      "title": "Why Are KDFs Slow?",
+      "instruction": "Password KDFs deliberately make each guess costly, slowing offline attackers as well as legitimate verification. Tune cost on production hardware and increase it over time; do not add arbitrary sleeps.",
+      "starter": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfastHashSuitableForPasswords := true\n\tattackerPaysCostPerGuess := false\n\tfmt.Println(fastHashSuitableForPasswords, attackerPaysCostPerGuess)\n}\n",
+      "expected": "false true",
+      "solution": "package main\n\nimport \"fmt\"\n\nfunc main() {\n\tfastHashSuitableForPasswords := false\n\tattackerPaysCostPerGuess := true\n\tfmt.Println(fastHashSuitableForPasswords, attackerPaysCostPerGuess)\n}\n"
+    }
+  ]
+}
